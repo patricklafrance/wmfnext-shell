@@ -1,0 +1,1 @@
+# wmfnext-console-logger

@@ -1,0 +1,10 @@
+{
+  "npmClient": "yarn",
+  "useWorkspaces": true,
+  "version": "independent",
+  "command": {
+    "version": {
+        "ignoreChanges": ["**/*.md*", "**/*.json", "**/*.config.js", "**/*rc*", "**/dist/**", "**/scripts/**"]
+    }
+}
+}

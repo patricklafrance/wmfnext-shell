@@ -1,0 +1,34 @@
+{
+  "name": "wmfnext-shell",
+  "version": "0.0.1",
+  "author": "Patrick Lafrance",
+  "license": "Apache-2.0",
+  "repository": "",
+  "type": "module",
+  "browser": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prebuild": "yarn clean",
+    "build": "tsc --build ./tsconfig.build.json",
+    "dev": "tsc --watch --project ./tsconfig.build.json",
+    "clean": "run-p clear-dist clear-ts-cache",
+    "clear-dist": "node ../../scripts/clear-dir dist",
+    "clear-ts-cache": "yarn rimraf *.tsbuildinfo",
+    "create-dist": "node ../../scripts/create-dir dist",
+    "postinstall": "yarn create-dist"
+  },
+  "peerDependencies": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-router-dom": "6.4.5"
+  },
+  "dependencies": {
+    "eventemitter3": "5.0.0"
+  }
+}

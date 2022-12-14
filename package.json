@@ -1,0 +1,60 @@
+{
+  "name": "root",
+  "version": "0.0.0",
+  "private": true,
+  "author": "Patrick Lafrance",
+  "license": "Apache-2.0",
+  "repository": "",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=19"
+  },
+  "scripts": {
+    "build": "run-s clear:ts-cache build-pkg",
+    "build-pkg": "lerna run build --parallel",
+    "dev": "lerna run dev --parallel",
+    "dev-core": "cd packages/core && yarn dev",
+    "check-types": "yarn clear:ts-cache && tsc",
+    "clean": "run-p -c clear:*",
+    "clear:pkg": "lerna run clean --parallel",
+    "clear:ts-cache": "rimraf **/*.tsbuildinfo",
+    "delete-node-modules": "run-s -c delete-node-modules:pkg delete-node-modules:root",
+    "delete-node-modules:pkg": "lerna clean --yes",
+    "delete-node-modules:root": "rimraf node_modules",
+    "delete-yarn-lock": "rimraf yarn.lock",
+    "eslint": "eslint --ext .js,.ts packages --max-warnings=-1",
+    "eslint-fix": "eslint --ext .js,.ts . --fix",
+    "force-new-version": "yarn new-version --force-publish=*",
+    "lint": "run-s eslint check-types",
+    "new-version": "lerna version --exact --no-push --loglevel verbose",
+    "publish-pkg": "lerna publish from-package --exact --loglevel verbose",
+    "push-release": "node ./scripts/push-release",
+    "release": "cross-env NODE_ENV=production run-s build-pkg publish-pkg",
+    "reset": "run-s -c clean delete-yarn-lock delete-node-modules"
+  },
+  "devDependencies": {
+    "@sharegate/eslint-config-react": "4.0.0",
+    "@sharegate/eslint-config-recommended": "2.0.0",
+    "@sharegate/eslint-config-typescript": "3.0.0",
+    "@types/react": "18.0.26",
+    "@types/react-dom": "18.0.9",
+    "@typescript-eslint/parser": "5.46.1",
+    "browserslist": "4.21.4",
+    "chalk": "5.2.0",
+    "cross-env": "7.0.3",
+    "eventemitter3": "5.0.0",
+    "eslint": "8.29.0",
+    "lerna": "6.1.0",
+    "meow": "11.0.0",
+    "npm-run-all": "4.1.5",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-router-dom": "6.4.5",
+    "rimraf": "3.0.2",
+    "shelljs": "0.8.5",
+    "typescript": "4.9.4"
+  }
+}
