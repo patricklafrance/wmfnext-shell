@@ -1,11 +1,8 @@
 {
     "extends": "../../tsconfig.build.json",
     "compilerOptions": {
-        "composite": true,
+        // Otherwise the generated typings files will be create next to their source code files instead of the "dist" folder
         "rootDir": "./src",
         "outDir": "./dist"
-    },
-    "include": [
-        "src/**/*"
-    ]
+    }
 }

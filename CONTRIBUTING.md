@@ -88,7 +88,7 @@ Releasing the packages includes several steps:
 
 Fortunately, this is all automated with a few commands!
 
-Before you release, make sure you are in the `master` branch, have **write access** to every selected npm packages and that you are [logged in to npm](https://docs.npmjs.com/logging-in-to-an-npm-enterprise-registry-from-the-command-line).
+Before you release, make sure you are in the `master` branch, have **write access** to every selected npm packages and that you are [logged in to npm](https://docs.npmjs.com/cli/v9/commands/npm-login).
 
 To release, open a terminal at the root of the workspace and execute the following commands:
 
@@ -333,4 +333,4 @@ In a terminal, use the followings commands
 - To list the available updates, type `npx --yes npm-check-updates`
 - If you want to proceed with the updates, your must first delete `yarn.lock`
 - Then type `npx --yes npm-check-updates -u` to bump the versions in the `package.json` file
-- Install the new packages with `yarn update`
+- Install the new packages with `yarn install`

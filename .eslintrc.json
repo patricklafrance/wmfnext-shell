@@ -1,19 +1,30 @@
 {
     "root": true,
     "extends": [
-        "@sharegate/eslint-config-recommended",
-        "@sharegate/eslint-config-react",
-        "@sharegate/eslint-config-typescript"
+        "@sharegate/eslint-config-recommended"
     ],
+    "parser": "@typescript-eslint/parser",
     "parserOptions": {
-        "ecmaVersion": 2018
+        "ecmaVersion": "latest"
     },
     "env": {
-        "browser": true,
-        "es6": true,
         "node": true
     },
-    "rules": {
-        "react/jsx-filename-extension": [1, { "extensions": [".ts", ".tsx"] }]
-    }
+    "overrides": [
+        {
+            "files": ["*.tsx"],
+            "extends": [
+                "@sharegate/eslint-config-react"
+            ],
+            "rules": {
+                "react/jsx-filename-extension": [1, { "extensions": [".ts", ".tsx"] }]
+            }
+        },
+        {
+            "files": ["*.ts?(x)"],
+            "extends":[
+                "@sharegate/eslint-config-typescript"
+            ]
+        }
+    ]
 }

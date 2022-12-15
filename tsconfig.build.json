@@ -4,7 +4,7 @@
         // Generate typing files.
         "noEmit": false,
         "declaration": true,
-        // Generate source maps.
+        // Generate source map.
         "sourceMap": true
     },
     "watchOptions": {
