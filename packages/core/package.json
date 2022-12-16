@@ -23,9 +23,10 @@
     "dev": "tsc --watch --project ./tsconfig.build.json"
   },
   "peerDependencies": {
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "react-router-dom": "6.4.5"
+    "react": "*",
+    "react-dom": "*",
+    "react-router-dom": "*",
+    "webpack": ">=5.0.0"
   },
   "dependencies": {
     "eventemitter3": "5.0.0"

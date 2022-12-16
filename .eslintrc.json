@@ -24,7 +24,11 @@
             "files": ["*.ts?(x)"],
             "extends":[
                 "@sharegate/eslint-config-typescript"
-            ]
+            ],
+            "rules": {
+                "@typescript-eslint/ban-ts-comment": "off",
+                "@typescript-eslint/no-explicit-any": "off"
+            }
         }
     ]
 }
