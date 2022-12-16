@@ -68,7 +68,7 @@ To start developing, [open a terminal in VSCode](https://code.visualstudio.com/d
 yarn dev
 ```
 
-To develop only the core package, use the following command instead:
+To only start the core package in development mode, use the following command instead:
 
 ```bash
 yarn dev-core

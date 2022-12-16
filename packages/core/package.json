@@ -16,12 +16,11 @@
   "scripts": {
     "prebuild": "yarn clean",
     "build": "tsc --build ./tsconfig.build.json",
-    "dev": "tsc --watch --project ./tsconfig.build.json",
-    "clean": "run-p clear-dist clear-ts-cache",
-    "clear-dist": "node ../../scripts/clear-dir dist",
-    "clear-ts-cache": "yarn rimraf *.tsbuildinfo",
+    "clean": "run-p delete-dist delete-ts-cache",
+    "delete-dist": "rimraf dist",
+    "delete-ts-cache": "rimraf *.tsbuildinfo",
     "create-dist": "node ../../scripts/create-dir dist",
-    "postinstall": "yarn create-dist"
+    "dev": "tsc --watch --project ./tsconfig.build.json"
   },
   "peerDependencies": {
     "react": "18.2.0",

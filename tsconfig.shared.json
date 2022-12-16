@@ -3,7 +3,7 @@
         // The environment that the code will be compiled for
         "target": "ES6",
         // The output module resolution system that the code will be compiled for
-        "module": "ES6",
+        "module": "ESNext",
         // Skip type checking of all declaration files
         "skipLibCheck": true,
         // Allow default imports from modules with no default export
