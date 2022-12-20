@@ -1,9 +1,12 @@
 {
+    "$schema": "https://json.schemastore.org/tsconfig",
     "compilerOptions": {
-        // The environment that the code will be compiled for
-        "target": "ES6",
+        // The output environment that the code will be compiled for
+        "target": "ESNext",
         // The output module resolution system that the code will be compiled for
         "module": "ESNext",
+        // The input module resolution system (until https://github.com/microsoft/TypeScript/issues/37582 is fixed)
+        "moduleResolution": "Node",
         // Skip type checking of all declaration files
         "skipLibCheck": true,
         // Allow default imports from modules with no default export

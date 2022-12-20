@@ -1,9 +1,9 @@
 {
-  "name": "wmfnext-shell",
+  "name": "wmfnext-remote-loader",
   "version": "0.0.1",
+  "repository": "https://github.com/patricklafrance/wmfnext-shell",
   "author": "Patrick Lafrance",
   "license": "Apache-2.0",
-  "repository": "https://github.com/patricklafrance/wmfnext-shell.git",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,11 +24,9 @@
     "setup": "yarn link"
   },
   "peerDependencies": {
-    "react": "*",
-    "react-dom": "*",
-    "react-router-dom": ">=6.4.0"
+    "webpack": ">=5.0.0"
   },
   "dependencies": {
-    "eventemitter3": "5.0.0"
+    "wmfnext-shell": "0.0.1"
   }
 }

@@ -12,7 +12,6 @@ The following documentation is only for the maintainers of this repository.
 - [Add a new Yarn script](#add-a-new-yarn-script)
 - [Updating npm packages version](#updating-npm-packages-version)
 
-
 ## Monorepo setup
 
 This repository is managed as a monorepo that is composed of many npm packages. 
@@ -152,7 +151,7 @@ To enable ESLint autofix on save, add the following configuration to your VSCode
 
 ### install
 
-Install the npm dependencies for every packages of the monorepo.
+Install the npm dependencies for every packages of the monorepo and setup the project.
 
 Depending of the packages, the setup step will perform a number of required additional installation tasks using the `postinstall` npm hook.
 
@@ -222,6 +221,14 @@ Validate the TypeScript types.
 
 ```bash
 yarn check-types
+```
+
+### setup
+
+Link local packages together, install remaining package dependencies and generate symlinks.
+
+```bash
+yarn setup
 ```
 
 ### release

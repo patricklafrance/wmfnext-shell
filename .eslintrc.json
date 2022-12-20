@@ -10,6 +10,12 @@
     "env": {
         "node": true
     },
+    "rules": {
+        "no-param-reassign": "off",
+        // Bla
+        "no-duplicate-imports": "off",
+        "import/no-duplicates": "warn"
+    },
     "overrides": [
         {
             "files": ["*.tsx"],
