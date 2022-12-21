@@ -63,6 +63,7 @@ First, create an `App.tsx` file which will act as the entry point of your React 
 
 ```tsx
 // App.tsx
+
 export function App() {
     return (
         <div>Hello world!</div>
@@ -87,6 +88,7 @@ Then, create a `bootstrap.tsx` file to render the React application. If your not
 
 ```tsx
 // bootstrap.tsx
+
 import { App } from "./App";
 import { createRoot } from "react-dom/client";
 
@@ -270,6 +272,7 @@ First, create an `App.tsx` file which will act as the entry point of your React 
 
 ```tsx
 // App.tsx
+
 export function App() {
     return (
         <div>Hello from remote!</div>
@@ -292,6 +295,7 @@ Then, create a `bootstrap.tsx` file to render the React application.
 
 ```tsx
 // bootstrap.tsx
+
 import { App } from "./App";
 import { createRoot } from "react-dom/client";
 
@@ -451,6 +455,7 @@ remote-app
 
 ```tsx
 // register.js
+
 import { ModuleRegisterFunction } from "wmfnext-shell";
 
 export const register: ModuleRegisterFunction = (runtime, { context }) => {
