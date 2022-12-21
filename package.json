@@ -15,7 +15,7 @@
   "scripts": {
     "build": "run-s delete-ts-cache build-pkg",
     "build-pkg": "lerna run build",
-    "dev": "lerna run dev",
+    "dev": "lerna run dev --parallel",
     "dev-core": "cd packages/core && yarn dev",
     "check-types": "yarn delete-ts-cache && tsc",
     "clean": "run-p -c clean:pkg delete-ts-cache",
