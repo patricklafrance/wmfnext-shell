@@ -78,7 +78,7 @@ export function App() {
 > We need this extra layer of indirection because it gives Webpack a chance to load all of the imports it needs to render the remote app.
 > Otherwise, you would see an error.
 >
-> If you're not using any remote modules loaded at runtime with Webpack Module Federation you might not need to use a `bootstrap.tsx` file.
+> If you're not using any remote modules loaded at runtime with Webpack Module Federation you don't need a `bootstrap.tsx` file.
 
 ```ts
 // host - index.ts
