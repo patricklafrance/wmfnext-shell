@@ -612,9 +612,9 @@ root.render(
 
 By using the `useFederatedRoutes()` hook we get access to all the modules routes registered in the runtime. By passing those routes to the router, they will be available in the host application.
 
-Since the `useFederatedRoutes()` hook ensure that the routes are rendered in isolation, meaning, they can't break the whole application, we now configure the home page route with `runtime.registerRoutes()` in the `boostrap.tsx` file rather than directly in the router configuration, to benefit from this isolation feature.
+Since the `useFederatedRoutes()` hook ensure that the routes are rendered in isolation, meaning, they can't break the whole application, we now configure the home page route with `runtime.registerRoutes()` in the `boostrap.tsx` file rather than directly in the router configuration to benefit from this isolation feature.
 
-The `runtime.registerRoutes()` function support the same syntax and options as React Router [createBrowserRouter](https://reactrouter.com/en/main/routers/create-browser-router). Please have a look at the library documentation to find out about the options.
+The `runtime.registerRoutes()` function support the same syntax and options as React Router [createBrowserRouter](https://reactrouter.com/en/main/routers/create-browser-router) RouteObject. Please have a look at the library documentation to find out about the options.
 
 👉 As mentionned earlier, federated routes retrieved from `useFederatedRoutes()` are isolated by default. To do so, the shell provide a default `errorElement` to every route which doesn't have one. You can override the default `errorElement` by providing a custom one on the route definition or provide a global one when calling `useFederatedRoutes()`.
 
