@@ -19,14 +19,14 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
 
 This federated application shell include the following features:
 
-- Load hosted remote modules at runtime
-- Load modules from packages at build time
-- Routing & navigation management
+- Loading of hosted remote modules at runtime
+- Loading of modules from packages at build time
+- Routing & navigation
 - User session management
 - Cross application pub/sub
-- Logging management
-- Failures isolation
-- Stubs for remote module development in isolation
+- Logging
+- Failure isolation
+- Stubs for module development in isolation
 
 ## Installation
 
