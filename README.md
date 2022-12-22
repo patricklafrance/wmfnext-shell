@@ -19,14 +19,14 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
 
 This federated application shell include the following features:
 
-- Load hosted remote modules at runtime
-- Load modules from packages at build time
-- Routing & navigation management
+- Loading of hosted remote modules at runtime
+- Loading of modules from packages at build time
+- Routing & navigation
 - User session management
 - Cross application pub/sub
-- Logging management
-- Failures isolation
-- Stubs for remote module development in isolation
+- Logging
+- Failure isolation
+- Stubs for module development in isolation
 
 ## Installation
 
@@ -50,7 +50,7 @@ To use this shell, you must create projects for an host application and a module
 
 ### Host application
 
-> A full host example is available in the Github repository [wmfnext-host](https://github.com/patricklafrance/wmfnext-host).
+> An host application example is available in the Github repository [wmfnext-host](https://github.com/patricklafrance/wmfnext-host).
 
 👉 The first thing to do is to create an host application. According to [Webpack Module Federation](https://webpack.js.org/concepts/module-federation/) best practices we'll create 3 files:
 
@@ -78,7 +78,7 @@ export function App() {
 > We need this extra layer of indirection because it gives Webpack a chance to load all of the imports it needs to render the remote app.
 > Otherwise, you would see an error.
 >
-> If you're not using any remote modules loaded at runtime with Webpack Module Federation you might not need to use a `bootstrap.tsx` file.
+> If you're not using any remote modules loaded at runtime with Webpack Module Federation you don't need a `bootstrap.tsx` file.
 
 ```ts
 // host - index.ts
@@ -195,7 +195,7 @@ module.exports = {
 
 The previous Webpack configuration is for *development only* and implies that the project is using TypeScript and transpile directly with `tsc`.
 
-👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder and with an `index.html` file must also be added at the root of the application.
+👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder with an `index.html` file must also be added at the root of the application.
 
 ```
 host-app
@@ -267,7 +267,7 @@ You can start the host application and make sure everything compile. Even though
 
 ### Remote application
 
-> A full host example is available in the Github repository [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1).
+> A remote application example is available in the Github repository [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1).
 
 It's time to create our first remote module! We'll use a file structure similar to what we used for the host application.
 
@@ -425,7 +425,7 @@ By convention, remote modules using the shell, must configure `ModuleFederationP
 }
 ```
 
-👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder and with an `index.html` file must also be added at the root of the application.
+👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder with an `index.html` file must also be added at the root of the application.
 
 ```
 remote-app
@@ -612,9 +612,9 @@ root.render(
 
 By using the `useFederatedRoutes()` hook we get access to all the modules routes registered in the runtime. By passing those routes to the router, they will be available in the host application.
 
-Since the `useFederatedRoutes()` hook ensure that the routes are rendered in isolation, meaning, they can't break the whole application, we now configure the home page route with `runtime.registerRoutes()` in the `boostrap.tsx` file rather than directly in the router configuration.
+Since the `useFederatedRoutes()` hook ensure that the routes are rendered in isolation, meaning, they can't break the whole application, we now configure the home page route with `runtime.registerRoutes()` in the `boostrap.tsx` file rather than directly in the router configuration to benefit from this isolation feature.
 
-The `runtime.registerRoutes()` function support the same syntax and options as React Router [createBrowserRouter](https://reactrouter.com/en/main/routers/create-browser-router). Please have a look at the library documentation to find out about the options.
+The `runtime.registerRoutes()` function support the same syntax and options as React Router [createBrowserRouter](https://reactrouter.com/en/main/routers/create-browser-router) RouteObject. Please have a look at the library documentation to find out about the options.
 
 👉 As mentionned earlier, federated routes retrieved from `useFederatedRoutes()` are isolated by default. To do so, the shell provide a default `errorElement` to every route which doesn't have one. You can override the default `errorElement` by providing a custom one on the route definition or provide a global one when calling `useFederatedRoutes()`.
 
