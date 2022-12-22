@@ -786,6 +786,8 @@ root.render(
 );
 ```
 
+Now you can start both applications again and try navigating between local and remote pages, everything should work.
+
 ### Override root layout from a module
 
 ### Registering a module navigation items
