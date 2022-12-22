@@ -195,7 +195,7 @@ module.exports = {
 
 The previous Webpack configuration is for *development only* and implies that the project is using TypeScript and transpile directly with `tsc`.
 
-👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder and with an `index.html` file must also be added at the root of the application.
+👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder with an `index.html` file must also be added at the root of the application.
 
 ```
 host-app
@@ -425,7 +425,7 @@ By convention, remote modules using the shell, must configure `ModuleFederationP
 }
 ```
 
-👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder and with an `index.html` file must also be added at the root of the application.
+👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder with an `index.html` file must also be added at the root of the application.
 
 ```
 remote-app
