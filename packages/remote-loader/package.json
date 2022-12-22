@@ -1,9 +1,10 @@
 {
   "name": "wmfnext-remote-loader",
   "version": "0.0.1",
-  "repository": "https://github.com/patricklafrance/wmfnext-shell",
+  "description": "Loader for remote modules using Webpack Module Federation",
   "author": "Patrick Lafrance",
   "license": "Apache-2.0",
+  "repository": "https://github.com/patricklafrance/wmfnext-shell",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

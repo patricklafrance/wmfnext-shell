@@ -1,8 +1,9 @@
+import { createContext, useContext } from "react";
+
 import { Runtime } from "./runtime";
-import { createContext } from "react";
 
-export interface RuntimeContextType {
-    runtime?: Runtime;
+export const RuntimeContext = createContext<Runtime>(undefined);
+
+export function useRuntime(): Runtime {
+    return useContext(RuntimeContext);
 }
-
-export const RuntimeContext = createContext<RuntimeContextType>(undefined);

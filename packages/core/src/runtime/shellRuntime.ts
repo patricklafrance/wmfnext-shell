@@ -1,4 +1,5 @@
 import type { Logger } from "../logging";
+import type { RouteObject } from "react-router-dom";
 import type { Runtime } from "./runtime";
 
 export interface ShellRuntimeOptions {
@@ -7,9 +8,28 @@ export interface ShellRuntimeOptions {
 
 export class ShellRuntime implements Runtime {
     private _loggers: Logger[];
+    private _routes: RouteObject[];
 
-    constructor({ loggers }: ShellRuntimeOptions = {}) {
+    constructor({ loggers = [] }: ShellRuntimeOptions = {}) {
         this._loggers = loggers;
+        this._routes = [];
+    }
+
+    registerRoutes(routes: RouteObject[]): void {
+        const newRoutes = [];
+
+        routes.forEach(x => {
+            if (x) {
+                newRoutes.push(x);
+            }
+        });
+
+        // Create a new array everytime so the routes can be memoized later on.
+        this._routes = [...this._routes, ...newRoutes];
+    }
+
+    getRoutes(): RouteObject[] {
+        return this._routes;
     }
 
     private log(action: (logger: Logger) => Promise<any>): Promise<PromiseSettledResult<any>[]> {

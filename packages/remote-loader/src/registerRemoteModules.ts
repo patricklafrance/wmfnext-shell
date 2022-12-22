@@ -30,18 +30,20 @@ export async function registerRemoteModules(remotes: RemoteDefinition[], runtime
         const containerName = x.name;
 
         try {
-            runtime.logDebug(`Loading module "${ModuleName}" from container "${containerName}" of remote "${remoteUrl}"`);
+            runtime.logDebug(`Loading module "${ModuleName}" from container "${containerName}" of remote "${remoteUrl}."`);
 
             const module = await loadRemote(remoteUrl, containerName, ModuleName);
 
             if (!module.register) {
-                throw new Error(`Register function is not available for module "${ModuleName}" of container "${containerName}" from remote "${remoteUrl}"`);
+                throw new Error(`A "register" function is not available for module "${ModuleName}" of container "${containerName}" from remote "${remoteUrl}". Make sure your remote "./register.js" file export a function named "register".`);
             }
 
-            runtime.logDebug(`Registering module "${ModuleName}" from container "${containerName}" of remote "${remoteUrl}"`);
+            runtime.logDebug(`Registering module "${ModuleName}" from container "${containerName}" of remote "${remoteUrl}."`);
 
             registerModule(module.register, runtime, { context });
         } catch (error: unknown) {
+            runtime.logError(`An error occured while registering module "${ModuleName}" from container "${containerName}" of remote "${remoteUrl}."`, error);
+
             errors.push({
                 url: remoteUrl,
                 containerName,

@@ -1,6 +1,7 @@
 {
   "name": "wmfnext-shell",
   "version": "0.0.1",
+  "description": "Shell for a federated application",
   "author": "Patrick Lafrance",
   "license": "Apache-2.0",
   "repository": "https://github.com/patricklafrance/wmfnext-shell.git",

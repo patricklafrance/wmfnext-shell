@@ -43,7 +43,7 @@ function loadRemoteScript(url: string, { timeoutDelay = 2000 }: LoadRemoteScript
 
         // Eagerly reject the loading of a script, it's too long when a remote is unavailable.
         timeoutId = setTimeout(() => {
-            cancel(new Error(`Remote script ${url} time-outed.`));
+            cancel(new Error(`Remote script "${url}" time-outed.`));
         }, timeoutDelay);
     });
 }
@@ -51,6 +51,7 @@ function loadRemoteScript(url: string, { timeoutDelay = 2000 }: LoadRemoteScript
 export type LoadRemoteOptions = LoadRemoteScriptOptions;
 
 // Implementation of https://webpack.js.org/concepts/module-federation/#dynamic-remote-containers.
+// It's done this way rather than using the managed mecanism provided with ModuleFederationPlugin config because it's doesn't throw an error if a module is not available.
 export async function loadRemote(url: string, containerName: string, moduleName: string, options: LoadRemoteOptions = {}) {
     await loadRemoteScript(url, options);
 

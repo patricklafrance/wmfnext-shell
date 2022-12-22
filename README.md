@@ -8,11 +8,11 @@ The idea behind this shell is to have an host application responsible of loading
 
 We recommend to aim for remote hosted modules loaded at runtime as it enables your teams to be fully autonomous by deploying their module independently from the other pieces of the application. Still, sometimes teams might want to gradually migrate toward this type of architecture and would prefer to extract sub domains into independent packages in a monorepos setup before going all-in with a runtime micro-frontends architecture. That's why, this shell also support loading modules from packages at build time. Dual bootstrapping setup is also supported, meaning an application could load a few remote hosted modules loaded at runtime while also loading a few other modules from packages at build time.
 
-Please have a look at the [usage section](#usage) and the [full example](#full-example) to have a better understanding of the concepts behind this shell and how to use it.
-
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Full example](#full-example)
+- [API](#api)
 - [Contributors](./CONTRIBUTING.md)
 
 ## Features
@@ -36,7 +36,7 @@ To install the package, [open a terminal in VSCode](https://code.visualstudio.co
 yarn add wmfnext-shell
 ```
 
-If you wish to include remote modules at runtime using Webpack Module Federation also execute the following command at the root of the workspace:
+If you wish to include remote modules at runtime using [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) also execute the following command at the root of the workspace:
 
 ```bash
 yarn add wmfnext-remote-loader
@@ -44,25 +44,27 @@ yarn add wmfnext-remote-loader
 
 ## Usage
 
-To use the shell, you must create projects for an host application and a remote application. In this example, we'll called them "host" and "remote.
+> If you'll prefer to skip this walkthrought and jump right into it, go directly to the [full example section](#full-example) or the [API section](#api).
+
+To use this shell, you must create projects for an host application and a module application. In this example, since we'll load a remote modules at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation), we'll called them "host" and "remote".
 
 ### Host application
 
 > A full host example is available in the Github repository [wmfnext-host](https://github.com/patricklafrance/wmfnext-host).
 
-The first thing to do is to create an host application. According to [Webpack Module Federation](https://webpack.js.org/concepts/module-federation/) best practices we'll create 3 files:
+👉 The first thing to do is to create an host application. According to [Webpack Module Federation](https://webpack.js.org/concepts/module-federation/) best practices we'll create 3 files:
 
 ```
 host-app
 ├── App.tsx
 ├── bootstrap.tsx
-└── index.tsx
+└── index.ts
 ```
 
-First, create an `App.tsx` file which will act as the entry point of your React application.
+👉 First, create an `App.tsx` file which will act as the entry point of your React application.
 
 ```tsx
-// App.tsx
+// host - App.tsx
 
 export function App() {
     return (
@@ -71,7 +73,7 @@ export function App() {
 }
 ```
 
-Then, create an `index.tsx` file which will strictly contain a dynamic import to the `bootstrap.tsx` file.
+👉 Then, create an `index.ts` file which will strictly contain a dynamic import to the `bootstrap.tsx` file.
 
 > We need this extra layer of indirection because it gives Webpack a chance to load all of the imports it needs to render the remote app.
 > Otherwise, you would see an error.
@@ -79,15 +81,15 @@ Then, create an `index.tsx` file which will strictly contain a dynamic import to
 > If you're not using any remote modules loaded at runtime with Webpack Module Federation you might not need to use a `bootstrap.tsx` file.
 
 ```ts
-// index.tsx
+// host - index.ts
 
 import("./bootstrap");
 ```
 
-Then, create a `bootstrap.tsx` file to render the React application. If your not loading any remote modules, skip the `bootstrap.tsx` file and move the code to the `index.tsx` file.
+👉 Next, create a `bootstrap.tsx` file to render the React application. If your not loading any remote modules, skip the `bootstrap.tsx` file and move the code to the `index.ts` file.
 
 ```tsx
-// bootstrap.tsx
+// host - bootstrap.tsx
 
 import { App } from "./App";
 import { createRoot } from "react-dom/client";
@@ -103,10 +105,10 @@ At this point, you should be able to start your React application and see _Hello
 
 Now, let's assume that you want to load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation/) (make sure you installed `wmfnext-remote-loader` dependency).
 
-The first thing to do is to configure Webpack and add the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin).
+👉 The first thing to do is to configure Webpack and add the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin).
 
 ```js
-// webpack.cjs
+// host - webpack.cjs
 
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
@@ -119,7 +121,7 @@ module.exports = {
         port: 8080,
         historyApiFallback: true
     },
-    entry: "./src/index.tsx",
+    entry: "./src/index.ts",
     output: {
         // The trailing / is important otherwise hot reload doesn't work.
         publicPath: "http://localhost:8080/"
@@ -146,7 +148,6 @@ module.exports = {
             },
             {
                 test: /\.(css)$/,
-                exclude: /node_modules/,
                 use: ["style-loader", "css-loader"]
             },
             {
@@ -166,17 +167,22 @@ module.exports = {
                 "react": {
                     singleton: true,
                     // IMPORTANT: Make sure this version match the version specified in the remote configuration.
-                    requiredVersion: "YOUR_VERSION"
+                    requiredVersion: "REACT_VERSION"
                 },
                 "react-dom": {
                     singleton: true,
                     // IMPORTANT: Make sure this version match the version specified in the remote configuration.
-                    requiredVersion: "YOUR_VERSION"
+                    requiredVersion: "REACT_DOM_VERSION"
                 },
                 "react-router-dom": {
                     singleton: true,
                     // IMPORTANT: Make sure this version match the version specified in the remote configuration.
-                    requiredVersion: "YOUR_VERSION"
+                    requiredVersion: "REACT_ROUTER_DOM_VERSION"
+                },
+                "wmfnext-shell": {
+                    singleton: true,
+                    // IMPORTANT: Make sure this version match the version specified in the remote configuration.
+                    requiredVersion: "WMFNEXT_SHELL_VERSION"
                 }
             }
         }),
@@ -189,7 +195,7 @@ module.exports = {
 
 The previous Webpack configuration is for *development only* and implies that the project is using TypeScript and transpile directly with `tsc`.
 
-As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder and with an `index.html` file must also be added at the root of the application.
+👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder and with an `index.html` file must also be added at the root of the application.
 
 ```
 host-app
@@ -197,11 +203,11 @@ host-app
 ├─────index.html
 ├── App.tsx
 ├── bootstrap.tsx
-└── index.tsx
+└── index.ts
 ```
 
 ```html
-// index.html
+// host - index.html
 
 <!DOCTYPE html>
 <html>
@@ -213,12 +219,12 @@ host-app
 </html>
 ```
 
-Now, let's jump into the interesting stuff and start using the shell. For this example, we'll do most of the configuration in the `bootstrap.tsx` file.
+👉 Now, let's jump into the interesting stuff and start using the shell. For this example, we'll do most of the configuration in the `bootstrap.tsx` file.
 
 ```tsx
-// bootstrap.tsx
+// host - bootstrap.tsx
 
-import { ConsoleLogger, ShellRuntime } from "wmfnext-shell";
+import { ConsoleLogger, RuntimeContext, ShellRuntime } from "wmfnext-shell";
 import type { RemoteDefinition, RemoteModuleRegistratorError } from "wmfnext-remote-loader";
 
 import { App } from "./App";
@@ -249,15 +255,21 @@ registerRemoteModules(Remotes, runtime).then((errors: RemoteModuleRegistratorErr
 const root = createRoot(document.getElementById("root"));
 
 root.render(
-    <App />
+    <RuntimeContext.Provider value={runtime}>
+        <App />
+    </RuntimeContext.Provider>
 );
 ```
 
-You can start the host application and make sure everything compile. Even if the remote application is not available, the host application will gracefully render with what is currently available.
+> The remote modules must be registered in the `bootstrap.ts` file rather than the `App.tsx` file otherwise it will not work.
+
+You can start the host application and make sure everything compile. Even though the remote application is not available, the host application will gracefully render with what is currently available, meaning only the host application for the moment.
 
 ### Remote application
 
-It's time to get our first remote module! We'll use a file structure similar to what we used for the host application.
+> A full host example is available in the Github repository [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1).
+
+It's time to create our first remote module! We'll use a file structure similar to what we used for the host application.
 
 ```
 remote-app
@@ -265,13 +277,13 @@ remote-app
 ├─────index.html
 ├── App.tsx
 ├── bootstrap.tsx
-└── index.tsx
+└── index.ts
 ```
 
-First, create an `App.tsx` file which will act as the entry point of your React application.
+👉 First, create an `App.tsx` file which will act as the entry point of your React application.
 
 ```tsx
-// App.tsx
+// remote - App.tsx
 
 export function App() {
     return (
@@ -280,21 +292,21 @@ export function App() {
 }
 ```
 
-Then, create an `index.tsx` file which will strictly contain a dynamic import to the `bootstrap.tsx` file.
+👉 Then, create an `index.ts` file which will strictly contain a dynamic import to the `bootstrap.tsx` file.
 
 > We need this extra layer of indirection because it gives Webpack a chance to load all of the imports it needs to render the remote app.
 > Otherwise, you would see an error.
 
 ```ts
-// index.tsx
+// remote - index.ts
 
 import("./bootstrap");
 ```
 
-Then, create a `bootstrap.tsx` file to render the React application.
+👉 Next, create a `bootstrap.tsx` file to render the React application.
 
 ```tsx
-// bootstrap.tsx
+// remote - bootstrap.tsx
 
 import { App } from "./App";
 import { createRoot } from "react-dom/client";
@@ -306,7 +318,7 @@ root.render(
 );
 ```
 
-Configure Webpack and add the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin).
+👉 And configure Webpack to use [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin).
 
 ```js
 const HtmlWebpackPlugin = require("html-webpack-plugin");
@@ -351,7 +363,6 @@ module.exports = {
             },
             {
                 test: /\.(css)$/,
-                exclude: /node_modules/,
                 use: ["style-loader", "css-loader"]
             },
             {
@@ -375,17 +386,22 @@ module.exports = {
                 "react": {
                     singleton: true,
                     // IMPORTANT: Make sure this version match the version specified in the host configuration.
-                    requiredVersion: "VERSION"
+                    requiredVersion: "REACT_VERSION"
                 },
                 "react-dom": {
                     singleton: true,
                     // IMPORTANT: Make sure this version match the version specified in the host configuration.
-                    requiredVersion: "VERSION"
+                    requiredVersion: "REACT_DOM_VERSION"
                 },
                 "react-router-dom": {
                     singleton: true,
                     // IMPORTANT: Make sure this version match the version specified in the host configuration.
-                    requiredVersion: "VERSION"
+                    requiredVersion: "REACT_ROUTER_DOM_VERSION"
+                },
+                "wmfnext-shell": {
+                    singleton: true,
+                    // IMPORTANT: Make sure this version match the version specified in the remote configuration.
+                    requiredVersion: "WMFNEXT_SHELL_VERSION"
                 }
             }
         }),
@@ -409,7 +425,7 @@ By convention, remote modules using the shell, must configure `ModuleFederationP
 }
 ```
 
-As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder and with an `index.html` file must also be added at the root of the application.
+👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder and with an `index.html` file must also be added at the root of the application.
 
 ```
 remote-app
@@ -417,11 +433,11 @@ remote-app
 ├─────index.html
 ├── App.tsx
 ├── bootstrap.tsx
-└── index.tsx
+└── index.ts
 ```
 
 ```html
-// index.html
+// remote - index.html
 
 <!DOCTYPE html>
 <html>
@@ -441,7 +457,7 @@ Remember earlier when we told the `ModuleFederationPlugin` to expose a `register
 
 It's this file which will receive the host and runtime and register the remote module pages and navigation items.
 
-So, let's create a `register.js` file at the root of the application.
+👉 So, let's create a `register.js` file at the root of the application.
 
 ```
 remote-app
@@ -449,12 +465,12 @@ remote-app
 ├─────index.html
 ├── App.tsx
 ├── bootstrap.tsx
-└── index.tsx
+└── index.ts
 └── register.js
 ```
 
 ```tsx
-// register.js
+// remote - register.js
 
 import { ModuleRegisterFunction } from "wmfnext-shell";
 
@@ -465,30 +481,324 @@ export const register: ModuleRegisterFunction = (runtime, { context }) => {
 
 For now we won't register anything, we'll use the `runtime` to log something in the console.
 
-At this point, if you start both the host application and the remote application, you should see the following in your dev tools console:
+At this point, if you start both the host application and the remote application, you should see the following logs in the host application if you open dev tools:
 
 ```bash
-[webpack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled.
-log.js:24 [HMR] Waiting for update signal from WDS...
 consoleLogger.js:16 Loading module "./register" from container "remote1" of remote "http://localhost:8081/remoteEntry.js"
-index.js:551 [webpack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled.
-log.js:24 [HMR] Waiting for update signal from WDS...
 consoleLogger.js:16 Registering module "./register" from container "remote1" of remote "http://localhost:8081/remoteEntry.js"
 consoleLogger.js:22 Remote 1 registered
 ```
 
-### Registering routes and navigation items
+### Registering a module routes
 
+If you completed the previous steps of the walkthrough, you now have a federated application which.... doesn't do much!
 
+To start using routes provided by modules we'll have to make a few changes to the host application first.
 
-### Fix the loading spinner
+👉 We'll start by adding [React Router](https://reactrouter.com/) to the `<App />` component first. Any version greater than `6.4` will do as long as the new [createBrowserRouter](https://reactrouter.com/en/main/routers/create-browser-router) router is available.
 
-### Full example
+```tsx
+// host - App.tsx
 
-### Configuring your local environ with a fake runtime and a shared layout
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { Home, NotFound } from "./pages";
+import { RootLayout } from "./layouts";
+import { Loading } from "./components";
 
-### API
+export function App() {
+    const router = createBrowserRouter([
+        {
+            path: "/",
+            element: <RootLayout />,
+            children: [
+                {
+                    index: true,
+                    element: <Home />
+                },
+                {
+                    path: "*",
+                    element: <NotFound />
+                }
+            ]
+        }
+    ]);
 
+   return (
+        <RouterProvider
+            router={router}
+            fallbackElement={<Loading />}
+        />
+    );
+}
+```
+
+You can start the application and you'll have an home page.
+
+👉 But the home page is a local page of the host application, nothing special here! To start rendering remote pages we have a few other additions to make in the `<App />` component and the `bootstrap.tsx` file.
+
+```tsx
+// host - App.tsx
+
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { Home, NotFound } from "./pages";
+import { RootLayout } from "./layouts";
+import { Loading } from "./components";
+
+export function App() {
+    const runtime = useRuntime();
+    const federatedRoutes = useFederatedRoutes(runtime);
+
+    const router = useMemo(() => {
+        return createBrowserRouter([
+            {
+                path: "/",
+                element: <RootLayout />,
+                children: [
+                    ...federatedRoutes,
+                    {
+                        path: "*",
+                        element: <NotFound />
+                    }
+                ]
+            }
+        ]);
+    }, [federatedRoutes]);
+
+   return (
+        <RouterProvider
+            router={router}
+            fallbackElement={<Loading />}
+        />
+    );
+}
+```
+
+```tsx
+// host - bootstrap.tsx
+
+const Remotes: RemoteDefinition[] = [
+    {
+        url: "http://localhost:8081",
+        name: "remote1"
+    }
+];
+
+const runtime = new ShellRuntime({
+    loggers: [new ConsoleLogger()]
+});
+
+// Register host application page routes.
+runtime.registerRoutes([
+    {
+        index: true,
+        element: <Home />
+    }
+]);
+
+registerRemoteModules(Remotes, runtime).then((errors: RemoteModuleRegistratorError[]) => {
+    if (errors.length > 0) {
+        runtime.logError("Errors occured during remotes registration: ", errors);
+    }
+});
+
+const root = createRoot(document.getElementById("root"));
+
+root.render(
+    <RuntimeContext.Provider value={runtime}>
+        <App />
+    </RuntimeContext.Provider>
+);
+```
+
+By using the `useFederatedRoutes()` hook we get access to all the modules routes registered in the runtime. By passing those routes to the router, they will be available in the host application.
+
+Since the `useFederatedRoutes()` hook ensure that the routes are rendered in isolation, meaning, they can't break the whole application, we now configure the home page route with `runtime.registerRoutes()` in the `boostrap.tsx` file rather than directly in the router configuration.
+
+The `runtime.registerRoutes()` function support the same syntax and options as React Router [createBrowserRouter](https://reactrouter.com/en/main/routers/create-browser-router). Please have a look at the library documentation to find out about the options.
+
+👉 As mentionned earlier, federated routes retrieved from `useFederatedRoutes()` are isolated by default. To do so, the shell provide a default `errorElement` to every route which doesn't have one. You can override the default `errorElement` by providing a custom one on the route definition or provide a global one when calling `useFederatedRoutes()`.
+
+```tsx
+const federatedRoutes = useFederatedRoutes(runtime, { errorElement: CustomErrorElement });
+```
+
+👉 Now that the host application is ready to render modules routes, let's update the remote application to register some routes! To do so, open the `register.ts` file and add route by using the `runtime.registerRoutes()` function.
+
+```tsx
+// remote - register.ts
+
+import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
+import { Page1, Page2 } from "./pages";
+
+export const register: ModuleRegisterFunction = (runtime: Runtime) => {
+    runtime.registerRoutes([
+        {
+            path: "remote1/page-1",
+            element: <Page1 />
+        },
+        {
+            path: "remote1/page-2",
+            element: <Page2 />
+        }
+    ]);
+};
+```
+
+👉 Next update your host application root layout to link to those remote module routes.
+
+```tsx
+// host - RootLayout.tsx
+
+import { Link, Outlet } from "react-router-dom";
+
+import { Loading } from "../components";
+import { Suspense } from "react";
+
+export function RootLayout() {
+    return (
+        <div>
+            <nav>
+                <ul>
+                    <li><Link to="/">Home</Link></li>
+                    <li><Link to="remote1/page-1">Remote1/Page1</Link></li>
+                    <li><Link to="remote1/page-2">Remote1/Page2</Link></li>
+                </ul>
+            </nav>
+            <Suspense fallback={<Loading />}>
+                <Outlet />
+            </Suspense>
+        </div>
+    );
+}
+```
+
+Start both applications and try navigating between local and remote pages.
+
+You'll probably notice that the remote pages goes to the 404 pages! What's going on?!?!
+
+The problem is that the application finish rendering *BEFORE* the remote module is registered. Therefore, the React Router is rendered with only the host application pages.
+
+To fix the issue, we have to re-render the application once all the modules are registered.
+
+> This issue will only occurs with remote modules loaded at runtime. When using module from packages at build time, it's not an issue at all.
+
+To help with that, the shell provide a `useRerenderOnceRemotesRegistrationCompleted()` but sadly, the solution also involve a little bit of custom code.
+
+👉 First, update the host application `<App />` component to add the `useRerenderOnceRemotesRegistrationCompleted()` hook. We'll also display a loading message while the remote modules register.
+
+```tsx
+// host - App.tsx
+
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { Home, NotFound } from "./pages";
+import { RootLayout } from "./layouts";
+import { Loading } from "./components";
+import { useRerenderOnceRemotesRegistrationCompleted } from "wmfnext-remote-loader";
+
+export function App() {
+    useRerenderOnceRemotesRegistrationCompleted(() => window.__is_registered__);
+
+    const runtime = useRuntime();
+    const federatedRoutes = useFederatedRoutes(runtime);
+
+    const router = useMemo(() => {
+        return createBrowserRouter([
+            {
+                path: "/",
+                element: <RootLayout />,
+                children: [
+                    ...federatedRoutes,
+                    {
+                        path: "*",
+                        element: <NotFound />
+                    }
+                ]
+            }
+        ]);
+    }, [federatedRoutes]);
+
+    if (!window.__is_registered__) {
+        return <Loading />;
+    }
+
+   return (
+        <RouterProvider
+            router={router}
+            fallbackElement={<Loading />}
+        />
+    );
+}
+```
+
+What is that `window.__is_registered__` thing?
+
+Since the module registration occurs in the `bootstrap.tsx` file (that's a limitation specific to Webpack Module Federation), we need a way to share a completion status between the `boostrap.tsx` file and the `<App />` component, that's `window.__is_registered__` purpose.
+
+👉 To conclude our routing section, we have to update the `bootstrap.tsx` file with the `window.__is_registered__` state.
+
+```tsx
+// host - bootstrap.tsx
+
+import { ConsoleLogger, RuntimeContext, ShellRuntime } from "wmfnext-shell";
+import type { RemoteDefinition, RemoteModuleRegistratorError } from "wmfnext-remote-loader";
+
+import { App } from "./App";
+import { Home } from "./pages";
+import { RegistrationStatus } from "./registrationStatus";
+import { createRoot } from "react-dom/client";
+import { registerRemoteModules } from "wmfnext-remote-loader";
+
+const Remotes: RemoteDefinition[] = [
+    {
+        url: "http://localhost:8081",
+        name: "remote1"
+    }
+];
+
+const runtime = new ShellRuntime({
+    loggers: [new ConsoleLogger()]
+});
+
+// Register host application page routes.
+runtime.registerRoutes([
+    {
+        index: true,
+        element: <Home />
+    }
+]);
+
+window.__registration_state__ = RegistrationStatus.inProgress;
+
+registerRemoteModules(Remotes, runtime).then((errors: RemoteModuleRegistratorError[]) => {
+    if (errors.length > 0) {
+        runtime.logError("Errors occured during remotes registration: ", errors);
+    }
+
+    window.__registration_state__ = RegistrationStatus.completed;
+});
+
+const root = createRoot(document.getElementById("root"));
+
+root.render(
+    <RuntimeContext.Provider value={runtime}>
+        <App />
+    </RuntimeContext.Provider>
+);
+```
+
+### Override root layout from a module
+
+### Registering a module navigation items
+
+That's pretty cool, we have a federated application displaying remote pages from modules.
+
+Still, a module team is not yet fully autonomous as the pages urls are hardcoded in the host application.
+
+### Configuring a local environment to develop a module in isolation
+
+## Full example
+
+## API
 
 ### Runtime
 
