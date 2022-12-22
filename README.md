@@ -50,7 +50,7 @@ To use this shell, you must create projects for an host application and a module
 
 ### Host application
 
-> A full host example is available in the Github repository [wmfnext-host](https://github.com/patricklafrance/wmfnext-host).
+> An host application example is available in the Github repository [wmfnext-host](https://github.com/patricklafrance/wmfnext-host).
 
 👉 The first thing to do is to create an host application. According to [Webpack Module Federation](https://webpack.js.org/concepts/module-federation/) best practices we'll create 3 files:
 
@@ -267,7 +267,7 @@ You can start the host application and make sure everything compile. Even though
 
 ### Remote application
 
-> A full host example is available in the Github repository [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1).
+> A remote application example is available in the Github repository [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1).
 
 It's time to create our first remote module! We'll use a file structure similar to what we used for the host application.
 
