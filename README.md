@@ -610,7 +610,7 @@ root.render(
 );
 ```
 
-By using the `useFederatedRoutes()` hook we get access to all the modules routes registered in the runtime. By passing those routes to the router, they will be available in the host application.
+By using the `useFederatedRoutes()` hook we get access to all the modules routes registered. By passing those routes to the router, they will be rendered in the host application router.
 
 Since the `useFederatedRoutes()` hook ensure that the routes are rendered in isolation, meaning, they can't break the whole application, we now configure the home page route with `runtime.registerRoutes()` in the `boostrap.tsx` file rather than directly in the router configuration to benefit from this isolation feature.
 
