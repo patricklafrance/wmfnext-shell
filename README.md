@@ -46,7 +46,7 @@ yarn add wmfnext-remote-loader
 
 > If you'll prefer to skip this walkthrought and jump right into it, go directly to the [full example section](#full-example) or the [API section](#api).
 
-To use this shell, you must create projects for an host application and a module application. In this example, since we'll load a remote modules at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation), we'll called them "host" and "remote".
+To use this shell, you must create projects for an host application and a module application. In this example, since we'll load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation), we'll called them "host" and "remote".
 
 ### Host application
 
