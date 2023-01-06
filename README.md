@@ -50,6 +50,7 @@ Once, installed, we recommend that you configure your project to use [ESM](https
 ```
 
 > **Note**
+>
 > Make sure you install the packages and set the `type` property on every project, including the host and the modules.
 
 ## Usage
