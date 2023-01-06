@@ -191,6 +191,7 @@ export default {
 ```
 
 > **Note**
+>
 > The previous Webpack configuration is for *development only* and implies that the project is using TypeScript and transpile directly with the `tsc` CLI.
 >
 > As the project is configured to use [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default, this example is using ESM syntax instead of [CommonJS](https://en.wikipedia.org/wiki/CommonJS) which is what most are used to. If you're Webpack file use CommonJS, import the `wmfnext-remote-loader/createModuleFederationConfiguration.cjs` file instead.
@@ -430,6 +431,7 @@ export default {
 ```
 
 > **Note**
+>
 > The previous Webpack configuration is for *development only* and implies that the project is using TypeScript and transpile directly with the `tsc` CLI.
 >
 > As the project is configured to use [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default, this example is using ESM syntax instead of [CommonJS](https://en.wikipedia.org/wiki/CommonJS) which is what most are used to. If you're Webpack file use CommonJS, import the `wmfnext-remote-loader/createModuleFederationConfiguration.cjs` file instead.
