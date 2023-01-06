@@ -120,7 +120,7 @@ Now, let's assume that you want to load a remote module at runtime with [Webpack
 👉 The first thing to do is to configure Webpack and add the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin).
 
 ```js
-// host - webpack.dev.cjs
+// host - webpack.dev.js
 
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
@@ -199,7 +199,7 @@ export default {
 > ```js
 > // host - webpack.dev.cjs
 >
-> const createHostConfiguration = require("wmfnext-remote-loader/createModuleFederationConfiguration.cj);
+> const createHostConfiguration = require("wmfnext-remote-loader/createModuleFederationConfiguration.cjs");
 > ```
 
 You probably noticed that the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin) is configured with the output of the  `createHostConfiguration()` function.
@@ -439,7 +439,7 @@ export default {
 > ```js
 > // remote - webpack.dev.cjs
 >
-> const createRemoteConfiguration = require("wmfnext-remote-loader/createModuleFederationConfiguration.cj);
+> const createRemoteConfiguration = require("wmfnext-remote-loader/createModuleFederationConfiguration.cjs");
 > ```
 
 Again, you probably noticed that the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin) is configured with the output of the  `createRemoteConfiguration()` function. The function has an identical signature as the `createHostConfiguration()` function described in the previous section and serve the same purpose, e.g. gentle the configuration of the plugin and ensure the shell conventions are followed.
