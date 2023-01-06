@@ -1,14 +1,11 @@
 import { isRouteErrorResponse, useLocation, useRouteError } from "react-router-dom";
 
-import type { Runtime } from "../runtime";
+import { useLogger } from "../runtime";
 
-export interface RouteErrorBoundaryProps {
-    runtime: Runtime;
-}
-
-export function RouteErrorBoundary({ runtime }: RouteErrorBoundaryProps) {
+export function RouteErrorBoundary() {
     const error = useRouteError();
     const location = useLocation();
+    const logger = useLogger();
 
     const message = isRouteErrorResponse(error)
         ? `${error.status} ${error.statusText}`
@@ -16,7 +13,7 @@ export function RouteErrorBoundary({ runtime }: RouteErrorBoundaryProps) {
             ? error.message
             : JSON.stringify(error);
 
-    runtime.logError(`An error occured while rendering the route with path ${location.pathname}`, error);
+    logger.error(`[shell] An error occured while rendering the route with path ${location.pathname}`, error);
 
     const stack = error instanceof Error ? error.stack : null;
     const preStyles = { padding: "0.5rem", backgroundColor: "rgba(200,200,200, 0.5)" };

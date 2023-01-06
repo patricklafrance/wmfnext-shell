@@ -1,5 +1,7 @@
 import type { Logger } from "./Logger";
 
+// TODO: use a type instead:
+// export type LogLevel = "debug" | "information" | "warning" | "error" | "critical"
 export enum LogLevel {
     debug = 0,
     information = 1,

@@ -1,0 +1,12 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "../../tsconfig.build.json",
+    "compilerOptions": {
+        "sourceMap": false,
+        // The output module resolution system that the code will be compiled for
+        "module": "CommonJS",
+        // Otherwise the generated typings files will be create next to their source code files instead of the "dist" folder
+        "outDir": "./dist/cjs"
+    },
+    "files": ["./src/createModuleFederationConfiguration.ts"]
+}

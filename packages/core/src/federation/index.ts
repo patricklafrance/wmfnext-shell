@@ -1,2 +1,2 @@
 export * from "./registerModule";
-export * from "./useFederatedRoutes";
+export * from "./useModuleRoutes";

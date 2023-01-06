@@ -1,58 +1,30 @@
 import type { Logger } from "../logging";
 import type { RouteObject } from "react-router-dom";
 import type { Runtime } from "./runtime";
+import { RuntimeLogger } from "./RuntimeLogger";
+import { moduleRouteRegistry } from "../federation/internal";
 
 export interface ShellRuntimeOptions {
     loggers?: Logger[];
 }
 
 export class ShellRuntime implements Runtime {
-    private _loggers: Logger[];
-    private _routes: RouteObject[];
+    private _logger: RuntimeLogger;
 
     constructor({ loggers = [] }: ShellRuntimeOptions = {}) {
-        this._loggers = loggers;
-        this._routes = [];
+        this._logger = new RuntimeLogger(loggers);
+    }
+    routes: RouteObject[];
+
+    registerRoute(route: RouteObject) {
+        this.registerRoutes([route]);
     }
 
-    registerRoutes(routes: RouteObject[]): void {
-        const newRoutes = [];
-
-        routes.forEach(x => {
-            if (x) {
-                newRoutes.push(x);
-            }
-        });
-
-        // Create a new array everytime so the routes can be memoized later on.
-        this._routes = [...this._routes, ...newRoutes];
+    registerRoutes(routes: RouteObject[]) {
+        moduleRouteRegistry.registerRoutes(routes);
     }
 
-    getRoutes(): RouteObject[] {
-        return this._routes;
-    }
-
-    private log(action: (logger: Logger) => Promise<any>): Promise<PromiseSettledResult<any>[]> {
-        return Promise.allSettled(this._loggers.map((x: Logger) => action(x)));
-    }
-
-    logDebug(log: string, ...rest: any[]): Promise<PromiseSettledResult<any>[]> {
-        return this.log((x: Logger) => x.debug(log, ...rest));
-    }
-
-    logInformation(log: string, ...rest: any[]): Promise<PromiseSettledResult<any>[]> {
-        return this.log((x: Logger) => x.information(log, ...rest));
-    }
-
-    logWarning(log: string, ...rest: any[]): Promise<PromiseSettledResult<any>[]> {
-        return this.log((x: Logger) => x.warning(log, ...rest));
-    }
-
-    logError(log: string, ...rest: any[]): Promise<PromiseSettledResult<any>[]> {
-        return this.log((x: Logger) => x.error(log, ...rest));
-    }
-
-    logCritical(log: string, ...rest: any[]): Promise<PromiseSettledResult<any>[]> {
-        return this.log((x: Logger) => x.critical(log, ...rest));
+    get logger() {
+        return this._logger;
     }
 }

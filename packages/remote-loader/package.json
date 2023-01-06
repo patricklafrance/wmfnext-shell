@@ -1,4 +1,5 @@
 {
+  "$schema": "http://json.schemastore.org/package",
   "name": "wmfnext-remote-loader",
   "version": "0.0.1",
   "description": "Loader for remote modules using Webpack Module Federation",
@@ -11,17 +12,25 @@
   "files": [
     "/dist"
   ],
+  "engines": {
+    "node": ">=19"
+  },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "prebuild": "yarn clean",
-    "build": "tsc --build ./tsconfig.build.json",
+    "build": "run-p build:*",
+    "build:esm": "tsc --build ./tsconfig.build.esm.json",
+    "build:cjs": "tsc --build ./tsconfig.build.cjs.json",
+    "postbuild": "yarn rename-to-cjs",
     "clean": "run-p delete-dist delete-ts-cache",
     "delete-dist": "rimraf dist",
     "delete-ts-cache": "rimraf *.tsbuildinfo",
-    "predev": "yarn clean",
-    "dev": "tsc --watch --project ./tsconfig.build.json",
+    "dev": "run-p dev:*",
+    "dev:esm": "tsc --watch --project ./tsconfig.build.esm.json",
+    "dev:cjs": "tsc --watch --project ./tsconfig.build.cjs.json",
+    "rename-to-cjs": "node rename-to-cjs.js",
     "setup": "yarn link"
   },
   "peerDependencies": {

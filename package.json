@@ -1,4 +1,5 @@
 {
+  "$schema": "http://json.schemastore.org/package",
   "name": "root",
   "version": "0.0.0",
   "private": true,
@@ -15,8 +16,10 @@
   "scripts": {
     "build": "run-s delete-ts-cache build-pkg",
     "build-pkg": "lerna run build",
+    "pre-dev": "yarn clean",
     "dev": "lerna run dev --parallel",
     "dev-core": "cd packages/core && yarn dev",
+    "dev-remote-loader": "cd packages/remote-loader && yarn dev",
     "check-types": "yarn delete-ts-cache && tsc",
     "clean": "run-p -c clean:pkg delete-ts-cache",
     "clean:pkg": "lerna run clean",
@@ -58,6 +61,7 @@
     "react-router-dom": "6.4.5",
     "rimraf": "3.0.2",
     "shelljs": "0.8.5",
-    "typescript": "4.9.4"
+    "typescript": "4.9.4",
+    "type-fest": "3.5.1"
   }
 }

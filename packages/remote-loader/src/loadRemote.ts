@@ -43,7 +43,7 @@ function loadRemoteScript(url: string, { timeoutDelay = 2000 }: LoadRemoteScript
 
         // Eagerly reject the loading of a script, it's too long when a remote is unavailable.
         timeoutId = setTimeout(() => {
-            cancel(new Error(`Remote script "${url}" time-outed.`));
+            cancel(new Error(`[shell] Remote script "${url}" time-outed.`));
         }, timeoutDelay);
     });
 }
@@ -62,7 +62,7 @@ export async function loadRemote(url: string, containerName: string, moduleName:
     const container = window[containerName];
 
     if (!container) {
-        throw new Error(`Container "${containerName}" is not available for remote "${url}".`);
+        throw new Error(`[shell] Container "${containerName}" is not available for remote "${url}".`);
     }
 
     // Initialize the container, it may provide shared modules.
@@ -74,7 +74,7 @@ export async function loadRemote(url: string, containerName: string, moduleName:
     const factory = await container.get(moduleName);
 
     if (!factory) {
-        throw new Error(`Module "${module}" is not available for container "${containerName}" of remote "${url}".`);
+        throw new Error(`[shell] Module "${module}" is not available for container "${containerName}" of remote "${url}".`);
     }
 
     return factory();

@@ -1,4 +1,5 @@
 {
+  "$schema": "http://json.schemastore.org/package",
   "name": "wmfnext-shell",
   "version": "0.0.1",
   "description": "Shell for a federated application",
@@ -11,6 +12,9 @@
   "files": [
     "/dist"
   ],
+  "engines": {
+    "node": ">=19"
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -20,7 +24,6 @@
     "clean": "run-p delete-dist delete-ts-cache",
     "delete-dist": "rimraf dist",
     "delete-ts-cache": "rimraf *.tsbuildinfo",
-    "predev": "yarn clean",
     "dev": "tsc --watch --project ./tsconfig.build.json",
     "setup": "yarn link"
   },
