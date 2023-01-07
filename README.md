@@ -330,7 +330,7 @@ export function App() {
 
 👉 Then, create an `index.ts` file which will strictly contain a dynamic import to the `bootstrap.tsx` file.
 
-> We also need this async boundaries because it let Webpack negotiate the shared dependencies with the host application. Otherwise, you'll see an error. Additional information is available [here](https://dev.to/infoxicator/module-federation-shared-api-ach#using-an-async-boundary).
+> The async boundaries is also needed here because it let Webpack negotiate the shared dependencies with the host application. Otherwise, you'll see an error. Additional information is available [here](https://dev.to/infoxicator/module-federation-shared-api-ach#using-an-async-boundary).
 
 ```ts
 // remote - index.ts
