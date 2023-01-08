@@ -639,9 +639,9 @@ By using the `useModuleRoutes()` hook we'll get access to the modules routes reg
 
 The host application could still register it's routes directly in the router configuration but it's convenient to move all routes registration to `runtime.registerRoutes()` as all the routes will be registered through the same entry point.
 
-The `runtime.registerRoutes()` function support the same syntax and options as React Router [createBrowserRouter()](https://reactrouter.com/en/main/routers/create-browser-router) `RouteObject`. Have a look at the [react-router documentation](https://reactrouter.com/en/main/route/route#type-declaration) to find out about the options.
+The `runtime.registerRoutes()` function support the same syntax and options as React Router [createBrowserRouter()](https://reactrouter.com/en/main/routers/create-browser-router) `RouteObject`. Have a look at the [React Router documentation](https://reactrouter.com/en/main/route/route#type-declaration) to find out about the options.
 
-👉 Now that the host application is ready to render modules routes, let's update the remote application to register some routes! To do so, open the `register.ts` file and add routes by using the `runtime.registerRoutes()` function (you could also use `runtime.registerRoute()` if you prefer).
+👉 Now that the host application is ready to render modules routes, let's update the remote application to register some routes! To do so, open the `register.ts` file of the remote application and add routes by using the `runtime.registerRoutes()` function (you could also use `runtime.registerRoute()`).
 
 ```tsx
 // remote - register.ts
@@ -663,7 +663,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 };
 ```
 
-👉 Next update your host application root layout to link to those remote module routes.
+👉 Next update the host application root layout to add links to those newly registered remote module routes.
 
 ```tsx
 // host - RootLayout.tsx
@@ -693,19 +693,19 @@ export function RootLayout() {
 
 Start both applications and try navigating between local and remote pages.
 
-You'll probably notice that the remote pages goes to the 404 pages! What's going on?!?!
+You'll probably notice that the remote pages goes to the 404 pages! What's going on?!
 
-### Rerender the application after modules registration 
+### Re-render the application after modules registration 
 
-The problem is that the application finish rendering *BEFORE* the remote module is registered. Therefore, the React Router is rendered with only the host application pages.
+The issue is that the host application finish rendering *BEFORE* the remote module is registered. Therefore, only the host application routes are rendered.
 
-To fix this issue, we have to re-render the application once all the modules are registered.
+To fix this issue, we have to re-render the application once the remote module is registered.
 
-> This issue will only occurs with remote modules loaded at runtime. When using module from packages at build time, it's not an issue at all.
+> This issue will only occurs with remote modules registered at runtime. When strictly using modules registered build time, it's not an issue.
 
-To help with that, the shell provide a `useRerenderOnceRemotesRegistrationCompleted()` but sadly, the solution also involve a little bit of custom code.
+To fix the issue, the shell provide a `useRerenderOnceRemotesRegistrationCompleted()` function. Sadly thought, the solution also involve adding a little bit of custom code to link everything together.
 
-👉 First, update the host application `<App />` component to add the `useRerenderOnceRemotesRegistrationCompleted()` hook. We'll also display a loading message while the remote modules register.
+👉 First, update the host application `<App />` by adding the `useRerenderOnceRemotesRegistrationCompleted()` hook. Then, add code to display a loading message while the remote modules register.
 
 ```tsx
 // host - App.tsx
