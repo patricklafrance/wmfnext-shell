@@ -639,7 +639,7 @@ By using the `useModuleRoutes()` hook we'll get access to the modules routes reg
 
 The host application could still register it's routes directly in the router configuration but it's convenient to move all routes registration to `runtime.registerRoutes()` as all the routes will be registered through the same entry point.
 
-The `runtime.registerRoutes()` function support the same syntax and options as React Router [createBrowserRouter()](https://reactrouter.com/en/main/routers/create-browser-router) `RouteObject`. Please have a look at the library documentation to find out about the options.
+The `runtime.registerRoutes()` function support the same syntax and options as React Router [createBrowserRouter()](https://reactrouter.com/en/main/routers/create-browser-router) `RouteObject`. Have a look at the [react-router documentation](https://reactrouter.com/en/main/route/route#type-declaration) to find out about the options.
 
 👉 Now that the host application is ready to render modules routes, let's update the remote application to register some routes! To do so, open the `register.ts` file and add routes by using the `runtime.registerRoutes()` function (you could also use `runtime.registerRoute()` if you prefer).
 
