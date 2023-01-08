@@ -57,10 +57,9 @@ Once, installed, we recommend that you configure your project to use [ESM](https
 
 > If you'll prefer to skip this walkthrought and jump right into it, go directly to the [API section](#api) or have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) and [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) examples.
 
-To use this shell, you must create projects for an host application and a module application. In this example, since we'll load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation), we'll called them "host" and "remote".
-To use this shell, you must create projects for an host application and a module application. In this example, since we'll load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation), we'll called them "host" and "remote".
+To use this shell, you must create projects for an host application and at least one module application. In this tutorial, we'll first load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) then, we'll load a package module at build time.
 
-### Host application
+### Setup an host application
 
 > An host application example is available in the Github repository [wmfnext-host](https://github.com/patricklafrance/wmfnext-host).
 
@@ -87,7 +86,7 @@ export function App() {
 
 👉 Then, create an `index.ts` file which will strictly contain a dynamic import to the `bootstrap.tsx` file.
 
-> This indirection called an "async boundary" is required so Webpack can load all the remote modules and their dependencies before rendering the host
+> This indirection is called an "async boundary" and is needed so Webpack can load all the remote modules and their dependencies before rendering the host
 > application. Additional information is available [here](https://dev.to/infoxicator/module-federation-shared-api-ach#using-an-async-boundary).
 >
 > If you're not using any remote modules loaded at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) you don't need a `bootstrap.tsx` file.
@@ -298,7 +297,7 @@ root.render(
 
 You can start the host application and make sure everything compile. Even though the remote application is not available, the host application will gracefully render with what is currently available, meaning only the host application at the moment.
 
-### Remote application
+### Setup a remote application
 
 > A remote application example is available in the Github repository [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1).
 
@@ -515,7 +514,7 @@ consoleLogger.js:16 Registering module "./register" from container "remote1" of 
 consoleLogger.js:22 Remote 1 registered
 ```
 
-### Registering a module routes
+### Register a module routes
 
 If you completed the previous steps of the walkthrough, you now have a federated application which.... doesn't do much!
 
@@ -807,7 +806,11 @@ root.render(
 
 Now you can start both applications again and try navigating between local and remote pages, everything should work.
 
-### Registering a module navigation items
+### Setup a package module application
+
+TBD
+
+### Register a module navigation items
 
 That's pretty cool, we have a federated application displaying pages from remote modules.
 
@@ -815,9 +818,33 @@ Still, a module team is not yet fully autonomous as the pages urls are hardcoded
 
 ### Isolate module failures
 
-### Override root layout from a module
+TBD
 
-### Configuring a local environment to develop a module in isolation
+### Override the host layout from a module
+
+TBD
+
+### Use the event-bus
+
+TBD
+
+### Register a custom logger
+
+TBD
+
+### Register a custom service
+
+useService<TService>("service-name")
+
+new ShellRuntime({ 
+    services: {
+        "service-name": new CustomService() 
+    } 
+})
+
+### Develop a module in isolation with a fake runtime
+
+TBD
 
 ## API
 
