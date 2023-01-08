@@ -87,7 +87,7 @@ export function App() {
 
 👉 Then, create an `index.ts` file which will strictly contain a dynamic import to the `bootstrap.tsx` file.
 
-> We need this indirection called an "async boundary" to let Webpack load all the remote modules and their dependencies before rendering the host
+> This indirection called an "async boundary" is required so Webpack can load all the remote modules and their dependencies before rendering the host
 > application. Additional information is available [here](https://dev.to/infoxicator/module-federation-shared-api-ach#using-an-async-boundary).
 >
 > If you're not using any remote modules loaded at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) you don't need a `bootstrap.tsx` file.
@@ -209,28 +209,26 @@ This is an utility function provided by the shell to gentle the configuration of
 
 > Dependencies shared by default are libraries like [react](https://reactjs.org/), [react-router](https://reactrouter.com/) and the shell itself.
 
-> The `createHostConfiguration` function also accept a third parameter, which is an optional object literal used to specify options. One of the option available with this third parameter is `sharedDependencies`. `sharedDependencies` allows a caller to specify additional shared dependencies which are specific to the application, like a design system library for example. If the `requiredVersion` is not specified for an additional shared dependency, the function will try to resolve it from the provided `package.json` module.
->
-> The `sharedDependencies` option accept the same options as the [ModuleFederationPlugin shared object](https://webpack.js.org/plugins/module-federation-plugin/#sharing-hints) minus the `version` property.
->
-> ```js
-> plugins: [
->    new ModuleFederationPlugin(
->        createHostConfiguration(
->            "host",
->            packageJson,
->            {
->                sharedDependencies: {
->                    "@sharegate/orbit-ui": {
->                        singleton: true,
->                        requiredVersion: "10.0.0"
->                    }
->                }
->            }
->        )
->    ),
->]
->```
+The `createHostConfiguration` function also accept a third parameter, which is an optional object literal used to specify options. One of the option available with this third parameter is `sharedDependencies`. `sharedDependencies` allows a caller to specify additional shared dependencies which are specific to the application, like a design system library for example. If the `requiredVersion` is not specified for an additional shared dependency, the function will try to resolve it from the provided `package.json` module.
+
+The `sharedDependencies` option accept the same options as the [ModuleFederationPlugin shared object](https://webpack.js.org/plugins/module-federation-plugin/#sharing-hints) minus the `version` property.
+
+```js
+new ModuleFederationPlugin(
+    createHostConfiguration(
+        "host",
+        packageJson,
+        {
+            sharedDependencies: {
+                "@sharegate/orbit-ui": {
+                    singleton: true,
+                    requiredVersion: "10.0.0"
+                }
+            }
+        }
+    )
+)
+```
 
 👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used in this example, a `public` folder with an `index.html` file must also be added at the root of the application.
 
@@ -759,7 +757,7 @@ export function App() {
 
 What is that `window.__is_registered__` thing?
 
-Since the module registration occurs in the `bootstrap.tsx` file (because of the async boundary), we have to share a completion status between the `boostrap.tsx` file and the `<App />` component, that's `window.__is_registered__` purpose.
+Since the module registration occurs in the `bootstrap.tsx` file (because of the "async boundary"), we have to share a completion status between the `boostrap.tsx` file and the `<App />` component, that's `window.__is_registered__` purpose.
 
 👉 To conclude the routing section, set `window.__is_registered__` state in the `bootstrap.tsx` file.
 
