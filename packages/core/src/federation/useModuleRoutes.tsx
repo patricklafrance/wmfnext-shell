@@ -1,5 +1,9 @@
+import { deepFreeze } from "../shared";
 import { moduleRouteRegistry } from "./internal";
+import { useMemo } from "react";
 
 export function useModuleRoutes() {
-    return moduleRouteRegistry.routes;
+    const routes = moduleRouteRegistry.routes;
+
+    return useMemo(() => deepFreeze(routes), [routes]);
 }

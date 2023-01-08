@@ -6,7 +6,7 @@ This shell aims to add a very thin and opinionated layer on top of Webpack Modul
 
 The idea behind this shell is to have an host application responsible of loading modules and providing shared functionalities like routing, messaging and logging. With this shell, a module is considered as an independent codebase which should usually match a specific sub domain of the application. At bootstrap, the host application loads the modules and call a registration function for each of them with shared functionalities and a customazible context. During the registration phase, each module dynamically *register it's routes and navigation links*. Then, pages and components of a module can use the provided hooks to access shared functionalities whenever they please.
 
-We recommend to aim for remote hosted modules loaded at runtime as it enables your teams to be fully autonomous by deploying their module independently from the other pieces of the application. Still, sometimes teams might want to gradually migrate toward this type of architecture and would prefer to extract sub domains into independent packages in a monorepos setup before going all-in with a runtime micro-frontends architecture. That's why, this shell also support loading modules from packages at build time. A dual bootstrapping setup is also supported, meaning an application could load a few remote hosted modules loaded at runtime while also loading a few other modules from packages at build time.
+We recommend to aim for remote hosted modules loaded at runtime as it enables your teams to be fully autonomous by deploying their module independently from the other pieces of the application. Still, sometimes teams might want to gradually migrate toward this type of architecture and would prefer to extract sub domains into independent packages in a monorepos setup before going all-in with a runtime micro-frontends architecture. That's why, this shell also support loading modules from packages at build time. A dual bootstrapping setup is also supported, meaning an application could load a few remote hosted modules at runtime while also loading a few other modules from packages at build time.
 
 - [Features](#features)
 - [Installation](#installation)
@@ -161,7 +161,8 @@ export default {
                 }
             },
             {
-                // https://stackoverflow.com/questions/69427025/programmatic-webpack-jest-esm-cant-resolve-module-without-js-file-exten
+                // https://stackoverflow.com/questions/69427025/programmatic-webpack
+                // -jest-esm-cant-resolve-module-without-js-file-exten
                 test: /\.js/,
                 resolve: {
                     fullySpecified: false
@@ -210,7 +211,7 @@ This is an utility function provided by the shell to gentle the configuration of
 
 The `createHostConfiguration` function also accept a third parameter, which is an optional object literal used to specify options. One of the option available with this third parameter is `sharedDependencies`. `sharedDependencies` allows a caller to specify additional shared dependencies which are specific to the application, like a design system library for example. If the `requiredVersion` is not specified for an additional shared dependency, the function will try to resolve it from the provided `package.json` module.
 
-The `sharedDependencies` option accept the same options as the [ModuleFederationPlugin shared object](https://webpack.js.org/plugins/module-federation-plugin/#sharing-hints) minus the `version` property,
+The `sharedDependencies` option accept the same options as the [ModuleFederationPlugin shared object](https://webpack.js.org/plugins/module-federation-plugin/#sharing-hints) minus the `version` property.
 
 ```js
 plugins: [
@@ -401,7 +402,8 @@ export default {
                 }
             },
             {
-                // https://stackoverflow.com/questions/69427025/programmatic-webpack-jest-esm-cant-resolve-module-without-js-file-exten
+                // https://stackoverflow.com/questions/69427025/programmatic-webpack
+                // -jest-esm-cant-resolve-module-without-js-file-exten
                 test: /\.js/,
                 resolve: {
                     fullySpecified: false
