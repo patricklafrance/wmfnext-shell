@@ -807,13 +807,15 @@ root.render(
 
 Now you can start both applications again and try navigating between local and remote pages, everything should work.
 
-### Override root layout from a module
-
 ### Registering a module navigation items
 
 That's pretty cool, we have a federated application displaying pages from remote modules.
 
-Still, a module team is not yet fully autonomous as the pages urls are hardcoded in the host application.
+Still, a module team is not yet fully autonomous as the pages urls are hardcoded in the host application links.
+
+### Isolate module failures
+
+### Override root layout from a module
 
 ### Configuring a local environment to develop a module in isolation
 
@@ -821,55 +823,39 @@ Still, a module team is not yet fully autonomous as the pages urls are hardcoded
 
 ## API
 
+### Remote loader
+
+TBD
+
+### Package loader
+
+TBD
+
 ### Runtime
 
-Instance runtime
-
-RuntimeContext
+TBD
 
 ### Routing
 
-Register routes
+TBD
 
-Render routes
+### Navigation
+
+TBD
+
+### Logging
+
+TBD
+
+### Event bus
 
 TBD
 
 ### User session
 
-### Event bus
+TBD
 
-### Logging
-
-Configure logger
-
-User logger
-
-### Setup an host
-
-Conventions
-
-Configure ModuleFederationPlugin -> seulement si utilise des remotes modules
-
-registerRemoteModules / registerPackageModules
-
-useRerenderOnceModulesRegistrationCompleted
-
-Remote isolation (ErrorBoundary) -> Nom devrait avoir changé
-
-### Register a module
-
-Conventions
-
-Configure ModuleFederationPlugin (or our custom one if going this way)
-
-register.js function
-
-### Full example
-
-Either show code here or link to code samples in wmfnext-host and wmfnext-remote-1
-
-### Using a fake runtime for local development
+### Development runtime
 
 TBD
 
