@@ -362,7 +362,7 @@ import path from "path";
 import url from "url";
 import packageJson from "./package.json" assert { type: "json" };
 
-// "__dirname" is specific to CommonJS: https://flaviocopes.com/fix-dirname-not-defined-es-module-scope/
+// "__dirname" is specific to CommonJS, must be done this way with ESM.
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -440,7 +440,7 @@ export default {
 
 Again, you probably noticed that the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin) is configured with the output of the  `createRemoteConfiguration()` function. The function has an identical signature as the `createHostConfiguration()` function described in the previous section and serve the same purpose, e.g. gentle the configuration of the plugin and ensure the shell conventions are followed.
 
-> The shell conventions are quite simple, there's only one! A remote module using the shell, must configure `ModuleFederationPlugin` with:
+> The shell conventions are quite simple, there's only one... A remote module must configure `ModuleFederationPlugin` with:
 >
 > ```js
 > {
