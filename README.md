@@ -207,30 +207,30 @@ You probably noticed that the [ModuleFederationPlugin](https://webpack.js.org/pl
 
 This is an utility function provided by the shell to gentle the configuration of the plugin and ensure the shell conventions are followed. The `createHostConfiguration` function accept as it's first parameter the name of the module and a `package.json` module. At build time, the function will look into the provided `package.json` module for the version of the dependencies which are shared by default by the shell and any additional shared dependencies provided by the caller for which the version is not specified.
 
-> Dependencies shared by default by the shell are libraries like [react](https://reactjs.org/), [react-router](https://reactrouter.com/) and the shell itself.
+> Dependencies shared by default are libraries like [react](https://reactjs.org/), [react-router](https://reactrouter.com/) and the shell itself.
 
-The `createHostConfiguration` function also accept a third parameter, which is an optional object literal used to specify options. One of the option available with this third parameter is `sharedDependencies`. `sharedDependencies` allows a caller to specify additional shared dependencies which are specific to the application, like a design system library for example. If the `requiredVersion` is not specified for an additional shared dependency, the function will try to resolve it from the provided `package.json` module.
-
-The `sharedDependencies` option accept the same options as the [ModuleFederationPlugin shared object](https://webpack.js.org/plugins/module-federation-plugin/#sharing-hints) minus the `version` property.
-
-```js
-plugins: [
-    new ModuleFederationPlugin(
-        createHostConfiguration(
-            "host",
-            packageJson,
-            {
-                sharedDependencies: {
-                    "@sharegate/orbit-ui": {
-                        singleton: true,
-                        requiredVersion: "10.0.0"
-                    }
-                }
-            }
-        )
-    ),
-]
-```
+> The `createHostConfiguration` function also accept a third parameter, which is an optional object literal used to specify options. One of the option available with this third parameter is `sharedDependencies`. `sharedDependencies` allows a caller to specify additional shared dependencies which are specific to the application, like a design system library for example. If the `requiredVersion` is not specified for an additional shared dependency, the function will try to resolve it from the provided `package.json` module.
+>
+> The `sharedDependencies` option accept the same options as the [ModuleFederationPlugin shared object](https://webpack.js.org/plugins/module-federation-plugin/#sharing-hints) minus the `version` property.
+>
+> ```js
+> plugins: [
+>    new ModuleFederationPlugin(
+>        createHostConfiguration(
+>            "host",
+>            packageJson,
+>            {
+>                sharedDependencies: {
+>                    "@sharegate/orbit-ui": {
+>                        singleton: true,
+>                        requiredVersion: "10.0.0"
+>                    }
+>                }
+>            }
+>        )
+>    ),
+>]
+>```
 
 👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used in this example, a `public` folder with an `index.html` file must also be added at the root of the application.
 
@@ -446,18 +446,16 @@ export default {
 
 Again, you probably noticed that the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin) is configured with the output of the  `createRemoteConfiguration()` function. The function has an identical signature as the `createHostConfiguration()` function described in the previous section and serve the same purpose, e.g. gentle the configuration of the plugin and ensure the shell conventions are followed.
 
-The shell conventions are in fact quite simple, there's only one! A remote module using the shell, must configure `ModuleFederationPlugin` with:
-
-```js
-{
-    filename: "remoteEntry.js",
-    exposes: {
-        "./register": "./src/register"
-    }
-}
-```
-
-> This is done automatically by `createRemoteConfiguration()`, you don't have to do it manually.
+> The shell conventions are quite simple, there's only one! A remote module using the shell, must configure `ModuleFederationPlugin` with:
+>
+> ```js
+> {
+>    filename: "remoteEntry.js",
+>    exposes: {
+>        "./register": "./src/register"
+>    }
+> }
+> ```
 
 👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder with an `index.html` file must also be added at the root of the application.
 
@@ -643,7 +641,7 @@ root.render(
 );
 ```
 
-By using the `useFederatedRoutes()` hook we get access to all the modules routes registered in the runtime. By passing those routes to the router, they will be rendered in the host application router.
+By using the `useModuleRoutes()` hook you'll get access to all the modules routes registered in the runtime. By passing those routes to the router, they will be rendered in the host application router.
 
 The host application could still register it's routes directly in the router configuration but it's convenient to move all routes registration to `runtime.registerRoutes()` as all the routes will be registered through the same entry point.
 
@@ -702,6 +700,8 @@ export function RootLayout() {
 Start both applications and try navigating between local and remote pages.
 
 You'll probably notice that the remote pages goes to the 404 pages! What's going on?!?!
+
+### Rerender the application after modules registration 
 
 The problem is that the application finish rendering *BEFORE* the remote module is registered. Therefore, the React Router is rendered with only the host application pages.
 
