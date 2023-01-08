@@ -198,9 +198,7 @@ export default {
 > As the project is configured to use [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default, this example is using ESM syntax instead of [CommonJS](https://en.wikipedia.org/wiki/CommonJS) which is what most are used to. If you're Webpack file use CommonJS, import the `wmfnext-remote-loader/createModuleFederationConfiguration.cjs` file instead.
 >
 > ```js
-> // host - webpack.dev.cjs
->
-> const createHostConfiguration = require("wmfnext-remote-loader/createModuleFederationConfiguration.cjs");
+> require("wmfnext-remote-loader/createModuleFederationConfiguration.cjs");
 > ```
 
 You probably noticed that the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin) is configured with the output of the  `createHostConfiguration()` function.
@@ -329,7 +327,7 @@ export function App() {
 
 👉 Then, create an `index.ts` file which will strictly contain a dynamic import to the `bootstrap.tsx` file.
 
-> The async boundaries is also needed here because it let Webpack negotiate the shared dependencies with the host application. Otherwise, you'll see an error. Additional information is available [here](https://dev.to/infoxicator/module-federation-shared-api-ach#using-an-async-boundary).
+> An "async boundary" is also needed here to let Webpack negotiate the shared dependencies with the host application. Additional information is available [here](https://dev.to/infoxicator/module-federation-shared-api-ach#using-an-async-boundary).
 
 ```ts
 // remote - index.ts
@@ -437,9 +435,7 @@ export default {
 > As the project is configured to use [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default, this example is using ESM syntax instead of [CommonJS](https://en.wikipedia.org/wiki/CommonJS) which is what most are used to. If you're Webpack file use CommonJS, import the `wmfnext-remote-loader/createModuleFederationConfiguration.cjs` file instead.
 >
 > ```js
-> // remote - webpack.dev.cjs
->
-> const createRemoteConfiguration = require("wmfnext-remote-loader/createModuleFederationConfiguration.cjs");
+> require("wmfnext-remote-loader/createModuleFederationConfiguration.cjs");
 > ```
 
 Again, you probably noticed that the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin) is configured with the output of the  `createRemoteConfiguration()` function. The function has an identical signature as the `createHostConfiguration()` function described in the previous section and serve the same purpose, e.g. gentle the configuration of the plugin and ensure the shell conventions are followed.
