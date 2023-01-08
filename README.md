@@ -55,7 +55,7 @@ Once, installed, we recommend that you configure your project to use [ESM](https
 
 ## Usage
 
-> If you'll prefer to skip this walkthrought and jump right into it, go directly to the [full example section](#full-example) or the [API section](#api).
+> If you'll prefer to skip this walkthrought and jump right into it, go directly to the [API section](#api) or have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) and [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) examples.
 
 To use this shell, you must create projects for an host application and a module application. In this example, since we'll load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation), we'll called them "host" and "remote".
 To use this shell, you must create projects for an host application and a module application. In this example, since we'll load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation), we'll called them "host" and "remote".
@@ -818,8 +818,6 @@ Still, a module team is not yet fully autonomous as the pages urls are hardcoded
 ### Override root layout from a module
 
 ### Configuring a local environment to develop a module in isolation
-
-## Full example
 
 ## API
 
