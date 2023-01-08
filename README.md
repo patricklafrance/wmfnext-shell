@@ -694,9 +694,9 @@ Start both applications and try navigating between local and remote pages.
 
 You'll probably notice that the remote pages goes to the 404 pages! What's going on?!
 
-### Re-render the application after modules registration 
+### Re-render the host application after remote modules registration 
 
-The issue is that the host application finish rendering *BEFORE* the remote module is registered. Therefore, only the host application routes are rendered.
+The issue is that the host application finish rendering **before** the remote module is registered. Therefore, only the host application routes are rendered.
 
 To fix this issue, we have to re-render the application once the remote module is registered.
 
