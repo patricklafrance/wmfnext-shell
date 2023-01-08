@@ -44,6 +44,8 @@ yarn add wmfnext-remote-loader
 Once, installed, we recommend that you configure your project to use [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. To do so, open the `package.json` file of the project and add the root property `"type": "module"`.
 
 ```json
+// package.json
+
 {
     "type": "module"
 }
@@ -240,7 +242,7 @@ host-app
 ```
 
 ```html
-// host - index.html
+<!-- host - index.html -->
 
 <!DOCTYPE html>
 <html>
@@ -463,7 +465,7 @@ remote-app
 ```
 
 ```html
-// remote - index.html
+<!-- remote - index.html -->
 
 <!DOCTYPE html>
 <html>
