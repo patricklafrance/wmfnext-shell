@@ -41,7 +41,7 @@ If you wish to include remote modules at runtime using [Webpack Module Federatio
 yarn add wmfnext-remote-loader
 ```
 
-Once, installed, we recommend that you configure your project to use [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. To do so, open the `package.json` file of the project and add the root property `"type": "module"`.
+Once, installed, we recommend that you configure your project to use [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. To do so, open the `package.json` file of the project and add the root property `"type": "module"`:
 
 ```json
 {
@@ -635,7 +635,7 @@ root.render(
 );
 ```
 
-By using the `useModuleRoutes()` hook you'll get access to all the modules routes registered in the runtime. By passing those routes to the router, they will be rendered in the host application router.
+By using the `useModuleRoutes()` hook we'll get access to the modules routes registered in the runtime at bootstrap. By passing those routes to the router, they will be rendered in the host application router.
 
 The host application could still register it's routes directly in the router configuration but it's convenient to move all routes registration to `runtime.registerRoutes()` as all the routes will be registered through the same entry point.
 
