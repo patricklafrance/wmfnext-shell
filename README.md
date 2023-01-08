@@ -669,7 +669,6 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 // host - RootLayout.tsx
 
 import { Link, Outlet } from "react-router-dom";
-
 import { Loading } from "../components";
 import { Suspense } from "react";
 
@@ -762,7 +761,6 @@ Since the module registration occurs in the `bootstrap.tsx` file (because of the
 
 import { ConsoleLogger, RuntimeContext, ShellRuntime } from "wmfnext-shell";
 import type { RemoteDefinition, RemoteModuleRegistratorError } from "wmfnext-remote-loader";
-
 import { App } from "./App";
 import { Home } from "./pages";
 import { RegistrationStatus } from "./registrationStatus";
