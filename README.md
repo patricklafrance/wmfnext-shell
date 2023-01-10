@@ -28,19 +28,19 @@ This federated application shell include the following features:
 
 ## Installation
 
-To install the package, [open a terminal in VSCode](https://code.visualstudio.com/docs/editor/integrated-terminal#_managing-multiple-terminals) and execute the following command at the root of the workspace:
+To install the packages, [open a terminal in VSCode](https://code.visualstudio.com/docs/editor/integrated-terminal#_managing-multiple-terminals) and execute the following command at the root of the host and modules projects workspace:
 
 ```bash
 yarn add wmfnext-shell
 ```
 
-If you wish to include remote modules at runtime using [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) also execute the following command at the root of the workspace:
+If you wish to include remote modules at runtime using [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) also execute the following command at the root of the host and modules projects workspace:
 
 ```bash
 yarn add wmfnext-remote-loader
 ```
 
-Once, installed, we recommend that you configure your project to use [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. To do so, open the `package.json` file of the project and add the root property `"type": "module"`:
+Once, installed, we recommend that you configure your projects to use [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. To do so, open the `package.json` file of the project and add the root property `"type": "module"`:
 
 ```json
 {
@@ -48,19 +48,15 @@ Once, installed, we recommend that you configure your project to use [ESM](https
 }
 ```
 
-> **Note**
->
-> Make sure you install the packages and set the `type` property on every project, including the host and the modules.
-
 ## Usage
 
 > **Warning**
 >
 > While going through this tutorial, keep in mind that some parts of the application has ben intentionally left out from code samples to emphasis on the more important one's.
 >
-> For a complete example, or, if you prefer to skip this walkthrough and jump right into it have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) and [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repositories.
+> For a complete example, or, if you prefer to skip this walkthrough and jump right into it have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) and [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repositories or the [API documentation](#api).
 
-To use this shell, you must create projects for an host application and at least one module application. In this tutorial, we'll first load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) then, we'll load a package module at build time.
+To use this shell, you must create projects for an host application and at least one module application. In this tutorial, we'll first load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) then, we'll load a static package module at build time.
 
 ### Setup an host application
 
@@ -115,11 +111,11 @@ root.render(
 );
 ```
 
-At this point, you should be able to start your React application and see _Hello world!_
+At this point, you should be able to start your React application and see __Hello world!__
 
 Now, let's assume that you want to load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation/) (make sure you installed `wmfnext-remote-loader` dependency).
 
-👉 The first thing to do is to configure Webpack and add the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin).
+👉 The first thing to do is to configure Webpack and add [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin).
 
 ```js
 // host - webpack.dev.js
@@ -197,7 +193,7 @@ export default {
 >
 > The previous Webpack configuration is for *development only* and implies that the project is using TypeScript and transpile directly with the `tsc` CLI.
 >
-> As the project is configured to use [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default, this example is using ESM syntax instead of [CommonJS](https://en.wikipedia.org/wiki/CommonJS) which is what most are used to. If you're Webpack file use CommonJS, import the `wmfnext-remote-loader/createModuleFederationConfiguration.cjs` file instead.
+> As the project is configured to use [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default, this example is using ESM syntax instead of [CommonJS](https://en.wikipedia.org/wiki/CommonJS) which is what most developpers are used to. If you're Webpack file use CommonJS, import the `wmfnext-remote-loader/createModuleFederationConfiguration.cjs` file instead.
 >
 > ```js
 > require("wmfnext-remote-loader/createModuleFederationConfiguration.cjs");
@@ -479,7 +475,7 @@ remote-app
 
 You can start the host application and make sure everything compile, you should see __Hello from remote!__.
 
-Now, as stated previously, this shell add an opinionated layer on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) dependencies sharing mecanism. Our take is that remote modules should not share standalone components but rather strictly sharing modules representing an whole sub domains of the application.
+Now, as stated previously, this shell add an opinionated layer on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) dependencies sharing mecanism. Our take is that remote modules should not share standalone components but rather strictly share an whole sub domains of the application.
 
 Remember earlier when we told that by convention a remote module must expose a `register.js` file?
 
@@ -812,7 +808,163 @@ Now you can start both applications again and try navigating between local and r
 
 ### Setup a package module application
 
-TBD
+As mentionned earlier, the shell also support static modules loaded at build time to accomodate different migration scenarios. Still, keep in mind that we highly recommend to aim for remote hosted modules loaded at runtime as it enables your teams to be fully autonomous by deploying their module independently from the other pieces of the application.
+
+Let's create a static module to see how it's done! 
+
+Those static modules could either come from a sibling project in a monorepos setup or from standalone packages installed in the host application. For this examples, we'll use a sibling project in a monorepos setup with the following structure.
+
+```
+packages
+├── app
+├─────src
+├───────boostrap.tsx
+├───────package.json
+├── static-module-1
+├─────src
+├───────index.ts
+├───────register.tsx
+├───────package.json
+```
+
+👉 First configure the static module `package.json` file to use the `index.ts` file as the package entry point and give the module a name and a version. In this example, we'll call it "wmfnext-static-module-1" and set the version as "0.0.1".
+
+```json
+{
+    "name": "wmfnext-static-module-1",
+    "version": "0.0.1",
+    "main": "index.ts
+}
+```
+
+👉 Then export the `register.tsx` file the `index.ts` file.
+
+```js
+// index.ts
+
+export * from "./register.tsx";
+```
+
+👉 And configure the `register.tsx` file to register a few pages to the shell runtime at bootstrap, similar to what we did for the remote module.
+
+```jsx
+// register.tsx
+
+import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
+import { Page1, Page2 } from "./pages";
+
+export const register: ModuleRegisterFunction = (runtime: Runtime) => {
+    runtime.registerRoutes([
+        {
+            path: "static1/page-1",
+            element: <Page1 />
+        },
+        {
+            path: "static1/page-2",
+            element: <Page2 />
+        }
+    ]);
+};
+```
+
+👉 Now, let's go back to the host application and register the newly created package as a dependency of the application. Open the host application `package.json` file and add the following dependency.
+
+```json
+{
+    "dependency": {
+        "wmfnext-static-module-1": "file:../static-module-1"
+    }
+}
+```
+
+👉 Next, update the host application `bootstrap.tsx` file to import the register function from the static module package and register the static module at build time.
+
+```jsx
+// host - bootstrap.tsx
+
+import { ConsoleLogger, RuntimeContext, ShellRuntime } from "wmfnext-shell";
+import type { RemoteDefinition, RemoteModuleRegistratorError } from "wmfnext-remote-loader";
+import { App } from "./App";
+import { Home } from "./pages";
+import { RegistrationStatus } from "./registrationStatus";
+import { createRoot } from "react-dom/client";
+import { registerRemoteModules } from "wmfnext-remote-loader";
+import { register as registerStaticModule1 } from "wmfnext-static-module-1";
+
+const Remotes: RemoteDefinition[] = [
+    {
+        url: "http://localhost:8081",
+        name: "remote1"
+    }
+];
+
+const runtime = new ShellRuntime({
+    loggers: [new ConsoleLogger()]
+});
+
+// Register host application page routes.
+runtime.registerRoutes([
+    {
+        index: true,
+        element: <Home />
+    }
+]);
+
+window.__registration_state__ = RegistrationStatus.inProgress;
+
+registerStaticModules([registerStaticModule1], runtime).then(() => {
+    runtime.logger.debug("All static modules registered.");
+});
+
+registerRemoteModules(Remotes, runtime).then((errors: RemoteModuleRegistratorError[]) => {
+    if (errors.length > 0) {
+        runtime.logger.error("Errors occured during remotes registration: ", errors);
+    }
+
+    window.__registration_state__ = RegistrationStatus.completed;
+});
+
+const root = createRoot(document.getElementById("root"));
+
+root.render(
+    <RuntimeContext.Provider value={runtime}>
+        <App />
+    </RuntimeContext.Provider>
+);
+```
+
+By calling the `registerStaticModules` function with the static module `register` function, the module routes will be added to the host application router at build time.
+
+👉 Lastly, update the host application root layout to add links to those newly registered routes from the static module.
+
+```jsx
+// host - RootLayout.tsx
+
+import { Link, Outlet } from "react-router-dom";
+import { Loading } from "../components";
+import { Suspense } from "react";
+
+export function RootLayout() {
+    return (
+        <div>
+            <nav>
+                <ul>
+                    <li><Link to="/">Home</Link></li>
+                    <li><Link to="static1/page-1">Static1/Page1</Link></li>
+                    <li><Link to="static1/page-2">Static1/Page2</Link></li>
+                    <li><Link to="remote1/page-1">Remote1/Page1</Link></li>
+                    <li><Link to="remote1/page-2">Remote1/Page2</Link></li>
+                </ul>
+            </nav>
+            <Suspense fallback={<Loading />}>
+                <Outlet />
+            </Suspense>
+        </div>
+    );
+}
+```
+
+👉 Start all the applications and try navigating to "/static1/page-1" and "static1/page-2".
 
 ### Register a module navigation items
 
