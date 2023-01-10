@@ -8,6 +8,6 @@ export type ModuleRegisterFunction = (runtime: Runtime, options: ModuleRegisterF
 
 export type RegisterModuleOptions = ModuleRegisterFunctionOptions;
 
-export function registerModule(register: ModuleRegisterFunction, runtime: Runtime, options: RegisterModuleOptions) {
+export function registerModule(register: ModuleRegisterFunction, runtime: Runtime, options?: RegisterModuleOptions) {
     register(runtime, options);
 }

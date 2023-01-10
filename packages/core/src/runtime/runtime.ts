@@ -1,9 +1,13 @@
-import type { RouteObject } from "react-router-dom";
+import type { RootNavigationItem, Route } from "../federation";
+
 import type { RuntimeLogger } from "./RuntimeLogger";
 
 export interface Runtime {
-    registerRoute: (routes: RouteObject) => void;
-    registerRoutes: (routes: RouteObject[]) => void;
+    registerRoutes: (routes: Route[]) => void;
+    readonly routes: Readonly<Route[]>;
+
+    registerNavigationItems: (navigationItems: RootNavigationItem[]) => void;
+    readonly navigationItems: Readonly<RootNavigationItem[]>;
 
     readonly logger: RuntimeLogger;
 }

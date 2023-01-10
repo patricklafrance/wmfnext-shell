@@ -1,4 +1,4 @@
-# wmfnext-shell
+# wmfnext-remote-loader
 
 For usage, view the [README.md file](https://github.com/patricklafrance/wmfnext-shell) at the root of this repository.
 

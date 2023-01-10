@@ -2,16 +2,15 @@
 
 [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) is a great infrastructure piece to makes sharing code and dependencies between different independant codebases easier. But as is, it's pretty raw as it's a low level mecanism.
 
-This shell aims to add a very thin and opinionated layer on top of Webpack Module Federation to complement the federation mecanism with additional functionalities. Those functionalities will gentle the adoption of a federated application architecture and provide an opinionated direction on how to implement a federated application.
+This shell aims to add a very thin and opinionated layer on top of Webpack Module Federation to complement the federation mecanism with additional functionalities. Those functionalities will gentle the adoption of a federated application architecture and provide an opinionated direction on how to implement a federated SPA application.
 
-The idea behind this shell is to have an host application responsible of loading modules and providing shared functionalities like routing, messaging and logging. With this shell, a module is considered as an independent codebase which should usually match a specific sub domain of the application. At bootstrap, the host application loads the modules and call a registration function for each of them with shared functionalities and a customazible context. During the registration phase, each module dynamically *register it's routes and navigation links*. Then, pages and components of a module can use the provided hooks to access shared functionalities whenever they please.
+The idea behind this shell is to have an host application responsible of loading modules and providing shared functionalities like routing, messaging and logging. With this shell, a module is considered as an independent codebase which should usually match a specific sub domain of the application. At bootstrap, the host application loads the modules and call a registration function for each of them with shared functionalities and a customazible context. During the registration phase, each module dynamically *register it's routes and navigation links*. Then, pages and components of a module can use the provided hooks to access shared functionalities.
 
-We recommend to aim for remote hosted modules loaded at runtime as it enables your teams to be fully autonomous by deploying their module independently from the other pieces of the application. Still, sometimes teams might want to gradually migrate toward this type of architecture and would prefer to extract sub domains into independent packages in a monorepos setup before going all-in with a runtime micro-frontends architecture. That's why, this shell also support loading modules from packages at build time. A dual bootstrapping setup is also supported, meaning an application could load a few remote hosted modules at runtime while also loading a few other modules from packages at build time.
+We recommend to aim for remote hosted modules loaded at runtime as it enables your teams to be fully autonomous by deploying their module independently from the other pieces of the application. Still, sometimes teams might want to gradually migrate toward this type of architecture and would prefer to extract sub domains into independent modules in a mololithic way before fully committing to independent modules and autonomous teams. To accomodate different migration solutions, this shell also support loading modules from a static registration function at build time. The functions could come from a independent packages in a monorepos setup or could even come from a subdomain folder of a modular application. A dual bootstrapping setup is also supported, meaning an application could load a few remote hosted modules at runtime while also loading a few other modules at build time.
 
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Full example](#full-example)
 - [API](#api)
 - [Contributors](./CONTRIBUTING.md)
 
@@ -20,7 +19,7 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
 This federated application shell include the following features:
 
 - Loading of hosted remote modules at runtime
-- Loading of modules from packages at build time
+- Loading of modules from a static function at build time
 - Routing & navigation
 - User session management
 - Cross application pub/sub
@@ -55,7 +54,11 @@ Once, installed, we recommend that you configure your project to use [ESM](https
 
 ## Usage
 
-> If you'll prefer to skip this walkthrought and jump right into it, go directly to the [API section](#api) or have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) and [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) examples.
+> **Warning**
+>
+> While going through this tutorial, keep in mind that some parts of the application has ben intentionally left out from code samples to emphasis on the more important one's.
+>
+> For a complete example, or, if you prefer to skip this walkthrough and jump right into it have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) and [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repositories.
 
 To use this shell, you must create projects for an host application and at least one module application. In this tutorial, we'll first load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) then, we'll load a package module at build time.
 
@@ -568,9 +571,10 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Home, NotFound } from "./pages";
 import { RootLayout } from "./layouts";
 import { Loading } from "./components";
+import { useRoutes } from "wmfnext-shell";
 
 export function App() {
-    const moduleRoutes = useModuleRoutes();
+    const routes = useRoutes();
 
     const router = useMemo(() => {
         return createBrowserRouter([
@@ -578,7 +582,7 @@ export function App() {
                 path: "/",
                 element: <RootLayout />,
                 children: [
-                    ...moduleRoutes,
+                    ...routes,
                     {
                         path: "*",
                         element: <NotFound />
@@ -586,7 +590,7 @@ export function App() {
                 ]
             }
         ]);
-    }, [moduleRoutes]);
+    }, [routes]);
 
    return (
         <RouterProvider
@@ -634,7 +638,7 @@ root.render(
 );
 ```
 
-By using the `useModuleRoutes()` hook we'll get access to the modules routes registered in the runtime at bootstrap. By passing those routes to the router, they will be rendered in the host application router.
+By using the `useRoutes()` hook we'll get access to the modules routes registered in the runtime at bootstrap. By passing those routes to the router, they will be rendered in the host application router.
 
 The host application could still register it's routes directly in the router configuration but it's convenient to move all routes registration to `runtime.registerRoutes()` as all the routes will be registered through the same entry point.
 
@@ -699,7 +703,7 @@ The issue is that the host application finish rendering **before** the remote mo
 
 To fix this issue, we have to re-render the application once the remote module is registered.
 
-> This issue will only occurs with remote modules registered at runtime. When strictly using modules registered build time, it's not an issue.
+> This issue will only occurs with remote modules registered at runtime. When strictly using modules registered at build time, it's not an issue and you don't need to add the following code.
 
 To fix the issue, the shell provide a `useRerenderOnceRemotesRegistrationCompleted()` function. Sadly thought, the solution also involve adding a little bit of custom code to link everything together.
 
@@ -713,12 +717,12 @@ import { Home, NotFound } from "./pages";
 import { RootLayout } from "./layouts";
 import { Loading } from "./components";
 import { useRerenderOnceRemotesRegistrationCompleted } from "wmfnext-remote-loader";
-import { useModuleRoutes } from "wmfnext-shell";
+import { useRoutes } from "wmfnext-shell";
 
 export function App() {
     useRerenderOnceRemotesRegistrationCompleted(() => window.__is_registered__);
 
-    const moduleRoutes = useModuleRoutes(runtime);
+    const routes = useRoutes(runtime);
 
     const router = useMemo(() => {
         return createBrowserRouter([
@@ -726,7 +730,7 @@ export function App() {
                 path: "/",
                 element: <RootLayout />,
                 children: [
-                    ...moduleRoutes,
+                    ...routes,
                     {
                         path: "*",
                         element: <NotFound />
@@ -734,7 +738,7 @@ export function App() {
                 ]
             }
         ]);
-    }, [moduleRoutes]);
+    }, [routes]);
 
     if (!window.__is_registered__) {
         return <Loading />;
@@ -824,7 +828,7 @@ TBD
 
 TBD
 
-### Use the event-bus
+### Use the event bus
 
 TBD
 
@@ -834,6 +838,8 @@ TBD
 
 ### Register a custom service
 
+TBD
+
 useService<TService>("service-name")
 
 new ShellRuntime({ 
@@ -842,7 +848,7 @@ new ShellRuntime({
     } 
 })
 
-### Develop a module in isolation with a fake runtime
+### Use the fake runtime
 
 TBD
 
@@ -880,7 +886,7 @@ TBD
 
 TBD
 
-### Development runtime
+### Fake runtime
 
 TBD
 

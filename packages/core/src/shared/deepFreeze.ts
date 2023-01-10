@@ -5,5 +5,5 @@ export function deepFreeze<T>(obj: T) {
         }
     });
 
-    return Object.freeze(obj) as T;
+    return Object.freeze(obj);
 }
