@@ -314,7 +314,7 @@ remote-app
 👉 First, create an `App.tsx` file which will act as the entry point of your React application.
 
 ```tsx
-// remote - App.tsx
+// remote-1 - App.tsx
 
 export function App() {
     return (
@@ -328,7 +328,7 @@ export function App() {
 > An "async boundary" is also needed here to let Webpack negotiate the shared dependencies with the host application. Additional information is available [here](https://dev.to/infoxicator/module-federation-shared-api-ach#using-an-async-boundary).
 
 ```ts
-// remote - index.ts
+// remote-1 - index.ts
 
 import("./bootstrap");
 ```
@@ -336,7 +336,7 @@ import("./bootstrap");
 👉 Next, create a `bootstrap.tsx` file to render the React application.
 
 ```tsx
-// remote - bootstrap.tsx
+// remote-1 - bootstrap.tsx
 
 import { App } from "./App";
 import { createRoot } from "react-dom/client";
@@ -351,7 +351,7 @@ root.render(
 👉 And configure Webpack to use [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin).
 
 ```js
-// remote - webpack.dev.js
+// remote-1 - webpack.dev.js
 
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
@@ -494,7 +494,7 @@ remote-app
 ```
 
 ```tsx
-// remote - register.js
+// remote-1 - register.js
 
 import { ModuleRegisterFunction } from "wmfnext-shell";
 
@@ -570,6 +570,7 @@ import { Loading } from "./components";
 import { useRoutes } from "wmfnext-shell";
 
 export function App() {
+    // Retrieve the modules routes.
     const routes = useRoutes();
 
     const router = useMemo(() => {
@@ -578,6 +579,7 @@ export function App() {
                 path: "/",
                 element: <RootLayout />,
                 children: [
+                    // Add the retrieved modules routes to the router.
                     ...routes,
                     {
                         path: "*",
@@ -611,7 +613,7 @@ const runtime = new ShellRuntime({
     loggers: [new ConsoleLogger()]
 });
 
-// Register host application page routes.
+// Register host application page routes with the same entry point as modules routes.
 runtime.registerRoutes([
     {
         index: true,
@@ -643,7 +645,7 @@ The `runtime.registerRoutes()` function support the same syntax and options as R
 👉 Now that the host application is ready to render modules routes, let's update the remote application to register some routes! To do so, open the `register.ts` file of the remote application and add routes by using the `runtime.registerRoutes()` function (you could also use `runtime.registerRoute()`).
 
 ```tsx
-// remote - register.ts
+// remote-1 - register.ts
 
 import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
 import { Page1, Page2 } from "./pages";
@@ -693,7 +695,11 @@ Start both applications and try navigating between local and remote pages.
 
 You'll probably notice that the remote pages goes to the 404 pages! What's going on?!
 
-### Re-render the host application after remote modules registration 
+### Re-render the host application after remote modules registration
+
+> **Note**
+>
+> You might not need this if your host application is using Redux and you update the store once the bootstrapping is completed.
 
 The issue is that the host application finish rendering **before** the remote module is registered. Therefore, only the host application routes are rendered.
 
@@ -777,7 +783,6 @@ const runtime = new ShellRuntime({
     loggers: [new ConsoleLogger()]
 });
 
-// Register host application page routes.
 runtime.registerRoutes([
     {
         index: true,
@@ -808,6 +813,8 @@ Now you can start both applications again and try navigating between local and r
 
 ### Setup a package module application
 
+> A static module example is available in the Github repository [wmfnext-host](https://github.com/patricklafrance/wmfnext-host).
+
 As mentionned earlier, the shell also support static modules loaded at build time to accomodate different migration scenarios. Still, keep in mind that we highly recommend to aim for remote hosted modules loaded at runtime as it enables your teams to be fully autonomous by deploying their module independently from the other pieces of the application.
 
 Let's create a static module to see how it's done! 
@@ -816,7 +823,7 @@ Those static modules could either come from a sibling project in a monorepos set
 
 ```
 packages
-├── app
+├── app (the host application)
 ├─────src
 ├───────boostrap.tsx
 ├───────package.json
@@ -833,22 +840,22 @@ packages
 {
     "name": "wmfnext-static-module-1",
     "version": "0.0.1",
-    "main": "index.ts
+    "main": "./index.ts
 }
 ```
 
 👉 Then export the `register.tsx` file the `index.ts` file.
 
-```js
-// index.ts
+```ts
+// static-1 - index.ts
 
 export * from "./register.tsx";
 ```
 
 👉 And configure the `register.tsx` file to register a few pages to the shell runtime at bootstrap, similar to what we did for the remote module.
 
-```jsx
-// register.tsx
+```tsx
+// static-1 - register.tsx
 
 import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
 import { Page1, Page2 } from "./pages";
@@ -867,6 +874,8 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 };
 ```
 
+> Did you noticed that no `boostrap.tsx` file is required this time as it's a static module which doesn't depend on Module Webpack Federation.
+
 👉 Now, let's go back to the host application and register the newly created package as a dependency of the application. Open the host application `package.json` file and add the following dependency.
 
 ```json
@@ -879,7 +888,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 👉 Next, update the host application `bootstrap.tsx` file to import the register function from the static module package and register the static module at build time.
 
-```jsx
+```tsx
 // host - bootstrap.tsx
 
 import { ConsoleLogger, RuntimeContext, ShellRuntime } from "wmfnext-shell";
@@ -902,7 +911,6 @@ const runtime = new ShellRuntime({
     loggers: [new ConsoleLogger()]
 });
 
-// Register host application page routes.
 runtime.registerRoutes([
     {
         index: true,
@@ -912,6 +920,7 @@ runtime.registerRoutes([
 
 window.__registration_state__ = RegistrationStatus.inProgress;
 
+// Register the static modules at build time.
 registerStaticModules([registerStaticModule1], runtime).then(() => {
     runtime.logger.debug("All static modules registered.");
 });
@@ -937,7 +946,7 @@ By calling the `registerStaticModules` function with the static module `register
 
 👉 Lastly, update the host application root layout to add links to those newly registered routes from the static module.
 
-```jsx
+```tsx
 // host - RootLayout.tsx
 
 import { Link, Outlet } from "react-router-dom";
@@ -966,11 +975,203 @@ export function RootLayout() {
 
 👉 Start all the applications and try navigating to "/static1/page-1" and "static1/page-2".
 
-### Register a module navigation items
+### Register a module dynamic navigation items
 
-That's pretty cool, we have a federated application displaying pages from remote modules.
+That's pretty cool, we have a federated application displaying pages from a remote module loaded at runtime and a static module registered at build time.
 
-Still, a module team is not yet fully autonomous as the pages urls are hardcoded in the host application links.
+Still, module teams are not yet fully autonomous as the pages urls are hardcoded in the host application root layout links. Teams will have to coordinate within each others to make changes to the host application navigation everytime a new page is created within their module or a page navigation information changed.
+
+To help with this issue and enable fully autonomous teams, the shell offer a functionality letting both remote and static modules register dynamically their navigation items at bootstrap. Then, an host application can parse the navigation items tree and render links accordingly.
+
+👉 First, update every module `register.tsx` file to add dynamic navigation items.
+
+```tsx
+// remote-1 - register.tsx
+
+import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
+import { Page1, Page2 } from "./pages";
+
+export const register: ModuleRegisterFunction = (runtime: Runtime) => {
+    runtime.registerRoutes([
+        {
+            path: "remote1/page-1",
+            element: <Page1 />
+        },
+        {
+            path: "remote1/page-2",
+            element: <Page2 />
+        }
+    ]);
+
+    // Newly added navigation items.
+    runtime.registerNavigationItems([
+        {
+            to: "remote1/page-1",
+            content: "Remote1/Page 1"
+        },
+        {
+            to: "remote1/page-2",
+            content: "Remote1/Page 2"
+        }
+    ]);
+};
+```
+
+```tsx
+// static-1 - register.tsx
+
+import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
+import { Page1, Page2, Page3, Page4, Page5 } from "./pages";
+
+import { ArchiveIcon } from "./ArchiveIcon";
+
+export const register: ModuleRegisterFunction = (runtime: Runtime) => {
+    runtime.registerRoutes([
+        {
+            path: "static1/page-1",
+            element: <Page1 />
+        },
+        {
+            path: "static1/page-2",
+            element: <Page2 />
+        },
+        {
+            path: "static1/page-3",
+            element: <Page3 />
+        },
+        {
+            path: "static1/page-4",
+            element: <Page4 />
+        },
+        {
+            path: "static1/page-5",
+            element: <Page5 />
+        }
+    ]);
+
+    runtime.registerNavigationItems([
+        {
+            to: "static1/page-1",
+            content: (
+                <>
+                    <ArchiveIcon />
+                    <span>Static1/Page 1</span>
+                </>
+            ),
+            style: {
+                display: "flex",
+                alignItems: "center"
+            },
+            target: "_blank"
+        },
+        {
+            to: "static1/page-2",
+            content: "Static1/Page 2",
+            children: [
+                {
+                    to: "static1/page-4",
+                    content: "Static1/Page 4"
+                },
+                {
+                    to: "static1/page-5",
+                    content: "Static1/Page 5"
+                }
+            ]
+        },
+        {
+            to: "static1/page-3",
+            content: "Static1/Page 3",
+            priority: 99,
+            additionalProps: {
+                highlight: true
+            }
+        }
+    ]);
+};
+```
+
+Independent modules can use the `registerNavigationItems()` function to tell the host application which navigation items should be rendered for their pages.
+
+A navigation item must have a `to` and a `content` prop. The `content` prop can be a string value or a React element. Providing a React element as the `content` prop can help with more complex scenarios or even for simple usecase like providing an icon and text pair as it's done in this example for the "Static1/Page 1" navigation item.
+
+Let's focus on the navigation items registered by the static module ("static-1 - register.tsx") as there are many "special" cases there.
+
+The first thing to notice is that "Static1/Page 3" as a `priority` prop. The `priority` props allow a module to have a say in the order at which the navigation item will be rendered. The higher the priority, the highest the navigation item will be rendered. Still, the priority will only hint the host application about the module preference. It's still up to the host application to choose the final rendering order of the navigation item.
+
+The second thing to notice is that "Static1/Page 2" has a `children` prop containing nested navigation items. A navigation items tree structure can have an infinite number of level, it's up to you and the the host application ability to parse the tree structure correctly. In this example, only 2 levels are configured.
+
+Going back to "Static1/Page 3", you'll see an `additionalProps` prop. This is an untyped bucket allowing you to provide contextual props to use when rendering navigation items in the host application.
+
+The last thing to cover are the `style` and `target` props defined for "Static1/Page 1". A navigation items support any props supported by a [React router Link component](https://reactrouter.com/en/main/components/link), including those 2.
+
+👉 Now, update the host application root layout to render the navigation items registered by the modules.
+
+```tsx
+// host - RootLayout.tsx
+
+import "./RootLayout.css";
+
+import { Link, Outlet } from "react-router-dom";
+import { Suspense, useCallback } from "react";
+import { useNavigationItems, useRenderNavigationItems } from "wmfnext-shell";
+
+import { Loading } from "../components";
+import type { ReactNode } from "react";
+import type { RenderNavigationItem } from "wmfnext-shell";
+
+export function RootLayout() {
+    const navigationItems = useNavigationItems();
+
+    const renderItem = useCallback(({ content, linkProps, additionalProps: { highlight, ...additionalProps } }: RenderNavigationItem, index: number, level: number) => {
+        return (
+            <li key={`${level}-${index}`} className={highlight && "highlight"}>
+                <Link {...linkProps} {...additionalProps}>
+                    {content}
+                </Link>
+            </li>
+        );
+    }, []);
+
+    const renderSection = useCallback((itemElements: ReactNode[], index: number, level: number) => {
+        return (
+            <ul key={`${level}-${index}`}>
+                {itemElements}
+            </ul>
+        );
+    }, []);
+
+    const renderedNavigationItems = useRenderNavigationItems(navigationItems, renderItem, renderSection);
+
+    return (
+        <div>
+            <nav className="nav">
+                {renderedNavigationItems}
+            </nav>
+            <Suspense fallback={<Loading />}>
+                <Outlet />
+            </Suspense>
+        </div>
+    );
+}
+```
+
+The `useNavigationItems()` hook return the navigation items as is, meaning you'll still have to recursively parse tree structure to transform the items into actual React component.
+
+As it's a non trivial process, the shell provide an optional utility hook called `useRenderNavigationItems()` to help with that.
+
+> If you prefer you can always parse the navigation items tree on your own without using the utility hook.
+
+The `useRenderNavigationItems()` accept 2 render function as second and third parameters. The second parameter is a function to render a single link from a navigation item and the third parameter is a function to render a section.
+
+In this example, there would have 2 sections. A root section including all the navigation items, and a nested section including only "Static1/Page 4" and "Static1/Page 5".
+
+Each render function must return a React element.
+
+Notice that the `renderItem` function receive the `highlight` additional props and use it to render an "highlight" CSS class on the link. This is the kind of usecase those `additionalProps` are for.
+
+> **Warning**
+>
+> It's import to provide memoized render functions using the `useCallback` hook to `useRenderNavigationItems()` as otherwise the navigation items will be parsed over and over rather than returning them from the cache.
 
 ### Isolate module failures
 

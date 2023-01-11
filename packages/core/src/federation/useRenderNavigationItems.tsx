@@ -4,10 +4,10 @@
 // Don't forget to memoize the renderItem and renderSection function with the useCallback hook to benefit from this hook caching
 
 import type { NavigationItem, RootNavigationItem } from "./navigationItemRegistry";
+import type { ReactElement, ReactNode } from "react";
+import { cloneElement, useMemo } from "react";
 
 import type { LinkProps } from "react-router-dom";
-import type { ReactNode } from "react";
-import { useMemo } from "react";
 
 export interface RenderNavigationItem {
     content: ReactNode;
@@ -15,9 +15,9 @@ export interface RenderNavigationItem {
     additionalProps: Record<string, any>;
 }
 
-export type RenderItemFunction = (item: RenderNavigationItem, index: number, level: number) => ReactNode;
+export type RenderItemFunction = (item: RenderNavigationItem, index: number, level: number) => ReactElement;
 
-export type RenderSectionFunction = (itemElements: ReactNode[], index: number, level: number) => ReactNode;
+export type RenderSectionFunction = (itemElements: ReactElement[], index: number, level: number) => ReactElement;
 
 function toRenderItem(item: NavigationItem) {
     // children is intentionally omitted.
@@ -31,19 +31,21 @@ function toRenderItem(item: NavigationItem) {
     } as RenderNavigationItem;
 }
 
-function renderItems(navigationItems: NavigationItem[], renderItem: RenderItemFunction, renderSection: RenderSectionFunction, index: number, level: number) {
-    const itemElements = navigationItems.map((x: NavigationItem, itemIndex: number) => {
+function renderItems(navigationItems: (NavigationItem)[], renderItem: RenderItemFunction, renderSection: RenderSectionFunction, index: number, level: number) {
+    const itemElements = navigationItems.map((x: (NavigationItem), itemIndex: number) => {
         const itemElement = renderItem(toRenderItem(x), itemIndex, level);
 
         if (x.children) {
-            const childrenElement = renderItems(x.children, renderItem, renderSection, 0, level++);
+            const childrenElement = renderItems(x.children, renderItem, renderSection, 0, level + 1);
 
-            return (
-                <>
-                    {itemElement}
-                    {childrenElement}
-                </>
-            );
+            return cloneElement(itemElement, {
+                children: (
+                    <>
+                        {itemElement.props.children}
+                        {childrenElement}
+                    </>
+                )
+            });
         }
 
         return itemElement;
@@ -54,41 +56,40 @@ function renderItems(navigationItems: NavigationItem[], renderItem: RenderItemFu
     return section;
 }
 
-export interface UseRenderNavigationItemsOptions {
-    renderSection?: RenderSectionFunction;
-}
-
 export interface UseRenderNavigationItems {
     navigationItems: Readonly<RootNavigationItem[]>;
     renderItem: RenderItemFunction;
+    renderSection: RenderSectionFunction;
 }
 
 export function useRenderNavigationItems(
     navigationItems: Readonly<RootNavigationItem[]>,
     renderItem: RenderItemFunction,
-    options: UseRenderNavigationItemsOptions = {}
+    renderSection: RenderSectionFunction
 ) {
-    const {
-        renderSection = x => x
-    } = options;
-
     return useMemo(() => {
         // Highest priority is rendered first.
-        const sortedItems = [...navigationItems].sort((x, y) => {
-            if (x.priority === y.priority) {
-                return 0;
-            }
+        const sortedItems = [...navigationItems]
+            .sort((x, y) => {
+                if (x.priority === y.priority) {
+                    return 0;
+                }
 
-            if (!x.priority && y.priority) {
-                return 1;
-            }
+                if (!x.priority && y.priority) {
+                    return 1;
+                }
 
-            if (x.priority && !y.priority) {
-                return -1;
-            }
+                if (x.priority && !y.priority) {
+                    return -1;
+                }
 
-            return x.priority > y.priority ? -1 : 1;
-        });
+                return x.priority > y.priority ? -1 : 1;
+            })
+            // priority is intentionally omitted.
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            .map(({ priority, ...itemProps }) => ({
+                ...itemProps
+            }));
 
         return renderItems(sortedItems, renderItem, renderSection, 0, 0);
     }, [navigationItems, renderItem, renderSection]);
