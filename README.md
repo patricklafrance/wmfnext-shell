@@ -834,13 +834,13 @@ packages
 ├───────package.json
 ```
 
-👉 First configure the static module `package.json` file to use the `index.ts` file as the package entry point and give the module a name and a version. In this example, we'll call it "wmfnext-static-module-1" and set the version as "0.0.1".
+👉 First configure the static module `package.json` file to use the `index.js` file as the package entry point and give the module a name and a version. In this example, we'll call it "wmfnext-static-module-1" and set the version as "0.0.1".
 
 ```json
 {
     "name": "wmfnext-static-module-1",
     "version": "0.0.1",
-    "main": "./index.ts
+    "main": "dist/index.js"
 }
 ```
 
@@ -1102,7 +1102,7 @@ The second thing to notice is that _"Static1/Page 2"_ has a `children` prop cont
 
 Going back to _"Static1/Page 3"_, you'll see an `additionalProps` prop. This is an untyped bucket allowing you to provide any number of contextual props to use later when rendering the navigation items in the host application.
 
-The last thing to cover in this section are the `style` and `target` props defined for _"Static1/Page 1"_. A navigation items support any props supported by a [React router Link component](https://reactrouter.com/en/main/components/link), including those 2.
+The last thing to cover in this section are the `style` and `target` props defined for _"Static1/Page 1"_. A navigation items support any props supported by a [React Router Link component](https://reactrouter.com/en/main/components/link), including those 2.
 
 👉 Now, update the host application root layout to render the navigation items registered by the modules.
 
@@ -1173,11 +1173,165 @@ Notice that the `renderItem` function receive the `highlight` additional props a
 
 > **Warning**
 >
-> It's important to provide memoized render functions to the `useRenderNavigationItems()` hook as otherwise the navigation items will be parsed over and over on re-renders rather than being returned from the cache for the same navigation items.
+> It's important to provide memoized render functions to the `useRenderNavigationItems()` hook as otherwise the navigation items will be parsed over and over on re-renders rather than being returned from the cache for the same navigation item tree structure.
 
 ### Isolate module failures
 
-TBD
+One of they key carateristic of a micro-frontends implementations like [iframes](https://martinfowler.com/articles/micro-frontends.html#Run-timeIntegrationViaIframes) and subdomains is that a single module failure can't break the whole application, e.g. other parts will still be fully functional even if one fail with an unmanaged error.
+
+With an implementation such as Webpack Module Federation or even a build time implementation with static modules, this is not the case as all the modules live in the same domain and share the same DOM.
+
+Still, the good news is that with [React Router](https://reactrouter.com/) we can build something which will behave very similarly to iframe failures isolation by leveraging [Outlet](https://reactrouter.com/en/main/components/outlet) and [errorElement](https://reactrouter.com/en/main/route/error-element).
+
+For this example, the host application root layout is already using an `<Outlet />`, therefore all we have to do is to add a nested pathless route with an `errorElement` prop to catch unmanaged errors from modules.
+
+👉 First, let's create an error boundary component in the host application to handle errors.
+
+```tsx
+// host - RootErrorBoundary.tsx
+
+import "./RootErrorBoundary.css";
+
+import { isRouteErrorResponse, useLocation, useRouteError } from "react-router-dom";
+
+import { useLogger } from "wmfnext-shell";
+
+function getErrorMessage(error: unknown) {
+    if (isRouteErrorResponse(error)) {
+        return `${error.status} ${error.statusText}`;
+    }
+
+    return error instanceof Error
+        ? error.message
+        : JSON.stringify(error);
+}
+
+export function RootErrorBoundary() {
+    const error = useRouteError();
+    const location = useLocation();
+    const logger = useLogger();
+
+    logger.error(`[shell] An unmanaged error occured while rendering the route with path ${location.pathname}`, error);
+
+    return (
+        <p className="error-message">
+            An unmanaged error occured insisde a module and other parts of the application are still fully functional!
+            <br />
+            <span role="img" aria-label="pointer">👉</span> {getErrorMessage(error)}
+        </p>
+    );
+}
+```
+
+👉 Next, update the host application router code to add the nested pathless route.
+
+```tsx
+// host - App.tsx
+
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+
+import { Loading } from "./components";
+import { NotFound } from "./pages";
+import { RegistrationStatus } from "./registrationStatus";
+import { RootErrorBoundary } from "./RootErrorBoundary";
+import { RootLayout } from "./layouts";
+import { useMemo } from "react";
+import { useRerenderOnceRemotesRegistrationCompleted } from "wmfnext-remote-loader";
+import { useRoutes } from "wmfnext-shell";
+
+export function App() {
+    useRerenderOnceRemotesRegistrationCompleted(() => window.__registration_state__ === RegistrationStatus.completed);
+
+    const federatedRoutes = useRoutes();
+
+    const router = useMemo(() => {
+        return createBrowserRouter([
+            {
+                path: "/",
+                element: <RootLayout />,
+                children: [
+                    {
+                        // Pathless route to set an error boundary inside the layout instead of outside.
+                        // It's quite useful to not lose the layout when an unmanaged error occurs.
+                        errorElement: <RootErrorBoundary />,
+                        children: [
+                            ...federatedRoutes,
+                            {
+                                path: "*",
+                                element: <NotFound />
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]);
+    }, [federatedRoutes]);
+
+    if (window.__registration_state__ === RegistrationStatus.inProgress) {
+        return <Loading />;
+    }
+
+    return (
+        <RouterProvider
+            router={router}
+            fallbackElement={<Loading />}
+        />
+    );
+}
+```
+
+As the pathless route has been declared under the root route (the one with the the root layout as `element`), when an unmanaged error bubble up and the error boundary is rendered, only the [Outlet](https://reactrouter.com/en/main/components/outlet) output will be replaced by the error boundary output, meaning other parts of the root layout around the Outlet will still be rendered.
+
+👉 Add a route throwing an error to the remote module.
+
+```tsx
+// remote-1 - Page3.tsx
+
+export function Page3(): JSX.Element {
+    throw new Error("Page3 from \"remote-1\" failed to render.");
+}
+```
+
+```tsx
+// remote-1 - register.tsx
+
+import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
+import { Page1, Page2, Page3 } from "./pages";
+
+export const register: ModuleRegisterFunction = (runtime: Runtime) => {
+    runtime.registerRoutes([
+        {
+            path: "remote1/page-1",
+            element: <Page1 />
+        },
+        {
+            path: "remote1/page-2",
+            element: <Page2 />
+        },
+        {
+            path: "remote1/page-3",
+            element: <Page3 />
+        }
+    ]);
+
+    runtime.registerNavigationItems([
+        {
+            to: "remote1/page-1",
+            content: "Remote1/Page 1"
+        },
+        {
+            to: "remote1/page-2",
+            content: "Remote1/Page 2"
+        },
+        {
+            to: "remote1/page-3",
+            content: "Remote1/Page 3"
+        }
+    ]);
+};
+```
+
+👉 Start all the applications and navigate to _"Remote1/Page 3"_. The page will fail to render but the application should still be functional.
 
 ### Override the host layout from a module
 
