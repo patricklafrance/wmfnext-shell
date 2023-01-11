@@ -979,9 +979,9 @@ export function RootLayout() {
 
 That's pretty cool, we have a federated application displaying pages from a remote module loaded at runtime and a static module registered at build time.
 
-Still, module teams are not yet fully autonomous as the pages urls are hardcoded in the host application root layout links. Teams will have to coordinate within each others to make changes to the host application navigation everytime a new page is created within their module or a page navigation information changed.
+Still, _module teams are not yet fully autonomous_ as the page urls are hardcoded in the host application root layout links. Teams will have to coordinate with each others to make changes to the host application navigation everytime a new page is created within their module or a page navigation information changed.
 
-To help with this issue and enable fully autonomous teams, the shell offer a functionality letting both remote and static modules register dynamically their navigation items at bootstrap. Then, an host application can parse the navigation items tree and render links accordingly.
+To help with that and _enable fully autonomous teams_, the shell offer a functionality to let both remote and static modules dynamically register their navigation items at bootstrap. Then, an host application can retrieve and parse those navigation items and render them as link components.
 
 👉 First, update every module `register.tsx` file to add dynamic navigation items.
 
@@ -1092,17 +1092,17 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 Independent modules can use the `registerNavigationItems()` function to tell the host application which navigation items should be rendered for their pages.
 
-A navigation item must have a `to` and a `content` prop. The `content` prop can be a string value or a React element. Providing a React element as the `content` prop can help with more complex scenarios or even for simple usecase like providing an icon and text pair as it's done in this example for the "Static1/Page 1" navigation item.
+A navigation item must have a `to` and `content` props. The `content` prop can be a `string` value or a `React element`.
 
-Let's focus on the navigation items registered by the static module ("static-1 - register.tsx") as there are many "special" cases there.
+Let's focus on the navigation items registered by the static module (_"static-1 - register.tsx"_) as there are many "special" cases shown there.
 
-The first thing to notice is that "Static1/Page 3" as a `priority` prop. The `priority` props allow a module to have a say in the order at which the navigation item will be rendered. The higher the priority, the highest the navigation item will be rendered. Still, the priority will only hint the host application about the module preference. It's still up to the host application to choose the final rendering order of the navigation item.
+The first thing to notice is that _"Static1/Page 3"_ as a `priority` prop. The `priority` props allow a module to have a say in the order at which the navigation item will be rendered. The higher the priority, the highest the navigation item will be rendered. Still, the priority will only hint the host application about the module preference. It's up to the host application to choose the final rendering order of the navigation items.
 
-The second thing to notice is that "Static1/Page 2" has a `children` prop containing nested navigation items. A navigation items tree structure can have an infinite number of level, it's up to you and the the host application ability to parse the tree structure correctly. In this example, only 2 levels are configured.
+The second thing to notice is that _"Static1/Page 2"_ has a `children` prop containing nested navigation items. A navigation items tree structure can have an infinite number of levels, it's up to you and the host application ability to parse the tree structure correctly. In this example, only 2 levels are configured.
 
-Going back to "Static1/Page 3", you'll see an `additionalProps` prop. This is an untyped bucket allowing you to provide contextual props to use when rendering navigation items in the host application.
+Going back to _"Static1/Page 3"_, you'll see an `additionalProps` prop. This is an untyped bucket allowing you to provide any number of contextual props to use later when rendering the navigation items in the host application.
 
-The last thing to cover are the `style` and `target` props defined for "Static1/Page 1". A navigation items support any props supported by a [React router Link component](https://reactrouter.com/en/main/components/link), including those 2.
+The last thing to cover in this section are the `style` and `target` props defined for _"Static1/Page 1"_. A navigation items support any props supported by a [React router Link component](https://reactrouter.com/en/main/components/link), including those 2.
 
 👉 Now, update the host application root layout to render the navigation items registered by the modules.
 
@@ -1155,23 +1155,25 @@ export function RootLayout() {
 }
 ```
 
-The `useNavigationItems()` hook return the navigation items as is, meaning you'll still have to recursively parse tree structure to transform the items into actual React component.
+The `useNavigationItems()` hook return the navigation items as is, meaning you'll still have to recursively parse the tree structure to transform the items into actual React component.
 
 As it's a non trivial process, the shell provide an optional utility hook called `useRenderNavigationItems()` to help with that.
 
 > If you prefer you can always parse the navigation items tree on your own without using the utility hook.
 
-The `useRenderNavigationItems()` accept 2 render function as second and third parameters. The second parameter is a function to render a single link from a navigation item and the third parameter is a function to render a section.
+The `useRenderNavigationItems()` accept 2 render functions as a second and third parameter. The second parameter is a function to render a single link from a navigation item and the third parameter is a function to render a section of navigation items.
 
-In this example, there would have 2 sections. A root section including all the navigation items, and a nested section including only "Static1/Page 4" and "Static1/Page 5".
+In this example, there are 2 sections. A root section containing all the navigation items, and a nested section containing only _"Static1/Page 4"_ and _"Static1/Page 5"_.
 
-Each render function must return a React element.
+Each render function must return a single `React element`.
 
 Notice that the `renderItem` function receive the `highlight` additional props and use it to render an "highlight" CSS class on the link. This is the kind of usecase those `additionalProps` are for.
 
+👉 Start all the applications and try navigating between pages.
+
 > **Warning**
 >
-> It's import to provide memoized render functions using the `useCallback` hook to `useRenderNavigationItems()` as otherwise the navigation items will be parsed over and over rather than returning them from the cache.
+> It's important to provide memoized render functions to the `useRenderNavigationItems()` hook as otherwise the navigation items will be parsed over and over on re-renders rather than being returned from the cache for the same navigation items.
 
 ### Isolate module failures
 
