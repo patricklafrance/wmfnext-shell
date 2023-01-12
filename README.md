@@ -525,9 +525,12 @@ To start using routes provided by modules we'll have to make a few changes to th
 // host - App.tsx
 
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import { Home, NotFound } from "./pages";
 import { RootLayout } from "./layouts";
 import { Loading } from "./components";
+import { lazy } from "react";
+
+const HomePage = lazy(() => import("./pages/Home"));
+const NotFoundPage = lazy(() => import("./pages/NotFound"));
 
 export function App() {
     const router = createBrowserRouter([
@@ -537,11 +540,11 @@ export function App() {
             children: [
                 {
                     index: true,
-                    element: <Home />
+                    element: <HomePage />
                 },
                 {
                     path: "*",
-                    element: <NotFound />
+                    element: <NotFoundPage />
                 }
             ]
         }
@@ -564,7 +567,6 @@ You can start the application and you'll have an home page.
 // host - App.tsx
 
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import { Home, NotFound } from "./pages";
 import { RootLayout } from "./layouts";
 import { Loading } from "./components";
 import { useRoutes } from "wmfnext-shell";
@@ -580,11 +582,7 @@ export function App() {
                 element: <RootLayout />,
                 children: [
                     // Add the retrieved modules routes to the router.
-                    ...routes,
-                    {
-                        path: "*",
-                        element: <NotFound />
-                    }
+                    ...routes
                 ]
             }
         ]);
@@ -602,6 +600,17 @@ export function App() {
 ```tsx
 // host - bootstrap.tsx
 
+import { ConsoleLogger, RuntimeContext, ShellRuntime } from "wmfnext-shell";
+import type { RegistrationError, RemoteDefinition } from "wmfnext-remote-loader";
+
+import { App } from "./App";
+import { createRoot } from "react-dom/client";
+import { lazy } from "react";
+import { registerRemoteModules } from "wmfnext-remote-loader";
+
+const HomePage = lazy(() => import("./pages/Home"));
+const NotFoundPage = lazy(() => import("./pages/NotFound"));
+
 const Remotes: RemoteDefinition[] = [
     {
         url: "http://localhost:8081",
@@ -618,10 +627,14 @@ runtime.registerRoutes([
     {
         index: true,
         element: <Home />
+    },
+    {
+        path: "*",
+        element: <NotFound />
     }
 ]);
 
-registerRemoteModules(Remotes, runtime).then((errors: RemoteModuleRegistratorError[]) => {
+registerRemoteModules(Remotes, runtime).then((errors: RegistrationError[]) => {
     if (errors.length > 0) {
         runtime.logger.error("Errors occured during remotes registration: ", errors);
     }
@@ -648,7 +661,11 @@ The `runtime.registerRoutes()` function support the same syntax and options as R
 // remote-1 - register.ts
 
 import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
-import { Page1, Page2 } from "./pages";
+
+import { lazy } from "react";
+
+const Page1 = lazy(() => import("./pages/Page1"));
+const Page2 = lazy(() => import("./pages/Page2"));
 
 export const register: ModuleRegisterFunction = (runtime: Runtime) => {
     runtime.registerRoutes([
@@ -715,7 +732,6 @@ To fix the issue, the shell provide a `useRerenderOnceRemotesRegistrationComplet
 // host - App.tsx
 
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import { Home, NotFound } from "./pages";
 import { RootLayout } from "./layouts";
 import { Loading } from "./components";
 import { useRerenderOnceRemotesRegistrationCompleted } from "wmfnext-remote-loader";
@@ -732,11 +748,7 @@ export function App() {
                 path: "/",
                 element: <RootLayout />,
                 children: [
-                    ...routes,
-                    {
-                        path: "*",
-                        element: <NotFound />
-                    }
+                    ...routes
                 ]
             }
         ]);
@@ -765,12 +777,15 @@ Since the module registration occurs in the `bootstrap.tsx` file (because of the
 // host - bootstrap.tsx
 
 import { ConsoleLogger, RuntimeContext, ShellRuntime } from "wmfnext-shell";
-import type { RemoteDefinition, RemoteModuleRegistratorError } from "wmfnext-remote-loader";
+import type { RemoteDefinition, RegistrationError } from "wmfnext-remote-loader";
 import { App } from "./App";
-import { Home } from "./pages";
 import { RegistrationStatus } from "./registrationStatus";
 import { createRoot } from "react-dom/client";
 import { registerRemoteModules } from "wmfnext-remote-loader";
+import { lazy } from "react";
+
+const HomePage = lazy(() => import("./pages/Home"));
+const NotFoundPage = lazy(() => import("./pages/NotFound"));
 
 const Remotes: RemoteDefinition[] = [
     {
@@ -786,13 +801,17 @@ const runtime = new ShellRuntime({
 runtime.registerRoutes([
     {
         index: true,
-        element: <Home />
+        element: <HomePage />
+    },
+    {
+        path: "*",
+        element: <NotFoundPage />
     }
 ]);
 
 window.__registration_state__ = RegistrationStatus.inProgress;
 
-registerRemoteModules(Remotes, runtime).then((errors: RemoteModuleRegistratorError[]) => {
+registerRemoteModules(Remotes, runtime).then((errors: RegistrationError[]) => {
     if (errors.length > 0) {
         runtime.logger.error("Errors occured during remotes registration: ", errors);
     }
@@ -858,7 +877,11 @@ export * from "./register.tsx";
 // static-1 - register.tsx
 
 import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
-import { Page1, Page2 } from "./pages";
+
+import { lazy } from "react";
+
+const Page1 = lazy(() => import("./pages/Page1"));
+const Page2 = lazy(() => import("./pages/Page2"));
 
 export const register: ModuleRegisterFunction = (runtime: Runtime) => {
     runtime.registerRoutes([
@@ -892,13 +915,16 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 // host - bootstrap.tsx
 
 import { ConsoleLogger, RuntimeContext, ShellRuntime } from "wmfnext-shell";
-import type { RemoteDefinition, RemoteModuleRegistratorError } from "wmfnext-remote-loader";
+import type { RemoteDefinition, RegistratorError } from "wmfnext-remote-loader";
 import { App } from "./App";
-import { Home } from "./pages";
 import { RegistrationStatus } from "./registrationStatus";
 import { createRoot } from "react-dom/client";
 import { registerRemoteModules } from "wmfnext-remote-loader";
 import { register as registerStaticModule1 } from "wmfnext-static-module-1";
+import { lazy } from "react";
+
+const HomePage = lazy(() => import("./pages/Home"));
+const NotFoundPage = lazy(() => import("./pages/NotFound"));
 
 const Remotes: RemoteDefinition[] = [
     {
@@ -914,7 +940,11 @@ const runtime = new ShellRuntime({
 runtime.registerRoutes([
     {
         index: true,
-        element: <Home />
+        element: <HomePage />
+    },
+    {
+        path: "*",
+        element: <NotFoundPage />
     }
 ]);
 
@@ -925,7 +955,7 @@ registerStaticModules([registerStaticModule1], runtime).then(() => {
     runtime.logger.debug("All static modules registered.");
 });
 
-registerRemoteModules(Remotes, runtime).then((errors: RemoteModuleRegistratorError[]) => {
+registerRemoteModules(Remotes, runtime).then((errors: RegistratorError[]) => {
     if (errors.length > 0) {
         runtime.logger.error("Errors occured during remotes registration: ", errors);
     }
@@ -989,7 +1019,11 @@ To help with that and _enable fully autonomous teams_, the shell offer a functio
 // remote-1 - register.tsx
 
 import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
-import { Page1, Page2 } from "./pages";
+
+import { lazy } from "react";
+
+const Page1 = lazy(() => import("./pages/Page1"));
+const Page2 = lazy(() => import("./pages/Page2"));
 
 export const register: ModuleRegisterFunction = (runtime: Runtime) => {
     runtime.registerRoutes([
@@ -1021,9 +1055,15 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 // static-1 - register.tsx
 
 import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
-import { Page1, Page2, Page3, Page4, Page5 } from "./pages";
 
 import { ArchiveIcon } from "./ArchiveIcon";
+import { lazy } from "react";
+
+const Page1 = lazy(() => import("./pages/Page1"));
+const Page2 = lazy(() => import("./pages/Page2"));
+const Page3 = lazy(() => import("./pages/Page3"));
+const Page4 = lazy(() => import("./pages/Page4"));
+const Page5 = lazy(() => import("./pages/Page5"));
 
 export const register: ModuleRegisterFunction = (runtime: Runtime) => {
     runtime.registerRoutes([
@@ -1242,7 +1282,7 @@ import { useRoutes } from "wmfnext-shell";
 export function App() {
     useRerenderOnceRemotesRegistrationCompleted(() => window.__registration_state__ === RegistrationStatus.completed);
 
-    const federatedRoutes = useRoutes();
+    const routes = useRoutes();
 
     const router = useMemo(() => {
         return createBrowserRouter([
@@ -1255,11 +1295,7 @@ export function App() {
                         // It's quite useful to not lose the layout when an unmanaged error occurs.
                         errorElement: <RootErrorBoundary />,
                         children: [
-                            ...federatedRoutes,
-                            {
-                                path: "*",
-                                element: <NotFound />
-                            }
+                            ...routes,
                         ]
                     }
                 ]
@@ -1287,7 +1323,7 @@ As the pathless route has been declared under the root route (the one with the t
 ```tsx
 // remote-1 - Page3.tsx
 
-export function Page3(): JSX.Element {
+export default function Page3(): JSX.Element {
     throw new Error("Page3 from \"remote-1\" failed to render.");
 }
 ```
@@ -1296,7 +1332,12 @@ export function Page3(): JSX.Element {
 // remote-1 - register.tsx
 
 import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
-import { Page1, Page2, Page3 } from "./pages";
+
+import { lazy } from "react";
+
+const Page1 = lazy(() => import("./pages/Page1"));
+const Page2 = lazy(() => import("./pages/Page2"));
+const Page3 = lazy(() => import("./pages/Page3"));
 
 export const register: ModuleRegisterFunction = (runtime: Runtime) => {
     runtime.registerRoutes([
