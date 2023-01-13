@@ -3,14 +3,18 @@ import { deepFreeze } from "../shared";
 
 export type Route = RouteObject;
 
+export type RootRoute = Route & {
+    hoist?: boolean;
+};
+
 export class RouteRegistry {
-    private _routes: Readonly<RouteObject[]>;
+    private _routes: Readonly<RootRoute[]>;
 
     constructor() {
         this._routes = Object.freeze([]);
     }
 
-    add(routes: Route[]) {
+    add(routes: RootRoute[]) {
         // Create a new array so the routes array is immutable.
         this._routes = deepFreeze([...this._routes, ...routes.filter(x => x)]);
     }

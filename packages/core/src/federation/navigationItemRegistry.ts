@@ -21,7 +21,7 @@ export class NavigationItemRegistry {
     }
 
     add(navigationItems: RootNavigationItem[]) {
-        // Create a new array so the routes array is immutable.
+        // Create a new array so the navigation items array is immutable.
         this._items = deepFreeze([...this._items, ...navigationItems.filter(x => x)]);
     }
 

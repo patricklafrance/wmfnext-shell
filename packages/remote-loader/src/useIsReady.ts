@@ -1,19 +1,22 @@
 import { useEffect, useState } from "react";
 
-export interface UseRerenderOnceRemotesRegistrationCompletedOptions {
+import { registrationStatus } from "./registerRemoteModules";
+
+export interface UseIsReadyOptions {
     // The interval is in milliseconds.
     interval?: number;
 }
 
-export function useRerenderOnceRemotesRegistrationCompleted(isCompleted: () => boolean, { interval = 10 }: UseRerenderOnceRemotesRegistrationCompletedOptions = {}) {
-    const [, completed] = useState(false);
+export function useIsReady({ interval = 10 }: UseIsReadyOptions = {}) {
+    // Using a state hook to force a rerender once ready.
+    const [, isReady] = useState(false);
 
     // Perform a reload once the modules are registered.
     useEffect(() => {
         const intervalId = setInterval(() => {
-            if (isCompleted()) {
+            if (registrationStatus === "ready") {
                 clearInterval(intervalId);
-                completed(true);
+                isReady(true);
             }
         }, interval);
 
@@ -23,4 +26,6 @@ export function useRerenderOnceRemotesRegistrationCompleted(isCompleted: () => b
             }
         };
     }, []);
+
+    return registrationStatus;
 }

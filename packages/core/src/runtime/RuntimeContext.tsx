@@ -4,6 +4,6 @@ import { Runtime } from "./runtime";
 
 export const RuntimeContext = createContext<Runtime>(undefined);
 
-export function useRuntime(): Runtime {
-    return useContext(RuntimeContext);
+export function useRuntime() {
+    return useContext(RuntimeContext) as Runtime;
 }
