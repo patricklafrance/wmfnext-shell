@@ -1,33 +1,68 @@
 import type { RootRoute, Route } from "./routeRegistry";
+import { useMemo, useState } from "react";
 
 import { deepFreeze } from "../shared";
-import { useMemo } from "react";
 
-export type WrapRoutesFunction = (routes: Readonly<Route[]>) => Route;
+export type WrapManagedRoutesFunction = (routes: Readonly<Route[]>) => Route;
 
 export interface UseHoistedRoutesOptions {
-    wrapNonHoistedRoutes?: WrapRoutesFunction;
+    wrapManagedRoutes?: WrapManagedRoutesFunction;
+    allowedPaths?: string[];
 }
 
-export function useHoistedRoutes(routes: Readonly<RootRoute[]>, { wrapNonHoistedRoutes }: UseHoistedRoutesOptions = {}) {
+function getAllRoutePaths(route: Route) {
+    const current = route.path;
+
+    if (route.children) {
+        const childPaths = route.children.reduce((acc, x) => {
+            acc.push(...getAllRoutePaths(x));
+
+            return acc;
+        }, []);
+
+        if (current) {
+            return [current, ...childPaths];
+        }
+
+        return childPaths;
+    }
+
+    return current ? [current] : [];
+}
+
+export function useHoistedRoutes(routes: Readonly<RootRoute[]>, { wrapManagedRoutes, allowedPaths }: UseHoistedRoutesOptions = {}) {
+    // Hack to reuse the same array reference through re-renders.
+    const [_allowedPaths] = useState(allowedPaths);
+
     return useMemo(() => {
         const hoistedRoutes: Route[] = [];
-        const otherRoutes: Route[] = [];
+        const managedRoutes: Route[] = [];
 
         routes.forEach(({ hoist, ...route }) => {
             if (hoist === true) {
                 hoistedRoutes.push(route);
             } else {
-                otherRoutes.push(route);
+                managedRoutes.push(route);
             }
         });
 
+        if (_allowedPaths) {
+            // Find hoisted routes which are not included in allowedPaths
+            hoistedRoutes.forEach(x => {
+                const allRoutePaths = getAllRoutePaths(x);
+                const restrictedPaths = allRoutePaths.filter(y => !_allowedPaths.includes(y));
 
-        const newRoutes = [
+                if (restrictedPaths.length > 0) {
+                    throw new Error(`[shell] A module is hoisting the following routes [${restrictedPaths.map(y => `"${y}"`).join(", ")}] which are not included in the provided "allowedRoutes" option`);
+                }
+            });
+        }
+
+        const allRoutes = [
             ...hoistedRoutes,
-            ...(wrapNonHoistedRoutes ? [wrapNonHoistedRoutes(deepFreeze(otherRoutes))] : otherRoutes)
+            ...(wrapManagedRoutes ? [wrapManagedRoutes(deepFreeze(managedRoutes))] : managedRoutes)
         ];
 
-        return deepFreeze(newRoutes);
-    }, [routes, wrapNonHoistedRoutes]);
+        return deepFreeze(allRoutes);
+    }, [routes, wrapManagedRoutes, _allowedPaths]);
 }

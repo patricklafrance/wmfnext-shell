@@ -9,6 +9,7 @@ The idea behind this shell is to have an host application responsible of loading
 We recommend to aim for remote hosted modules loaded at runtime as it enables your teams to be fully autonomous by deploying their module independently from the other pieces of the application. Still, sometimes teams might want to gradually migrate toward this type of architecture and would prefer to extract sub domains into independent modules in a mololithic way before fully committing to independent modules and autonomous teams. To accomodate different migration solutions, this shell also support loading modules from a static registration function at build time. The functions could come from a independent packages in a monorepos setup or could even come from a subdomain folder of a modular application. A dual bootstrapping setup is also supported, meaning an application could load a few remote hosted modules at runtime while also loading a few other modules at build time.
 
 - [Features](#features)
+- [Examples](#examples)
 - [Installation](#installation)
 - [Usage](#usage)
 - [API](#api)
@@ -25,6 +26,10 @@ This federated application shell include the following features:
 - Cross application pub/sub
 - Logging
 - Stubs for module development in isolation
+
+## Examples
+
+For examples of applications using this shell, have a look at the [wmfnext-host repository](https://github.com/patricklafrance/wmfnext-host) for a sample host application + a static module example and have a look at the [wmfnext-remote-1 repository](https://github.com/patricklafrance/wmfnext-remote-1) for a sample remote module.
 
 ## Installation
 
@@ -1318,7 +1323,7 @@ Notice that the `renderItem` function receive the `highlight` additional props a
 
 ### Isolate module failures
 
-One of they key carateristic of a micro-frontends implementations like [iframes](https://martinfowler.com/articles/micro-frontends.html#Run-timeIntegrationViaIframes) and subdomains is that a single module failure can't break the whole application, e.g. other parts will still be fully functional even if one fail with an unmanaged error.
+One of the key carateristic of micro-frontends implementations like [iframes](https://martinfowler.com/articles/micro-frontends.html#Run-timeIntegrationViaIframes) and subdomains is that a single module failure can't break the whole application. The host application and the other modules will still be fully functional even if one fail with an unmanaged error.
 
 With an implementation such as Webpack Module Federation or even a build time implementation with static modules, this is not the case as all the modules live in the same domain and share the same DOM.
 
@@ -1475,7 +1480,13 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 };
 ```
 
-👉 Start all the applications and navigate to _"Remote1/Page 3"_. The page will fail to render but the application should still be functional.
+👉 Start all the applications and navigate to _"Remote1/Page 3"_. The page will throw but the application should still be functional.
+
+> **Warning**
+>
+> If your application support hoisted module routes (view the next section [Override the host layout from a module](#override-the-host-layout-from-a-module) for more information), failures isolation might not behave as explained in this section because hoisted routes will be rendered outside the host application error boundary. 
+>
+> To ensure strict failures isolation, an host application can either choose to not support hoisted module routes by using the `useRoutes()` hook instead of the  `useHoistedRoutes` hook or control which route paths can benefit from hoisting with the `restrictedPaths` option of the `useHoistedRoutes()` hook.
 
 ### Override the host layout from a module
 
