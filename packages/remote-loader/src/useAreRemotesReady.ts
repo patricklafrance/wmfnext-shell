@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 
 import { registrationStatus } from "./registerRemoteModules";
 
-export interface UseIsReadyOptions {
+export interface UseAreRemotesReadyOptions {
     // The interval is in milliseconds.
     interval?: number;
 }
 
-export function useIsReady({ interval = 10 }: UseIsReadyOptions = {}) {
+export function useAreRemotesReady({ interval = 10 }: UseAreRemotesReadyOptions = {}) {
     // Using a state hook to force a rerender once ready.
     const [, isReady] = useState(false);
 
@@ -27,5 +27,5 @@ export function useIsReady({ interval = 10 }: UseIsReadyOptions = {}) {
         };
     }, []);
 
-    return registrationStatus;
+    return registrationStatus === "ready";
 }

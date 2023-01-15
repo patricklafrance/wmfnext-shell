@@ -772,9 +772,9 @@ To fix this, we have to re-render the host application once the remote module is
 
 > It's only problematic with remote modules registered at runtime. When strictly using modules registered at build time, it's not an issue and you don't need to add the following code.
 
-To help with that, the shell provide a `useIsReady()` hook. The `useIsReady()` hook will take care of re-rerendering the app once the remote modules registration is completed. The function will also return the registration status. This is is quite useful as you probably don't want to show a blank page to your users while the remote modules are registering.
+To help with that, the shell provide a `useAreRemotesReady()` hook. The `useAreRemotesReady()` hook will take care of re-rerendering the app once the remote modules registration is completed. The function will also return a boolean indicating if the remotes are ready. This is is quite useful as you probably don't want to show a blank page to your users while the remote modules are registering.
 
-👉 First, update the host application `<App />` by adding the `useIsReady()` hook. Then, add code to display a loading message while the remote modules register.
+👉 First, update the host application `<App />` by adding the `useAreRemotesReady()` hook. Then, add code to display a loading message while the remote modules register.
 
 ```tsx
 // host - App.tsx
@@ -782,7 +782,7 @@ To help with that, the shell provide a `useIsReady()` hook. The `useIsReady()` h
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { RootLayout } from "./layouts";
 import { Loading } from "./components";
-import { useIsReady } from "wmfnext-remote-loader";
+import { useAreRemotesReady } from "wmfnext-remote-loader";
 import { useRoutes } from "wmfnext-shell";
 import { lazy } from "react";
 
@@ -790,7 +790,7 @@ const HomePage = lazy(() => import("./pages/Home"));
 const NotFoundPage = lazy(() => import("./pages/NotFound"));
 
 export function App() {
-    const registrationStatus = useIsReady();
+    const isReady = useAreRemotesReady();
     const routes = useRoutes(runtime);
 
     const router = useMemo(() => {
@@ -813,7 +813,7 @@ export function App() {
         ]);
     }, [routes]);
 
-    if (registrationStatus !== "ready") {
+    if (!isReady) {
         return <Loading />;
     }
 
@@ -865,14 +865,14 @@ root.render(
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { RootLayout } from "./layouts";
 import { Loading } from "./components";
-import { useIsReady } from "wmfnext-remote-loader";
+import { useAreRemotesReady } from "wmfnext-remote-loader";
 import { useRoutes } from "wmfnext-shell";
 import { lazy } from "react";
 
 const NotFoundPage = lazy(() => import("./pages/NotFound"));
 
 export function App() {
-    const registrationStatus = useIsReady();
+    const isReady = useAreRemotesReady();
     const routes = useRoutes(runtime);
 
     const router = useMemo(() => {
@@ -892,7 +892,7 @@ export function App() {
         ]);
     }, [routes]);
 
-    if (registrationStatus !== "ready") {
+    if (!isReady) {
         return <Loading />;
     }
 
@@ -1379,14 +1379,14 @@ import { NotFound } from "./pages";
 import { RootErrorBoundary } from "./RootErrorBoundary";
 import { RootLayout } from "./layouts";
 import { useMemo } from "react";
-import { useIsReady } from "wmfnext-remote-loader";
+import { useAreRemotesReady } from "wmfnext-remote-loader";
 import { useRoutes } from "wmfnext-shell";
 import { lazy } from "react";
 
 const NotFoundPage = lazy(() => import("./pages/NotFound"));
 
 export function App() {
-    const registrationStatus = useIsReady();
+    const isReady = useAreRemotesReady();
     const routes = useRoutes();
 
     const router = useMemo(() => {
@@ -1412,7 +1412,7 @@ export function App() {
         ]);
     }, [routes]);
 
-    if (registrationStatus !== "progress") {
+    if (!isReady) {
         return <Loading />;
     }
 
@@ -1595,12 +1595,12 @@ import { useHoistedRoutes, useRoutes } from "wmfnext-shell";
 import { Loading } from "./components";
 import { RootErrorBoundary } from "./RootErrorBoundary";
 import { RootLayout } from "./layouts";
-import { useIsReady } from "wmfnext-remote-loader";
+import { useAreRemotesReady } from "wmfnext-remote-loader";
 
 const NotFoundPage = lazy(() => import("./pages/NotFound"));
 
 export function App() {
-    const registrationStatus = useIsReady();
+    const isReady = useAreRemotesReady();
     const routes = useRoutes();
 
     const wrapManagedRoutes = useCallback(managedRoutes => {
@@ -1609,7 +1609,7 @@ export function App() {
             element: <RootLayout />,
             children: [
                 {
-                    // Pathless router to set an error boundary inside the layout instead of outside.
+                    // Pathless route to set an error boundary inside the layout instead of outside.
                     // It's quite useful to not lose the layout when an unmanaged error occurs.
                     errorElement: <RootErrorBoundary />,
                     children: [
@@ -1636,7 +1636,7 @@ export function App() {
         ]);
     }, [hoistedRoutes]);
 
-    if (registrationStatus !== "ready") {
+    if (!isReady) {
         return <Loading />;
     }
 
@@ -1667,7 +1667,7 @@ const hoistedRoutes = useHoistedRoutes(routes, {
 
 👉 Now, let's start all the projects again and navigate to _"Remote1/Page 2"_ and _"Remote1/Page 4"_. You shouldn't see the host application root layout anymore for those pages.
 
-### Share the user session
+### Share a user session
 
 TBD
 
