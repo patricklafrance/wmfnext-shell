@@ -2,7 +2,7 @@
 
 [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) is a great infrastructure piece to makes sharing code and dependencies between different independant codebases easier. But as is, it's pretty raw as it's a low level mecanism.
 
-This shell aims to add a very thin and opinionated layer on top of Webpack Module Federation to complement the federation mecanism with additional functionalities. Those functionalities will gentle the adoption of a federated application architecture and provide an opinionated direction on how to implement a federated SPA application.
+This shell aims to add a very thin and opinionated layer on top of Webpack Module Federation and [React Router](https://reactrouter.com/) to complement the federation mecanism with additional functionalities. Those functionalities will gentle the adoption of a federated application architecture and provide an opinionated direction on how to implement a federated SPA application.
 
 The idea behind this shell is to have an host application responsible of loading modules and providing shared functionalities like routing, messaging and logging. With this shell, a module is considered as an independent codebase which should usually match a specific sub domain of the application. At bootstrap, the host application loads the modules and call a registration function for each of them with shared functionalities and a customazible context. During the registration phase, each module dynamically *register it's routes and navigation links*. Then, pages and components of a module can use the provided hooks to access shared functionalities.
 
@@ -22,14 +22,14 @@ This federated application shell include the following features:
 - Loading of hosted remote modules at runtime
 - Loading of modules from a static function at build time
 - Routing & navigation
-- User session management
+- User session
 - Cross application pub/sub
 - Logging
-- Stubs for module development in isolation
+- Stubs to develop an independent module in isolation
 
 ## Examples
 
-For examples of applications using this shell, have a look at the [wmfnext-host repository](https://github.com/patricklafrance/wmfnext-host) for a sample host application + a static module example and have a look at the [wmfnext-remote-1 repository](https://github.com/patricklafrance/wmfnext-remote-1) for a sample remote module.
+For examples of applications using this shell, have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) repository for a sample host application + a static module example and have a look at the [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repository for a sample remote module.
 
 ## Installation
 
@@ -1111,7 +1111,7 @@ export function RootLayout() {
 }
 ```
 
-👉 Start all the applications and try navigating to "/static1/page-1" and "static1/page-2".
+👉 Start all the projects and try navigating to "/static1/page-1" and "static1/page-2".
 
 ### Register a module dynamic navigation items
 
@@ -1315,7 +1315,7 @@ Each render function must return a single `React element`.
 
 Notice that the `renderItem` function receive the `highlight` additional props and use it to render an "highlight" CSS class on the link. This is the kind of usecase those `additionalProps` are for.
 
-👉 Start all the applications and try navigating between pages.
+👉 Start all the projects and try navigating between pages.
 
 > **Warning**
 >
@@ -1425,7 +1425,7 @@ export function App() {
 }
 ```
 
-As the pathless route has been declared under the root route (the one with the the root layout as `element`), when an unmanaged error bubble up and the error boundary is rendered, only the [Outlet](https://reactrouter.com/en/main/components/outlet) output will be replaced by the error boundary output, meaning other parts of the root layout around the Outlet will still be rendered.
+As the pathless route has been declared under the root route (the one with the the root layout as `element`), when an unmanaged error bubbles up and the error boundary is rendered, only the [Outlet](https://reactrouter.com/en/main/components/outlet) output will be replaced by the error boundary output, meaning other parts of the root layout around the Outlet will still be rendered.
 
 👉 Add a route throwing an error to the remote module.
 
@@ -1480,19 +1480,107 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 };
 ```
 
-👉 Start all the applications and navigate to _"Remote1/Page 3"_. The page will throw but the application should still be functional.
+👉 Start all the projects and navigate to _"Remote1/Page 3"_. The page will throw but the application should still be functional.
 
 > **Warning**
 >
-> If your application support hoisted module routes (view the next section [Override the host layout from a module](#override-the-host-layout-from-a-module) for more information), failures isolation might not behave as explained in this section because hoisted routes will be rendered outside the host application error boundary. 
+> If your application support hoisted module routes (view the next section "[override the host layout for a module page](#override-the-host-layout-for-a-module-page)" for more information), failures isolation might not behave as explained in this section because hoisted routes will be rendered outside the host application error boundary. 
 >
-> To ensure strict failures isolation, an host application can either choose to not support hoisted module routes by using the `useRoutes()` hook instead of the  `useHoistedRoutes` hook or control which route paths can benefit from hoisting with the `restrictedPaths` option of the `useHoistedRoutes()` hook.
+> To ensure strict failures isolation, an host application can either choose to not support hoisted module routes by not using the `useHoistedRoutes()` hook or restrict routes allowed to use hoisting with the `allowedPaths` option of the `useHoistedRoutes()` hook.
 
-### Override the host layout from a module
+### Override the host layout for a module page
+
+For most pages of an application, developpers tend to share a default layout having a navigation menu and an authenticated user avatar. 
+
+This default layout is what will then be defined as the "root" layout of the application and be used by default. This concept is usually also true for federated applications. This is in fact exactly what we've done so far in the host application of this tutorial (minus the authenticated user avatar, which will come later on 😃).
+
+Still, it doesn't always fit as there are use cases for which the default layout will not work. For example, a module might include a login page, or any other pages which are not bound to a user session. 
+
+For those pages, the shell provide a mecanism called "page hoisting". Contrary to a regular page rendered under the root layout of the host application, an hoisted page will be rendered at the root of the router, meaning outside the boundaries of the host application root layout.
+
+By doing so, the module is in full control of the layout used by the the hoisted page.
+
+> **Note**
+>
+>Keep in mind thought that, as explained in the previous section "[isolate module failures](isole-module-failures)", by declaring a page as hoisted, that page will not be protected anymore from failures by the host application error boundary. This is highly recommended that every hoisted page is assigned a React Router [errorElement](https://reactrouter.com/en/main/route/error-element) prop.
+
+To define a module page as hoisted, set the `hoist` prop of a route to `true` at registration.
+
+👉 Let's set some pages of the remote module as hoisted.
+
+```tsx
+// remote-1 - register.tsx
+
+import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { lazy } from "react";
+
+const FullLayout = lazy(() => import("./layouts/FullPageLayout"));
+
+const Page1 = lazy(() => import("./pages/Page1"));
+const Page2 = lazy(() => import("./pages/Page2"));
+const Page3 = lazy(() => import("./pages/Page3"));
+const Page4 = lazy(() => import("./pages/Page4"));
+
+export const register: ModuleRegisterFunction = (runtime: Runtime) => {
+    runtime.registerRoutes([
+        {
+            index: true,
+            element: <Page1 />
+        },
+        {
+            hoist: true,
+            path: "remote1/page-2",
+            element: <FullLayout />,
+            errorElement: <ErrorBoundary />,
+            children: [
+                {
+                    element: <Page2 />
+                }
+            ]
+        },
+        {
+            path: "remote1/page-3",
+            element: <Page3 />
+        },
+        {
+            hoist: true,
+            path: "remote1/page-4",
+            element: <Page4 />,
+            errorElement: <ErrorBoundary />
+        }
+    ]);
+
+    runtime.registerNavigationItems([
+        {
+            to: "/",
+            content: "Remote1/Page 1 - Home"
+        },
+        {
+            to: "remote1/page-2",
+            content: "Remote1/Page 2 - Overrided layout"
+        },
+        {
+            to: "remote1/page-3",
+            content: "Remote1/Page 3- Failing page"
+        },
+        {
+            to: "remote1/page-4",
+            content: "Remote1/Page 4 - Hoisted route"
+        }
+    ]);
+};
+```
+
+By setting the `hoist` prop to `true` for page _"Remote1/Page 2"_ we tell the shell to render the page at the root of the router rather than under the root layout. Now that the page is not rendered anymore with the root layout of the host application anymore, we can set to _"Remote1/Page 2"_ it's own custom layout the same way it's usually done with React Router, e.g. with [nested routes](https://reactrouter.com/en/main/start/overview#nested-routes) and an [Outlet](https://reactrouter.com/en/main/components/outlet) component.
+
+Notice that the _"Remote1/Page 4"_ page is also hoisted. An hoisted page doesn't have to be assigned a custom layout, it can be rendered on it's own!
+
+👉 Start all the projects and navigate to _"Remote1/Page 2"_ and _"Remote1/Page 4"_, you shouldn't see the root layout of the host application.
+
+### Share the user session
 
 TBD
-
--> Have an example where the module layout must be protected and a "ProtectedRoutes" is shared between the host and the modules
 
 ### Use the event bus
 
@@ -1513,10 +1601,6 @@ new ShellRuntime({
         "service-name": new CustomService() 
     } 
 })
-
-### Share the user session
-
-TBD
 
 ### Share custom components between the modules
 
