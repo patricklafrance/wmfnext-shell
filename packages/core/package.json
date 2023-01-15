@@ -21,11 +21,12 @@
   "scripts": {
     "prebuild": "yarn clean",
     "build": "tsc --build ./tsconfig.build.json",
-    "clean": "run-p delete-dist delete-ts-cache",
+    "clean": "run-p delete-dist delete-ts-cache unlink-pkg",
     "delete-dist": "rimraf dist",
     "delete-ts-cache": "rimraf *.tsbuildinfo",
     "dev": "tsc --watch --project ./tsconfig.build.json",
-    "setup": "yarn link"
+    "setup": "yarn link",
+    "unlink-pkg": "yarn unlink"
   },
   "peerDependencies": {
     "react": "*",

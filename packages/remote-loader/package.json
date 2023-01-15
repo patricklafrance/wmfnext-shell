@@ -24,14 +24,15 @@
     "build:esm": "tsc --build ./tsconfig.build.esm.json",
     "build:cjs": "tsc --build ./tsconfig.build.cjs.json",
     "postbuild": "yarn rename-to-cjs",
-    "clean": "run-p delete-dist delete-ts-cache",
+    "clean": "run-p delete-dist delete-ts-cache unlink-pkg",
     "delete-dist": "rimraf dist",
     "delete-ts-cache": "rimraf *.tsbuildinfo",
     "dev": "run-p dev:*",
     "dev:esm": "tsc --watch --project ./tsconfig.build.esm.json",
     "dev:cjs": "tsc --watch --project ./tsconfig.build.cjs.json",
     "rename-to-cjs": "node rename-to-cjs.js",
-    "setup": "yarn link"
+    "setup": "yarn link",
+    "unlink-pkg": "yarn unlink"
   },
   "peerDependencies": {
     "webpack": ">=5.0.0"

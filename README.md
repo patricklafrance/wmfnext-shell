@@ -22,7 +22,7 @@ This federated application shell include the following features:
 - Loading of hosted remote modules at runtime
 - Loading of modules from a static function at build time
 - Routing & navigation
-- User session
+- Share a user session
 - Cross application pub/sub
 - Logging
 - Stubs to develop an independent module in isolation
@@ -477,7 +477,7 @@ remote-app
 ```
 
 ```html
-<!-- remote - index.html -->
+<!-- remote-1 - index.html -->
 
 <!DOCTYPE html>
 <html>
@@ -971,12 +971,12 @@ packages
 ├── app (the host application)
 ├─────src
 ├───────boostrap.tsx
-├───────package.json
+├─────package.json
 ├── static-module-1
 ├─────src
 ├───────index.ts
 ├───────register.tsx
-├───────package.json
+├─────package.json
 ```
 
 👉 First configure the static module `package.json` file to use the `index.js` file as the package entry point and give the module a name and a version. In this example, we'll call it "wmfnext-static-module-1" and set the version as "0.0.1".
@@ -1667,9 +1667,527 @@ const hoistedRoutes = useHoistedRoutes(routes, {
 
 👉 Now, let's start all the projects again and navigate to _"Remote1/Page 2"_ and _"Remote1/Page 4"_. You shouldn't see the host application root layout anymore for those pages.
 
-### Share a user session
+### Sharing a user session
 
-TBD
+Let's face it, an application without authenticated pages is not that useful. Hopefully, with [React Router](https://reactrouter.com/), it's quite easy to secure routes and this federated application shell can help to share the session between the host and the modules.
+
+👉 First, create a session object.
+
+```ts
+// host - session.ts
+
+import { Session } from "wmfnext-shell";
+
+export class AppUser {
+    private _name: string;
+
+    constructor(name: string) {
+        this._name = name;
+    }
+
+    get name() {
+        return this._name;
+    }
+}
+
+export class AppSession implements Session {
+    private _user: AppUser;
+
+    constructor(user: AppUser) {
+        this._user = user;
+    }
+
+    get user() {
+        return this._user;
+    }
+}
+```
+
+Notice that the `AppSession` class implements the `Session` class provided by the shell. It's mandatory as it is the interface which is used by the runtime to share the session between the host and the modules.
+
+👉 Next, create a persistance layer to store the session, in this example, a session manager. The implementation is not included in this tutorial as it doesn't matter (have a look at [wmfnext-host repository](https://github.com/patricklafrance/wmfnext-host/blob/master/packages/app/src/session.ts) for the actual implementation).
+
+```ts
+// host - session.ts
+
+import { Session } from "wmfnext-shell";
+import type { SessionAccessorFunction } from "wmfnext-shell";
+
+export class AppUser {
+    private _name: string;
+
+    constructor(name: string) {
+        this._name = name;
+    }
+
+    get name() {
+        return this._name;
+    }
+}
+
+export class AppSession implements Session {
+    private _user: AppUser;
+
+    constructor(user: AppUser) {
+        this._user = user;
+    }
+
+    get user() {
+        return this._user;
+    }
+}
+
+class SessionManager {
+    setSession(session: AppSession) {
+        ...
+    }
+
+    getSession() {
+        ...
+    }
+
+    clearSession() {
+        ...
+    }
+}
+
+export const sessionManager = new SessionManager();
+
+// Accessor function that will be provided to the shell runtime.
+export const sessionAccessor: SessionAccessorFunction = () => {
+    return sessionManager.getSession();
+};
+```
+
+The session manager will be used by the login/logout pages to set and clear the session. The most important is the function `sessionAccessor()` which will be provided later on to the shell runtime to let the modules access the current session.
+
+👉 Then, add a login page to the host application using the newly created session manager.
+
+```tsx
+// host - Login.tsx
+
+import { AppSession, AppUser, sessionManager } from "../session";
+import type { ChangeEvent, MouseEvent } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useCallback, useState } from "react";
+
+export default function Login() {
+    const [username, setUserName] = useState("");
+    const [password, setPassword] = useState("");
+
+    const navigate = useNavigate();
+
+    const handleClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+
+        if (username === "temp" && password === "temp") {
+            const user = new AppUser(username);
+            const session = new AppSession(user);
+
+            sessionManager.setSession(session);
+
+            navigate("/");
+        }
+    }, [username, password, navigate]);
+
+    const handleUserNameChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+        setUserName(event.target.value);
+    }, []);
+
+    const handlePasswordChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+        setPassword(event.target.value);
+    }, []);
+
+    return (
+        <main>
+            <form>
+                <div>
+                    <label htmlFor="username">Username</label>
+                    <input id="username" type="text" onChange={handleUserNameChange} />
+                </div>
+                <div>
+                    <label htmlFor="password">Password</label>
+                    <input id="password" type="password" onChange={handlePasswordChange} />
+                </div>
+                <div>
+                    <button type="submit" onClick={handleClick}>
+                        Login
+                    </button>
+                </div>
+            </form>
+        </main>
+    );
+}
+```
+
+When then user authenticate, a new user session is created which is then passed to the session manager. Since the session manager has access to the session, the shell runtime will also have access to the session through the session accessor function created earlier.
+
+```tsx
+// host - App.tsx
+
+import { Navigate, Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
+import { lazy, useCallback, useMemo } from "react";
+import { useHoistedRoutes, useRoutes } from "wmfnext-shell";
+import { Loading } from "./components";
+import { RootErrorBoundary } from "./RootErrorBoundary";
+import { RootLayout } from "./layouts";
+import { useAreRemotesReady } from "wmfnext-remote-loader";
+
+const LoginPage = lazy(() => import("./pages/Login"));
+const NotFoundPage = lazy(() => import("./pages/NotFound"));
+
+export function App() {
+    const isReady = useAreRemotesReady();
+    const routes = useRoutes();
+
+    const wrapManagedRoutes = useCallback(managedRoutes => {
+        return {
+            path: "/",
+            element: <RootLayout />,
+            children: [
+                {
+                    errorElement: <RootErrorBoundary />,
+                    children: [
+                        ...managedRoutes
+                    ]
+                }
+            ]
+        };
+    }, []);
+
+    const hoistedRoutes = useHoistedRoutes(routes, {
+        wrapManagedRoutes,
+    });
+
+    const router = useMemo(() => {
+        return createBrowserRouter([
+            ...hoistedRoutes,
+            {
+                // Newly added login page.
+                path: "login",
+                element: <LoginPage />
+            },
+            {
+                path: "*",
+                element: <NotFoundPage />
+            }
+        ]);
+    }, [hoistedRoutes]);
+
+    if (!isReady) {
+        return <Loading />;
+    }
+
+    return (
+        <RouterProvider
+            router={router}
+            fallbackElement={<Loading />}
+        />
+    );
+}
+```
+
+👉 Enough talk about the session accessor and the shell runtime, let's bind them together!
+
+```tsx
+// host - bootstrap.tsx
+
+import { ConsoleLogger, RuntimeContext, ShellRuntime, registerStaticModules } from "wmfnext-shell";
+import { App } from "./App";
+import { Loading } from "./components";
+import type { RemoteDefinition } from "wmfnext-remote-loader";
+import { Suspense } from "react";
+import { createRoot } from "react-dom/client";
+import { registerRemoteModules } from "wmfnext-remote-loader";
+import { register as registerStaticModule1 } from "wmfnext-static-module-1";
+import { sessionAccessor } from "./session";
+
+const StaticModules = [
+    registerStaticModule1
+];
+
+const Remotes: RemoteDefinition[] = [
+    {
+        url: "http://localhost:8081",
+        name: "remote1"
+    }
+];
+
+const runtime = new ShellRuntime({
+    loggers: [new ConsoleLogger()],
+    // The session accessor is passed down to the runtime.
+    sessionAccessor: sessionAccessor
+});
+
+registerStaticModules(StaticModules, runtime);
+
+registerRemoteModules(Remotes, runtime);
+
+const root = createRoot(document.getElementById("root"));
+
+root.render(
+    <RuntimeContext.Provider value={runtime}>
+        {/* New required suspense boundary */}
+        <Suspense fallback={<Loading />}>
+            <App />
+        </Suspense>
+    </RuntimeContext.Provider>
+);
+```
+
+The session accessor created earlier is now passed down to the shell at instanciation with the `sessionAccesor` option.
+
+> A suspense boundary has been added to wrap the `<App />` component. At the moment, I don't understand why it's necessary, but it's required otherwise the app will throw while navigating through the pages.
+
+👉 Now, before a module can use the shared session, we have to share the `AppUser` and `AppSession` types.
+
+To do so, let's create a new project in the host application monorepos
+
+```
+packages
+├── app (the host application)
+├── typings
+├─────src
+├───────index.d.ts
+├────── session.d.ts
+├─────package.json
+```
+
+```ts
+// typings - index.d.ts
+
+import type { Session } from "wmfnext-shell";
+
+export interface AppUser {
+    readonly name;
+}
+
+export interface AppSession extends Session {
+    readonly user: AppUser;
+}
+```
+
+👉 Next, update the host application to use those newly created types.
+
+```ts
+// host - session.ts
+
+import type { AppSession as _AppSession, AppUser as _AppUser } from "wmfnext-typings";
+
+export class AppUser implements _AppUser {
+    private _name: string;
+
+    constructor(name: string) {
+        this._name = name;
+    }
+
+    get name() {
+        return this._name;
+    }
+}
+
+export class AppSession implements _AppSession {
+    private _user: AppUser;
+
+    constructor(user: AppUser) {
+        this._user = user;
+    }
+
+    get user() {
+        return this._user;
+    }
+}
+```
+
+👉 Finally, create a new page in the remote module using the session.
+
+```tsx
+// remote-1 - Page5.tsx
+
+import { useLogger, useSession } from "wmfnext-shell";
+import { AppSession } from "wmfnext-typings";
+
+export default function Page5() {
+    const logger = useLogger();
+    const session = useSession<AppSession>();
+
+    logger.debug("Rendering \"page5\" from module \"remote1\"");
+
+    return (
+        <main>
+            <h1>Page 5</h1>
+            <p>From remote-1</p>
+            {/* Retrieving the user name from the shared session */}
+            <p>Authenticated user: {session.user.name}</p>
+        </main>
+    );
+}
+```
+
+The page is using the `useSession()` hook to retrieve the current session and display the user name. 
+
+```tsx
+// remote-1 - register.tsx
+
+import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { lazy } from "react";
+
+const FullLayout = lazy(() => import("./layouts/FullPageLayout"));
+
+const Page1 = lazy(() => import("./pages/Page1"));
+const Page2 = lazy(() => import("./pages/Page2"));
+const Page3 = lazy(() => import("./pages/Page3"));
+const Page4 = lazy(() => import("./pages/Page4"));
+const Page5 = lazy(() => import("./pages/Page5"));
+
+export const register: ModuleRegisterFunction = (runtime: Runtime) => {
+    runtime.registerRoutes([
+        {
+            index: true,
+            element: <Page1 />
+        },
+        {
+            hoist: true,
+            path: "remote1/page-2",
+            element: <FullLayout />,
+            errorElement: <ErrorBoundary />,
+            children: [
+                {
+                    element: <Page2 />
+                }
+            ]
+        },
+        {
+            path: "remote1/page-3",
+            element: <Page3 />
+        },
+        {
+            hoist: true,
+            path: "remote1/page-4",
+            element: <Page4 />,
+            errorElement: <ErrorBoundary />
+        },
+        {
+            // Newly added Page5.
+            path: "remote1/page-5",
+            element: <Page5 />
+        }
+    ]);
+
+    runtime.registerNavigationItems([
+        {
+            to: "/",
+            content: "Remote1/Page 1 - Home"
+        },
+        {
+            to: "remote1/page-2",
+            content: "Remote1/Page 2 - Overrided layout"
+        },
+        {
+            to: "remote1/page-3",
+            content: "Remote1/Page 3- Failing page"
+        },
+        {
+            to: "remote1/page-4",
+            content: "Remote1/Page 4 - Hoisted route"
+        },
+        {
+            // Newly added Page5.
+            to: "remote1/page-5",
+            content: "Remote1/Page 5 - Using shared session"
+        }
+    ]);
+};
+```
+
+👉 Navigate to the login page, authenticate with temp/temp and navigate to the _"Remote1/Page 5"_ page. You should the logged in user in the page content.
+
+Now, it's one thing to authenticate a user but it will be quite a mess if the routes using a session aren't protected!
+
+👉 Let's conclude this section by using React Router to protect some of the application routes.
+
+```tsx
+// host - App.jsx
+
+import { Navigate, Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
+import { lazy, useCallback, useMemo } from "react";
+import { useHoistedRoutes, useIsAuthenticated, useRoutes } from "wmfnext-shell";
+
+import { Loading } from "./components";
+import { RootErrorBoundary } from "./RootErrorBoundary";
+import { RootLayout } from "./layouts";
+import { useAreRemotesReady } from "wmfnext-remote-loader";
+
+const LoginPage = lazy(() => import("./pages/Login"));
+const NotFoundPage = lazy(() => import("./pages/NotFound"));
+
+// Will protect our authenticated routes by redirecting to the login page if the user is not authenticated.
+function AuthenticatedBoundary() {
+    return useIsAuthenticated() ? <Outlet /> : <Navigate to="/login" />;
+}
+
+export function App() {
+    const isReady = useAreRemotesReady();
+    const routes = useRoutes();
+
+    const wrapManagedRoutes = useCallback(managedRoutes => {
+        return {
+            // Pathless route to set an authentication boundary around the managed routes of the application.
+            element: <AuthenticatedBoundary />,
+            children: [
+                {
+                    path: "/",
+                    element: <RootLayout />,
+                    children: [
+                        {
+                            errorElement: <RootErrorBoundary />,
+                            children: [
+                                ...managedRoutes
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+    }, []);
+
+    const hoistedRoutes = useHoistedRoutes(routes, {
+        wrapManagedRoutes
+    });
+
+    const router = useMemo(() => {
+        return createBrowserRouter([
+            ...hoistedRoutes,
+            {
+                path: "login",
+                element: <LoginPage />
+            },
+            {
+                path: "*",
+                element: <NotFoundPage />
+            }
+        ]);
+    }, [hoistedRoutes]);
+
+    if (!isReady) {
+        return <Loading />;
+    }
+
+    return (
+        <RouterProvider
+            router={router}
+            fallbackElement={<Loading />}
+        />
+    );
+}
+```
+
+The `AuthenticatedBoundary` component is using the `useIsAuthenticated()` hook to determine if a user is authenticated or not. Alternatively, the `useSession()` hook could also be used but it isn't necessary as the component doesn't need additional information from the session.
+
+By wrapping the root layout with a pathless route bound to `<AuthenticatedBoundary />`, only authenticated users will have access to the module routes that are not hoisted.
+
+👉 Clear the session and try to navigate to a route protected by the authentication boundary. You should be redirecte to the login page.
 
 ### Use the event bus
 
