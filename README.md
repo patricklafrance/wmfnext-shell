@@ -1490,23 +1490,23 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 ### Override the host layout for a module page
 
-For most pages of an application, developpers tend to share a default layout having a navigation menu and an authenticated user avatar. 
+For most pages of an application, developpers tend to share a default layout having at least a navigation menu and an authenticated user avatar. 
 
-This default layout is what will then be defined as the "root" layout of the application and be used by default. This concept is usually also true for federated applications. This is in fact exactly what we've done so far in the host application of this tutorial (minus the authenticated user avatar, which will come later on 😃).
+This default layout is what will then be defined as the "root" layout of the application and be used by default. This concept is usually also true for federated applications. This is in fact exactly what we've done so far for the host application of this tutorial (minus the authenticated user avatar, which will come later on 😃).
 
-Still, it doesn't always fit as there are use cases for which the default layout will not work. For example, a module might include a login page, or any other pages which are not bound to a user session. 
+Still, having a single shared layout for every module pages isn't always possible as there are use cases for which the default layout will not work. For example, a module might include a login page, or any other pages which are not bound to a user session. 
 
 For those pages, the shell provide a mecanism called "page hoisting". Contrary to a regular page rendered under the root layout of the host application, an hoisted page will be rendered at the root of the router, meaning outside the boundaries of the host application root layout.
 
-By doing so, the module is in full control of the layout used by the the hoisted page.
+By doing so, the module is in full control of the hoisted page layout.
 
 > **Note**
 >
->Keep in mind thought that, as explained in the previous section "[isolate module failures](isole-module-failures)", by declaring a page as hoisted, that page will not be protected anymore from failures by the host application error boundary. This is highly recommended that every hoisted page is assigned a React Router [errorElement](https://reactrouter.com/en/main/route/error-element) prop.
+> As explained in the previous section "[isolate module failures](isole-module-failures)", by declaring a page as hoisted, the page will not be protected from failures anymore by the host application error boundary and could crash the application if an unmanaged error occurs. This is highly recommended that every hoisted page is assigned a React Router [errorElement](https://reactrouter.com/en/main/route/error-element) prop.
 
-To define a module page as hoisted, set the `hoist` prop of a route to `true` at registration.
+To define a module page as hoisted, set the page definition `hoist` prop as `true` during registration.
 
-👉 Let's set some pages of the remote module as hoisted.
+👉 Now, let's hoist a few pages of the remote module.
 
 ```tsx
 // remote-1 - register.tsx
@@ -1529,6 +1529,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
             element: <Page1 />
         },
         {
+            // By setting "hoist: true", Page2 is now hoisted.
             hoist: true,
             path: "remote1/page-2",
             element: <FullLayout />,
@@ -1544,6 +1545,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
             element: <Page3 />
         },
         {
+            // By setting "hoist: true", Page4 is now hoisted.
             hoist: true,
             path: "remote1/page-4",
             element: <Page4 />,
@@ -1572,11 +1574,98 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 };
 ```
 
-By setting the `hoist` prop to `true` for page _"Remote1/Page 2"_ we tell the shell to render the page at the root of the router rather than under the root layout. Now that the page is not rendered anymore with the root layout of the host application anymore, we can set to _"Remote1/Page 2"_ it's own custom layout the same way it's usually done with React Router, e.g. with [nested routes](https://reactrouter.com/en/main/start/overview#nested-routes) and an [Outlet](https://reactrouter.com/en/main/components/outlet) component.
+By setting the `hoist` prop to `true` for page _"Remote1/Page 2"_ we tell the shell to render the page at the root of the router rather than under the root layout. 
 
-Notice that the _"Remote1/Page 4"_ page is also hoisted. An hoisted page doesn't have to be assigned a custom layout, it can be rendered on it's own!
+Now that the page is not rendered anymore within the root layout of the host application, we can set a custom layout to _"Remote1/Page 2"_ the same way it's usually done with React Router, e.g. with [nested routes](https://reactrouter.com/en/main/start/overview#nested-routes) and an [Outlet](https://reactrouter.com/en/main/components/outlet) component.
 
-👉 Start all the projects and navigate to _"Remote1/Page 2"_ and _"Remote1/Page 4"_, you shouldn't see the root layout of the host application.
+Have you noticed that the _"Remote1/Page 4"_ page is also hoisted? An hoisted page doesn't have to be assigned a custom layout, it can be rendered on it's own!
+
+👉 To test the changes, start all the projects and navigate to _"Remote1/Page 2"_ and _"Remote1/Page 4"_. You should still see the root layout of the host application for both pages. What's going on?
+
+By default, the shell doesn't support page hoisting. To support page hoisting, the module routes must go through the `useHoistedRoutes()` hook before being passed down to the router.
+
+👉 Update the host application by adding the `useHoistedRoutes()` hook.
+
+```tsx
+// host - App.tsx
+
+import { Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
+import { lazy, useCallback, useMemo } from "react";
+import { useHoistedRoutes, useRoutes } from "wmfnext-shell";
+import { Loading } from "./components";
+import { RootErrorBoundary } from "./RootErrorBoundary";
+import { RootLayout } from "./layouts";
+import { useIsReady } from "wmfnext-remote-loader";
+
+const NotFoundPage = lazy(() => import("./pages/NotFound"));
+
+export function App() {
+    const registrationStatus = useIsReady();
+    const routes = useRoutes();
+
+    const wrapManagedRoutes = useCallback(managedRoutes => {
+        return {
+            path: "/",
+            element: <RootLayout />,
+            children: [
+                {
+                    // Pathless router to set an error boundary inside the layout instead of outside.
+                    // It's quite useful to not lose the layout when an unmanaged error occurs.
+                    errorElement: <RootErrorBoundary />,
+                    children: [
+                        ...managedRoutes
+                    ]
+                }
+            ]
+        };
+    }, []);
+
+    // Using the useHoistedRoutes hook allow routes hoisted by modules to be rendered at the root of the router.
+    // To disallow the hoisting functionality, do not use this hook.
+    const hoistedRoutes = useHoistedRoutes(routes, {
+        wrapManagedRoutes
+    });
+
+    const router = useMemo(() => {
+        return createBrowserRouter([
+            ...hoistedRoutes,
+            {
+                path: "*",
+                element: <NotFoundPage />
+            }
+        ]);
+    }, [hoistedRoutes]);
+
+    if (registrationStatus !== "ready") {
+        return <Loading />;
+    }
+
+    return (
+        <RouterProvider
+            router={router}
+            fallbackElement={<Loading />}
+        />
+    );
+}
+```
+
+Notice that a `wrapManagedRoutes` option is provided to the `useHoistedRoutes()` hook. This is an optional function which allow the caller to nested the "non hoisted" routes under a "root" route. In this example, the `wrapManagedRoutes` option is used to wrap all the modules managed routes under a root layout and a root error boundary.
+
+> It's important to provide a memoized function for the `wrapManagedRoutes` option as otherwise, the hoisting operation would be done over and over instead of using the cache.
+
+It's been mentionned in a previous section that an host application could restrict page hoisting to specific routes. To do so, pass an array of route paths to the `allowedPaths` option of the `useHoistedRoutes()` hook. Any pages with a path which is not included in the array will generate an exception.
+
+```tsx
+const hoistedRoutes = useHoistedRoutes(routes, {
+    wrapManagedRoutes,
+    allowedPaths: [
+        "remote1/page-2",
+        "remote1/page-4"
+    ]
+});
+```
+
+👉 Now, let's start all the projects again and navigate to _"Remote1/Page 2"_ and _"Remote1/Page 4"_. You shouldn't see the host application root layout anymore for those pages.
 
 ### Share the user session
 
