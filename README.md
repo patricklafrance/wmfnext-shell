@@ -2,7 +2,7 @@
 
 > **Warning**
 >
-> This repository will not be maintained as it's intention is to inspire teams by showcasing how a SPA federated application could be build on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/).
+> This repository will not be maintained as it's purpose is to inspire teams by showcasing how a SPA federated application could be build on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/).
 
 [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) is a great infrastructure piece to makes sharing code and dependencies between different independant codebases easier. But as is, it's pretty raw as it's a low level mecanism.
 
@@ -27,6 +27,7 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
     - [Share a user session](#share-a-user-session)
     - [Use the event bus](#use-the-event-bus)
     - [Share a custom service](#share-a-custom-service)
+    - [Use a custom logger](#use-a-custom-logger)
 - [API](#api)
 - [Contributors](./CONTRIBUTING.md)
 
@@ -201,6 +202,7 @@ export default {
         extensions: [".js", ".ts", ".tsx", ".css"]
     },
     plugins: [
+        // You only need to setup the ModuleFederationPlugin plugin if you want to load remote modules at runtime.
         new ModuleFederationPlugin(createHostConfiguration("host", packageJson)),
         new HtmlWebpackPlugin({
             template: "./public/index.html"
@@ -2206,17 +2208,17 @@ Did you notice that the constant variable `IncrementCountEvent` used as the even
 👉 Add a new page to the remote module application dispatching events to increment the counter.
 
 ```tsx
-// remote-1 - Page7.tsx
+// remote-1 - Page6.tsx
 
 import { useEventBusDispatcher, useLogger } from "wmfnext-shell";
 import { IncrementCountEvent } from "wmfnext-shared";
 import { useCallback } from "react";
 
-export default function Page7() {
+export default function Page6() {
     const logger = useLogger();
     const dispatch = useEventBusDispatcher();
 
-    logger.debug("Rendering \"page7\" from module \"remote1\"");
+    logger.debug("Rendering \"page6\" from module \"remote1\"");
 
     const handleIncrementCount = useCallback(() => {
         // When the button is clicked, an event is dispatched to inform that an increment is requested.
@@ -2225,7 +2227,7 @@ export default function Page7() {
 
     return (
         <main>
-            <h1>Page 7</h1>
+            <h1>Page 6</h1>
             <p>From remote-1</p>
             <button type="button" onClick={handleIncrementCount}>
                 Increment count
@@ -2235,7 +2237,7 @@ export default function Page7() {
 }
 ```
 
-👉 Start all the projects and navigation to the _*Remote1/Page 7*_. Click on the button "Increment count", you should notice the count at the top left corner of the page increments. 
+👉 Start all the projects and navigation to the _*Remote1/Page 6*_. Click on the button "Increment count", you should notice the count at the top left corner of the page increments. 
 
 There might be times when you'll want to using the event bus outside of a React scope. Since the runtime has access to the event bus you can do so from the runtime API.
 
@@ -2275,7 +2277,7 @@ import { App } from "./App";
 import { Loading } from "./components";
 import type { RemoteDefinition } from "wmfnext-remote-loader";
 import { Suspense } from "react";
-import { TrackingService } from "./services";
+import { TrackingService } from "./trackingService";
 import { TrackingServiceKey } from "wmfnext-shared";
 import { createRoot } from "react-dom/client";
 import { registerRemoteModules } from "wmfnext-remote-loader";
@@ -2348,40 +2350,172 @@ export function useTrackingService() {
 👉 Then, create a new page in the remote module which will use the shared custom service.
 
 ```tsx
-// remote-1 - Page6.tsx
+// remote-1 - Page7.tsx
 
 import { useLogger } from "wmfnext-shell";
 import { useTrackingService } from "wmfnext-shared";
 
-export default function Page6() {
+export default function Page7() {
     const logger = useLogger();
     const trackingService = useTrackingService();
 
-    logger.debug("Rendering \"page6\" from module \"remote1\"");
+    logger.debug("Rendering \"page7\" from module \"remote1\"");
 
     trackingService.track({
-        page: "page6",
+        page: "page7",
         module: "remote-1"
     });
 
     return (
         <main>
-            <h1>Page 6</h1>
+            <h1>Page 7</h1>
             <p>From remote-1</p>
         </main>
     );
 }
 ```
 
-👉 Start all the projects and navigate to _"Remote1/Page 6"_. Open the console and you should see the following log:
+👉 Start all the projects and navigate to _"Remote1/Page 7"_. Open the console and you should see the following log:
 
 ```
-Tracking data:  {page: 'page6', module: 'remote-1'}
+Tracking data:  {page: 'page7', module: 'remote-1'}
 ```
 
 ### Use a custom logger
 
-TBD
+By default, the shell comes with a console logger. If you prefer not to use it, you can opt out by not providing it to the runtime at instanciation.
+
+```diff
+const runtime = new ShellRuntime({
+-    loggers: [new ConsoleLogger()]
+});
+```
+
+For many applications, a console logger will not be enough. An application might have to integrate with Datadog, Azure Application Insights or any other solutions out there that the product is using.
+
+To do so, the shell accept any custom logger as long as it implements the `Logger` interface.
+
+In this, tutorial, for the sake of simplicity, we'll define a custom logger which is also logging to the console.
+
+👉 Define a custom logger.
+
+```ts
+// host - customLogger.ts
+
+import { LogLevel } from "wmfnext-shell";
+import type { Logger } from "wmfnext-shell";
+
+export class CustomLogger implements Logger {
+    private _logLevel: LogLevel;
+
+    constructor(logLevel: LogLevel = LogLevel.critical) {
+        this._logLevel = logLevel;
+    }
+
+    debug(log: string, ...rest: unknown[]): Promise<unknown> {
+        if (this._logLevel >= LogLevel.debug) {
+            console.log(`[custom-logger] ${log}`, ...rest);
+        }
+
+        return Promise.resolve();
+    }
+
+    information(log: string, ...rest: unknown[]): Promise<unknown> {
+        if (this._logLevel >= LogLevel.information) {
+            console.info(`[custom-logger] ${log}`, ...rest);
+        }
+
+        return Promise.resolve();
+    }
+
+    warning(log: string, ...rest: unknown[]): Promise<unknown> {
+        if (this._logLevel >= LogLevel.warning) {
+            console.warn(`[custom-logger] ${log}`, ...rest);
+        }
+
+        return Promise.resolve();
+    }
+
+    error(log: string, ...rest: unknown[]): Promise<unknown> {
+        if (this._logLevel >= LogLevel.error) {
+            console.error(`[custom-logger] ${log}`, ...rest);
+        }
+
+        return Promise.resolve();
+    }
+
+    critical(log: string, ...rest: unknown[]): Promise<unknown> {
+        if (this._logLevel >= LogLevel.critical) {
+            console.error(`[custom-logger] ${log}`, ...rest);
+        }
+
+        return Promise.resolve();
+    }
+}
+```
+
+👉 Update the host application to include the newly created `CustomLogger`.
+
+```tsx
+// host - bootstrap.tsx
+
+import { ConsoleLogger, RuntimeContext, ShellRuntime, registerStaticModules } from "wmfnext-shell";
+import { App } from "./App";
+import { CustomLogger } from "./customLogger";
+import { Loading } from "./components";
+import type { RemoteDefinition } from "wmfnext-remote-loader";
+import { Suspense } from "react";
+import { TrackingService } from "./trackingService";
+import { TrackingServiceKey } from "wmfnext-shared";
+import { createRoot } from "react-dom/client";
+import { registerRemoteModules } from "wmfnext-remote-loader";
+import { register as registerStaticModule1 } from "wmfnext-static-module-1";
+import { sessionAccessor } from "./session";
+
+const StaticModules = [
+    registerStaticModule1
+];
+
+const Remotes: RemoteDefinition[] = [
+    {
+        url: "http://localhost:8081",
+        name: "remote1"
+    }
+];
+
+const runtime = new ShellRuntime({
+    loggers: [
+        new ConsoleLogger(),
+        // Added the new CustomLogger.
+        new CustomLogger()
+    ],
+    services: {
+        [TrackingServiceKey]: new TrackingService()
+    },
+    sessionAccessor
+});
+
+registerStaticModules(StaticModules, runtime);
+
+registerRemoteModules(Remotes, runtime);
+
+const root = createRoot(document.getElementById("root"));
+
+root.render(
+    <RuntimeContext.Provider value={runtime}>
+        <Suspense fallback={<Loading />}>
+            <App />
+        </Suspense>
+    </RuntimeContext.Provider>
+);
+```
+
+👉 Start all the projects, refresh the application, and you should now see all the logs twice in the console.
+
+```
+[shell] Found 1 static modules to register
+[custom-logger] [shell] Found 1 static modules to register
+```
 
 ### Fetch data
 
