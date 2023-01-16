@@ -2224,7 +2224,7 @@ To do so, the shell accept any custom logger as long as it implements the `Logge
 
 In this, tutorial, for the sake of simplicity, we'll define a custom logger which is also logging to the console.
 
-👉 Define a custom logger.
+👉 Define a custom logger in the host application.
 
 ```ts
 // host - customLogger.ts
@@ -2281,7 +2281,7 @@ export class CustomLogger implements Logger {
 }
 ```
 
-👉 Update the host application to include the newly created `CustomLogger`.
+👉 Update the host application to include the newly created `CustomLogger` in the runtime.
 
 ```tsx
 // host - bootstrap.tsx
@@ -2293,7 +2293,7 @@ import { CustomLogger } from "./customLogger";
 const runtime = new ShellRuntime({
     loggers: [
         new ConsoleLogger(),
-        // Added the new CustomLogger.
+        // Add the newly created CustomLogger.
         new CustomLogger()
     ],
     services: {
@@ -2327,7 +2327,7 @@ import { useLoaderData } from "react-router-dom";
 import { useLogger } from "wmfnext-shell";
 
 // React Router loader function.
-async function loader() {
+export async function loader() {
     return fetch("https://rickandmortyapi.com/api/character/1,2,3,4,5", {
         method: "GET",
         headers: {
@@ -2335,8 +2335,6 @@ async function loader() {
         }
     });
 }
-
-export { loader as page8Loader };
 
 interface Character {
     id: number;
