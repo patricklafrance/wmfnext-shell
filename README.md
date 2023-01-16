@@ -28,6 +28,7 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
     - [Use the event bus](#use-the-event-bus)
     - [Share a custom service](#share-a-custom-service)
     - [Use a custom logger](#use-a-custom-logger)
+    - [Fetch data](#fetch-data)
 - [API](#api)
 - [Contributors](./CONTRIBUTING.md)
 
@@ -1459,20 +1460,12 @@ export default function Page3(): JSX.Element {
 import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
 import { lazy } from "react";
 
-const Page1 = lazy(() => import("./pages/Page1"));
-const Page2 = lazy(() => import("./pages/Page2"));
 const Page3 = lazy(() => import("./pages/Page3"));
 
 export const register: ModuleRegisterFunction = (runtime: Runtime) => {
     runtime.registerRoutes([
-        {
-            index: true,
-            element: <Page1 />
-        },
-        {
-            path: "remote1/page-2",
-            element: <Page2 />
-        },
+        ...
+
         {
             path: "remote1/page-3",
             element: <Page3 />
@@ -1480,14 +1473,8 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
     ]);
 
     runtime.registerNavigationItems([
-        {
-            to: "remote1/page-1",
-            content: "Remote1/Page 1 - Home"
-        },
-        {
-            to: "remote1/page-2",
-            content: "Remote1/Page 2"
-        },
+        ...
+
         {
             to: "remote1/page-3",
             content: "Remote1/Page 3 - Failing page"
@@ -1540,12 +1527,10 @@ const Page4 = lazy(() => import("./pages/Page4"));
 
 export const register: ModuleRegisterFunction = (runtime: Runtime) => {
     runtime.registerRoutes([
+        ...
+
         {
-            index: true,
-            element: <Page1 />
-        },
-        {
-            // By setting "hoist: true", Page2 is now hoisted.
+            // By setting "hoist: true", the page is now hoisted.
             hoist: true,
             path: "remote1/page-2",
             element: <FullLayout />,
@@ -1556,12 +1541,10 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
                 }
             ]
         },
+
+        ...
+
         {
-            path: "remote1/page-3",
-            element: <Page3 />
-        },
-        {
-            // By setting "hoist: true", Page4 is now hoisted.
             hoist: true,
             path: "remote1/page-4",
             element: <Page4 />,
@@ -1570,18 +1553,15 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
     ]);
 
     runtime.registerNavigationItems([
-        {
-            to: "/",
-            content: "Remote1/Page 1 - Home"
-        },
+        ...
+
         {
             to: "remote1/page-2",
             content: "Remote1/Page 2 - Overrided layout"
         },
-        {
-            to: "remote1/page-3",
-            content: "Remote1/Page 3- Failing page"
-        },
+
+        ...
+
         {
             to: "remote1/page-4",
             content: "Remote1/Page 4 - Hoisted route"
@@ -1748,17 +1728,11 @@ export class AppSession {
 }
 
 class SessionManager {
-    setSession(session: AppSession) {
-        ...
-    }
+    setSession(session: AppSession) { ... }
 
-    getSession() {
-        ...
-    }
+    getSession() { ... }
 
-    clearSession() {
-        ...
-    }
+    clearSession() { ... }
 }
 
 export const sessionManager = new SessionManager();
@@ -1830,43 +1804,15 @@ export default function Login() {
 }
 ```
 
-When then user authenticate, a new user session is created which is then passed to the session manager. Since the session manager has access to the session, the shell runtime will also have access to the session through the session accessor function created earlier.
+When the user authenticate, a new user session is created which is then passed to the session manager. Since the session manager has access to the session, the shell runtime will also have access to the session through the session accessor function created earlier.
 
 ```tsx
 // host - App.tsx
 
-import { Navigate, Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
-import { lazy, useCallback, useMemo } from "react";
-import { useHoistedRoutes, useRoutes } from "wmfnext-shell";
-import { Loading } from "./components";
-import { RootErrorBoundary, RootLayout } from "./layouts";
-import { useAreRemotesReady } from "wmfnext-remote-loader";
-
 const LoginPage = lazy(() => import("./pages/Login"));
-const NotFoundPage = lazy(() => import("./pages/NotFound"));
 
 export function App() {
-    const isReady = useAreRemotesReady();
-    const routes = useRoutes();
-
-    const wrapManagedRoutes = useCallback(managedRoutes => {
-        return {
-            path: "/",
-            element: <RootLayout />,
-            children: [
-                {
-                    errorElement: <RootErrorBoundary />,
-                    children: [
-                        ...managedRoutes
-                    ]
-                }
-            ]
-        };
-    }, []);
-
-    const hoistedRoutes = useHoistedRoutes(routes, {
-        wrapManagedRoutes,
-    });
+    ...
 
     const router = useMemo(() => {
         return createBrowserRouter([
@@ -1883,44 +1829,18 @@ export function App() {
         ]);
     }, [hoistedRoutes]);
 
-    if (!isReady) {
-        return <Loading />;
-    }
-
-    return (
-        <RouterProvider
-            router={router}
-            fallbackElement={<Loading />}
-        />
-    );
+    ...
 }
 ```
 
-👉 Enough talk about the session accessor and the shell runtime, let's bind them together!
+👉 And provide the session accessor to the shell runtime.
 
 ```tsx
 // host - bootstrap.tsx
 
-import { ConsoleLogger, RuntimeContext, ShellRuntime, registerStaticModules } from "wmfnext-shell";
-import { App } from "./App";
-import { Loading } from "./components";
-import type { RemoteDefinition } from "wmfnext-remote-loader";
-import { Suspense } from "react";
-import { createRoot } from "react-dom/client";
-import { registerRemoteModules } from "wmfnext-remote-loader";
-import { register as registerStaticModule1 } from "wmfnext-static-module-1";
 import { sessionAccessor } from "./session";
 
-const StaticModules = [
-    registerStaticModule1
-];
-
-const Remotes: RemoteDefinition[] = [
-    {
-        url: "http://localhost:8081",
-        name: "remote1"
-    }
-];
+...
 
 const runtime = new ShellRuntime({
     loggers: [new ConsoleLogger()],
@@ -1928,11 +1848,7 @@ const runtime = new ShellRuntime({
     sessionAccessor
 });
 
-registerStaticModules(StaticModules, runtime);
-
-registerRemoteModules(Remotes, runtime);
-
-const root = createRoot(document.getElementById("root"));
+...
 
 root.render(
     <RuntimeContext.Provider value={runtime}>
@@ -1944,7 +1860,7 @@ root.render(
 );
 ```
 
-The session accessor created earlier is passed down to the shell runtime through the `sessionAccesor` option.
+The `sessionAccessor` created earlier is passed down to the shell runtime through the `sessionAccesor` option.
 
 > A suspense boundary has also been added to wrap the `<App />` component. At the moment, I don't understand why it's necessary, but it's required otherwise the application will throw when navigating between pages.
 
@@ -1983,6 +1899,7 @@ export interface AppSession {
 
 import type { AppSession as IAppSession, AppUser as IAppUser } from "wmfnext-shared";
 
+// The class now implements the shared AppUser interface.
 export class AppUser implements IAppUser {
     private _name: string;
 
@@ -1995,6 +1912,7 @@ export class AppUser implements IAppUser {
     }
 }
 
+// The class now implements the shared AppSession interface.
 export class AppSession implements IAppSession {
     private _user: AppUser;
 
@@ -2040,15 +1958,8 @@ export default function Page5() {
 ```tsx
 // host - App.jsx
 
-import { Navigate, Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
-import { lazy, useCallback, useMemo } from "react";
-import { useHoistedRoutes, useIsAuthenticated, useRoutes } from "wmfnext-shell";
-import { Loading } from "./components";
-import { RootErrorBoundary, RootLayout } from "./layouts";
-import { useAreRemotesReady } from "wmfnext-remote-loader";
-
-const LoginPage = lazy(() => import("./pages/Login"));
-const NotFoundPage = lazy(() => import("./pages/NotFound"));
+import { Navigate, Outlet } from "react-router-dom";
+import { useIsAuthenticated } from "wmfnext-shell";
 
 // Will redirect to the login page if the user is not authenticated.
 function AuthenticationBoundary() {
@@ -2056,8 +1967,7 @@ function AuthenticationBoundary() {
 }
 
 export function App() {
-    const isReady = useAreRemotesReady();
-    const routes = useRoutes();
+    ...
 
     const wrapManagedRoutes = useCallback(managedRoutes => {
         return {
@@ -2080,34 +1990,7 @@ export function App() {
         };
     }, []);
 
-    const hoistedRoutes = useHoistedRoutes(routes, {
-        wrapManagedRoutes
-    });
-
-    const router = useMemo(() => {
-        return createBrowserRouter([
-            ...hoistedRoutes,
-            {
-                path: "login",
-                element: <LoginPage />
-            },
-            {
-                path: "*",
-                element: <NotFoundPage />
-            }
-        ]);
-    }, [hoistedRoutes]);
-
-    if (!isReady) {
-        return <Loading />;
-    }
-
-    return (
-        <RouterProvider
-            router={router}
-            fallbackElement={<Loading />}
-        />
-    );
+    ...
 }
 ```
 
@@ -2136,47 +2019,21 @@ Most independent parts of a distributed applications usually ends up needing to 
 ```tsx
 // host - RootLayout.tsx
 
-import "./RootLayout.css";
-
-import { Link, Outlet } from "react-router-dom";
-import type { RenderItemFunction, RenderSectionFunction } from "wmfnext-shell";
-import { Suspense, useCallback, useState } from "react";
-import { useEventBusListener, useNavigationItems, useRenderedNavigationItems, useSession } from "wmfnext-shell";
-import type { AppSession } from "../session";
+import { useEventBusListener } from "wmfnext-shell";
 import { IncrementCountEvent } from "wmfnext-shared";
-import { Loading } from "../components";
 
 export function RootLayout() {
+    ...
+
     // The counter is basically only a useState.
     const [count, setCount] = useState(0);
-
-    const session = useSession<AppSession>();
-    const navigationItems = useNavigationItems();
 
     // Add an event listener to react to increment request from independent modules.
     useEventBusListener(IncrementCountEvent, () => {
         setCount(x => x + 1);
     });
 
-    const renderItem: RenderItemFunction = useCallback(({ content, linkProps, additionalProps: { highlight, ...additionalProps } }, index, level) => {
-        return (
-            <li key={`${level}-${index}`} className={highlight && "highlight-item"}>
-                <Link {...linkProps} {...additionalProps}>
-                    {content}
-                </Link>
-            </li>
-        );
-    }, []);
-
-    const renderSection: RenderSectionFunction = useCallback((itemElements, index, level) => {
-        return (
-            <ul key={`${level}-${index}`}>
-                {itemElements}
-            </ul>
-        );
-    }, []);
-
-    const renderedNavigationItems = useRenderedNavigationItems(navigationItems, renderItem, renderSection);
+    ...
 
     return (
         <div className="wrapper">
@@ -2272,28 +2129,10 @@ export class TrackingService {
 ```tsx
 // host - bootstrap.tsx
 
-import { ConsoleLogger, RuntimeContext, ShellRuntime, registerStaticModules } from "wmfnext-shell";
-import { App } from "./App";
-import { Loading } from "./components";
-import type { RemoteDefinition } from "wmfnext-remote-loader";
-import { Suspense } from "react";
 import { TrackingService } from "./trackingService";
 import { TrackingServiceKey } from "wmfnext-shared";
-import { createRoot } from "react-dom/client";
-import { registerRemoteModules } from "wmfnext-remote-loader";
-import { register as registerStaticModule1 } from "wmfnext-static-module-1";
-import { sessionAccessor } from "./session";
 
-const StaticModules = [
-    registerStaticModule1
-];
-
-const Remotes: RemoteDefinition[] = [
-    {
-        url: "http://localhost:8081",
-        name: "remote1"
-    }
-];
+...
 
 const runtime = new ShellRuntime({
     loggers: [new ConsoleLogger()],
@@ -2304,19 +2143,7 @@ const runtime = new ShellRuntime({
     sessionAccessor
 });
 
-registerStaticModules(StaticModules, runtime);
-
-registerRemoteModules(Remotes, runtime);
-
-const root = createRoot(document.getElementById("root"));
-
-root.render(
-    <RuntimeContext.Provider value={runtime}>
-        <Suspense fallback={<Loading />}>
-            <App />
-        </Suspense>
-    </RuntimeContext.Provider>
-);
+...
 ```
 
 👉 Now, before a module can use the shared custom service, it's type must be shared. We'll reuse the "shared" project created earlier in this tutorial to do so.
@@ -2459,29 +2286,9 @@ export class CustomLogger implements Logger {
 ```tsx
 // host - bootstrap.tsx
 
-import { ConsoleLogger, RuntimeContext, ShellRuntime, registerStaticModules } from "wmfnext-shell";
-import { App } from "./App";
 import { CustomLogger } from "./customLogger";
-import { Loading } from "./components";
-import type { RemoteDefinition } from "wmfnext-remote-loader";
-import { Suspense } from "react";
-import { TrackingService } from "./trackingService";
-import { TrackingServiceKey } from "wmfnext-shared";
-import { createRoot } from "react-dom/client";
-import { registerRemoteModules } from "wmfnext-remote-loader";
-import { register as registerStaticModule1 } from "wmfnext-static-module-1";
-import { sessionAccessor } from "./session";
 
-const StaticModules = [
-    registerStaticModule1
-];
-
-const Remotes: RemoteDefinition[] = [
-    {
-        url: "http://localhost:8081",
-        name: "remote1"
-    }
-];
+...
 
 const runtime = new ShellRuntime({
     loggers: [
@@ -2495,19 +2302,7 @@ const runtime = new ShellRuntime({
     sessionAccessor
 });
 
-registerStaticModules(StaticModules, runtime);
-
-registerRemoteModules(Remotes, runtime);
-
-const root = createRoot(document.getElementById("root"));
-
-root.render(
-    <RuntimeContext.Provider value={runtime}>
-        <Suspense fallback={<Loading />}>
-            <App />
-        </Suspense>
-    </RuntimeContext.Provider>
-);
+...
 ```
 
 👉 Start all the projects, refresh the application, and you should now see all the logs twice in the console.
@@ -2519,11 +2314,99 @@ root.render(
 
 ### Fetch data
 
-TBD
+Static pages are usually not why an organization will create a federated application with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/).
 
--> Modules shouldn't share data
--> Every module should loader it's own data
--> Leverage route "loader"
+Data fetching is an important part of an application and React Router is really good at it with the [loader API](https://reactrouter.com/en/main/route/loader). In this example, we will render in a page the first 5 characters returned by the [Rick and Morty API](https://rickandmortyapi.com/).
+
+👉 First, add a new page with a loader function to the remote module application.
+
+```tsx
+// remote-1 - Page8.tsx
+
+import { useLoaderData } from "react-router-dom";
+import { useLogger } from "wmfnext-shell";
+
+// React Router loader function.
+async function loader() {
+    return fetch("https://rickandmortyapi.com/api/character/1,2,3,4,5", {
+        method: "GET",
+        headers: {
+            "Accept": "application/json"
+        }
+    });
+}
+
+export { loader as page8Loader };
+
+interface Character {
+    id: number;
+    name: string;
+    species: string;
+}
+
+export default function Page8() {
+    // React Router provide the useLoaderData hook to retrieve the data returned by the loader.
+    const characters = useLoaderData() as Character[];
+    const logger = useLogger();
+
+    logger.debug("Rendering \"page8\" from module \"remote1\"");
+
+    return (
+        <main>
+            <h1>Page 8</h1>
+            <p>From remote-1</p>
+            <div>
+                {characters.map(x => {
+                    return (
+                        <div key={x.id}>
+                            <span>Id: {x.id}</span>
+                            <span> - </span>
+                            <span>Name: {x.name}</span>
+                            <span> - </span>
+                            <span>Species: {x.species}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        </main>
+    );
+}
+```
+
+👉 Then, register the page with a `loader` function.
+
+```tsx
+// remote-1 - register.tsx
+
+import { loader as page8Loader } from "./pages/Page8";
+
+...
+
+const Page8 = lazy(() => import("./pages/Page8"));
+
+export const register: ModuleRegisterFunction = (runtime: Runtime) => {
+    runtime.registerRoutes([
+        ...
+
+        {
+            path: "remote1/page-8",
+            element: <Page8 />,
+            loader: page8Loader
+        }
+    ]);
+
+    runtime.registerNavigationItems([
+        ...
+
+        {
+            to: "remote1/page-8",
+            content: "Remote1/Page 8 - Fetch data"
+        }
+    ]);
+};
+```
+
+👉 Start all the projects and navigate to the _"Remote1/Page 8"_ page. You should see the Rick and Morty characters at the bottom of the page.
 
 ### Use the fake runtime
 
