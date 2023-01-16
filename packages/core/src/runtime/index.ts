@@ -5,4 +5,5 @@ export * from "./RuntimeContext";
 export * from "./useRoutes";
 export * from "./useNavigationItems";
 export * from "./useLogger";
+export * from "./useService";
 export * from "./useSession";

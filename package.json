@@ -22,7 +22,7 @@
     "dev-remote-loader": "cd packages/remote-loader && yarn dev",
     "check-types": "yarn delete-ts-cache && tsc",
     "clean": "run-p -c clean:pkg delete-ts-cache",
-    "clean:pkg": "lerna run clean",
+    "clean:pkg": "lerna run clean --no-bail",
     "delete-node-modules": "run-s -c delete-node-modules:*",
     "delete-node-modules:pkg": "lerna clean --yes",
     "delete-node-modules:root": "rimraf node_modules",

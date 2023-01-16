@@ -1,5 +1,9 @@
 # wmfnext-shell
 
+> **Warning**
+>
+> This repository will not be maintained as it's intention is to inspire teams by showcasing how a SPA federated application could be build on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/).
+
 [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) is a great infrastructure piece to makes sharing code and dependencies between different independant codebases easier. But as is, it's pretty raw as it's a low level mecanism.
 
 This shell aims to add a very thin and opinionated layer on top of Webpack Module Federation and [React Router](https://reactrouter.com/) to complement the federation mecanism with additional functionalities. Those functionalities will gentle the adoption of a federated application architecture and provide an opinionated direction on how to implement a federated SPA application.
@@ -16,11 +20,12 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
     - [Setup a remote application](#setup-a-remote-application)
     - [Register a module routes](#register-a-module-routes)
     - [Re-render the host application after remote modules registration](#re-render-the-host-application-after-remote-modules-registration)
-    - [Setup a package module application](#setup-a-package-module-application)
+    - [Setup a static module application](#setup-a-static-module-application)
     - [Register a module dynamic navigation items](#register-a-module-dynamic-navigation-items)
     - [Isolate module failures](#isolate-module-failures)
     - [Override the host layout for a module page](#override-the-host-layout-for-a-module-page)
-    - [Sharing a user session](#sharing-a-user-session)
+    - [Share a user session](#share-a-user-session)
+    - [Share a custom service](#share-a-custom-service)
 - [API](#api)
 - [Contributors](./CONTRIBUTING.md)
 
@@ -965,7 +970,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 Now you can start both applications again and try navigating between pages, everything should work.
 
-### Setup a package module application
+### Setup a static module application
 
 > A static module example is available in the Github repository [wmfnext-host](https://github.com/patricklafrance/wmfnext-host).
 
@@ -1385,8 +1390,7 @@ export function RootErrorBoundary() {
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Loading } from "./components";
 import { NotFound } from "./pages";
-import { RootErrorBoundary } from "./RootErrorBoundary";
-import { RootLayout } from "./layouts";
+import { RootErrorBoundary, RootLayout } from "./layouts";
 import { useMemo } from "react";
 import { useAreRemotesReady } from "wmfnext-remote-loader";
 import { useRoutes } from "wmfnext-shell";
@@ -1602,8 +1606,7 @@ import { Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
 import { lazy, useCallback, useMemo } from "react";
 import { useHoistedRoutes, useRoutes } from "wmfnext-shell";
 import { Loading } from "./components";
-import { RootErrorBoundary } from "./RootErrorBoundary";
-import { RootLayout } from "./layouts";
+import { RootErrorBoundary, RootLayout } from "./layouts";
 import { useAreRemotesReady } from "wmfnext-remote-loader";
 
 const NotFoundPage = lazy(() => import("./pages/NotFound"));
@@ -1676,7 +1679,7 @@ const hoistedRoutes = useHoistedRoutes(routes, {
 
 👉 Now, let's start all the projects again and navigate to _"Remote1/Page 2"_ and _"Remote1/Page 4"_. You shouldn't see the host application root layout anymore for those pages.
 
-### Sharing a user session
+### Share a user session
 
 Let's face it, an application without authenticated pages is not that useful. Hopefully, with [React Router](https://reactrouter.com/), it's quite easy to secure routes and this federated application shell can help to share the session between the host and the modules.
 
@@ -1684,8 +1687,6 @@ Let's face it, an application without authenticated pages is not that useful. Ho
 
 ```ts
 // host - session.ts
-
-import { Session } from "wmfnext-shell";
 
 export class AppUser {
     private _name: string;
@@ -1699,7 +1700,7 @@ export class AppUser {
     }
 }
 
-export class AppSession implements Session {
+export class AppSession {
     private _user: AppUser;
 
     constructor(user: AppUser) {
@@ -1712,14 +1713,11 @@ export class AppSession implements Session {
 }
 ```
 
-Notice that the `AppSession` class implements the `Session` class provided by the shell. It's mandatory as it is the interface which is used by the runtime to share the session between the host and the modules.
-
 👉 Next, create a persistance layer to store the session, in this example, a session manager. The implementation is not included in this tutorial as it doesn't matter (have a look at [wmfnext-host repository](https://github.com/patricklafrance/wmfnext-host/blob/master/packages/app/src/session.ts) for the actual implementation).
 
 ```ts
 // host - session.ts
 
-import { Session } from "wmfnext-shell";
 import type { SessionAccessorFunction } from "wmfnext-shell";
 
 export class AppUser {
@@ -1734,7 +1732,7 @@ export class AppUser {
     }
 }
 
-export class AppSession implements Session {
+export class AppSession {
     private _user: AppUser;
 
     constructor(user: AppUser) {
@@ -1768,7 +1766,7 @@ export const sessionAccessor: SessionAccessorFunction = () => {
 };
 ```
 
-The session manager will be used by the login/logout pages to set and clear the session. The most important is the function `sessionAccessor()` which will be provided later on to the shell runtime to let the modules access the current session.
+The session manager will be used by the _"login"_ page to set the session. The `sessionAccessor()` is what the runtime will call to retrieve the current session when a module needs it.
 
 👉 Then, add a login page to the host application using the newly created session manager.
 
@@ -1838,8 +1836,7 @@ import { Navigate, Outlet, RouterProvider, createBrowserRouter } from "react-rou
 import { lazy, useCallback, useMemo } from "react";
 import { useHoistedRoutes, useRoutes } from "wmfnext-shell";
 import { Loading } from "./components";
-import { RootErrorBoundary } from "./RootErrorBoundary";
-import { RootLayout } from "./layouts";
+import { RootErrorBoundary, RootLayout } from "./layouts";
 import { useAreRemotesReady } from "wmfnext-remote-loader";
 
 const LoginPage = lazy(() => import("./pages/Login"));
@@ -1925,7 +1922,7 @@ const Remotes: RemoteDefinition[] = [
 const runtime = new ShellRuntime({
     loggers: [new ConsoleLogger()],
     // The session accessor is passed down to the runtime.
-    sessionAccessor: sessionAccessor
+    sessionAccessor
 });
 
 registerStaticModules(StaticModules, runtime);
@@ -1944,34 +1941,34 @@ root.render(
 );
 ```
 
-The session accessor created earlier is now passed down to the shell at instanciation with the `sessionAccesor` option.
+The session accessor created earlier is passed down to the shell runtime through the `sessionAccesor` option.
 
-> A suspense boundary has been added to wrap the `<App />` component. At the moment, I don't understand why it's necessary, but it's required otherwise the app will throw while navigating through the pages.
+> A suspense boundary has also been added to wrap the `<App />` component. At the moment, I don't understand why it's necessary, but it's required otherwise the application will throw when navigating between pages.
 
-👉 Now, before a module can use the shared session, we have to share the `AppUser` and `AppSession` types.
+👉 Now, before a module can use the shared session, the `AppUser` and `AppSession` types must be shared. To do so, let's create a new project in the host application monorepos to share stuff.
 
-To do so, let's create a new project in the host application monorepos
+> For the sake of this example, a single "shared" project is created. For a real federated application thought, it is strongly recommended to split concerns in multiple packages rather than mixing everything together in a single one.
 
 ```
 packages
 ├── app (the host application)
-├── typings
+├── shared
 ├─────src
-├───────index.d.ts
-├────── session.d.ts
+├───────index.ts
+├────── session.ts
 ├─────package.json
 ```
 
-```ts
-// typings - index.d.ts
+👉 Then, add the session typings to the project.
 
-import type { Session } from "wmfnext-shell";
+```ts
+// shared - session.ts
 
 export interface AppUser {
     readonly name;
 }
 
-export interface AppSession extends Session {
+export interface AppSession {
     readonly user: AppUser;
 }
 ```
@@ -1981,9 +1978,9 @@ export interface AppSession extends Session {
 ```ts
 // host - session.ts
 
-import type { AppSession as _AppSession, AppUser as _AppUser } from "wmfnext-typings";
+import type { AppSession as IAppSession, AppUser as IAppUser } from "wmfnext-shared";
 
-export class AppUser implements _AppUser {
+export class AppUser implements IAppUser {
     private _name: string;
 
     constructor(name: string) {
@@ -1995,7 +1992,7 @@ export class AppUser implements _AppUser {
     }
 }
 
-export class AppSession implements _AppSession {
+export class AppSession implements IAppSession {
     private _user: AppUser;
 
     constructor(user: AppUser) {
@@ -2008,13 +2005,13 @@ export class AppSession implements _AppSession {
 }
 ```
 
-👉 Finally, create a new page in the remote module using the session.
+👉 Finally, create a new page in the remote module and use the current session to render the user name.
 
 ```tsx
 // remote-1 - Page5.tsx
 
 import { useLogger, useSession } from "wmfnext-shell";
-import { AppSession } from "wmfnext-typings";
+import { AppSession } from "wmfnext-shared";
 
 export default function Page5() {
     const logger = useLogger();
@@ -2033,88 +2030,11 @@ export default function Page5() {
 }
 ```
 
-The page is using the `useSession()` hook to retrieve the current session and display the user name. 
+Did you notice that the page is using the `useSession()` hook to retrieve the current session?
 
-```tsx
-// remote-1 - register.tsx
+👉 Start all the projects and navigate to the login page, authenticate with "temp" / "temp" and navigate to the _"Remote1/Page 5"_ page. You should see the logged in user in the page content.
 
-import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
-import { ErrorBoundary } from "./ErrorBoundary";
-import { lazy } from "react";
-
-const FullLayout = lazy(() => import("./layouts/FullPageLayout"));
-
-const Page1 = lazy(() => import("./pages/Page1"));
-const Page2 = lazy(() => import("./pages/Page2"));
-const Page3 = lazy(() => import("./pages/Page3"));
-const Page4 = lazy(() => import("./pages/Page4"));
-const Page5 = lazy(() => import("./pages/Page5"));
-
-export const register: ModuleRegisterFunction = (runtime: Runtime) => {
-    runtime.registerRoutes([
-        {
-            index: true,
-            element: <Page1 />
-        },
-        {
-            hoist: true,
-            path: "remote1/page-2",
-            element: <FullLayout />,
-            errorElement: <ErrorBoundary />,
-            children: [
-                {
-                    element: <Page2 />
-                }
-            ]
-        },
-        {
-            path: "remote1/page-3",
-            element: <Page3 />
-        },
-        {
-            hoist: true,
-            path: "remote1/page-4",
-            element: <Page4 />,
-            errorElement: <ErrorBoundary />
-        },
-        {
-            // Newly added Page5.
-            path: "remote1/page-5",
-            element: <Page5 />
-        }
-    ]);
-
-    runtime.registerNavigationItems([
-        {
-            to: "/",
-            content: "Remote1/Page 1 - Home"
-        },
-        {
-            to: "remote1/page-2",
-            content: "Remote1/Page 2 - Overrided layout"
-        },
-        {
-            to: "remote1/page-3",
-            content: "Remote1/Page 3- Failing page"
-        },
-        {
-            to: "remote1/page-4",
-            content: "Remote1/Page 4 - Hoisted route"
-        },
-        {
-            // Newly added Page5.
-            to: "remote1/page-5",
-            content: "Remote1/Page 5 - Using shared session"
-        }
-    ]);
-};
-```
-
-👉 Navigate to the login page, authenticate with temp/temp and navigate to the _"Remote1/Page 5"_ page. You should the logged in user in the page content.
-
-Now, it's one thing to authenticate a user but it will be quite a mess if the routes using a session aren't protected!
-
-👉 Let's conclude this section by using React Router to protect some of the application routes.
+👉 Now, it will work fine if every user manually navigate to the login page to authenticate before accessing a page using the session but I doubt those expections will stand for a real application. Let's conclude this section by using React Router to protect the routes using the user session.
 
 ```tsx
 // host - App.jsx
@@ -2122,17 +2042,15 @@ Now, it's one thing to authenticate a user but it will be quite a mess if the ro
 import { Navigate, Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
 import { lazy, useCallback, useMemo } from "react";
 import { useHoistedRoutes, useIsAuthenticated, useRoutes } from "wmfnext-shell";
-
 import { Loading } from "./components";
-import { RootErrorBoundary } from "./RootErrorBoundary";
-import { RootLayout } from "./layouts";
+import { RootErrorBoundary, RootLayout } from "./layouts";
 import { useAreRemotesReady } from "wmfnext-remote-loader";
 
 const LoginPage = lazy(() => import("./pages/Login"));
 const NotFoundPage = lazy(() => import("./pages/NotFound"));
 
 // Will protect our authenticated routes by redirecting to the login page if the user is not authenticated.
-function AuthenticatedBoundary() {
+function AuthenticationBoundary() {
     return useIsAuthenticated() ? <Outlet /> : <Navigate to="/login" />;
 }
 
@@ -2143,7 +2061,7 @@ export function App() {
     const wrapManagedRoutes = useCallback(managedRoutes => {
         return {
             // Pathless route to set an authentication boundary around the managed routes of the application.
-            element: <AuthenticatedBoundary />,
+            element: <AuthenticationBoundary />,
             children: [
                 {
                     path: "/",
@@ -2192,11 +2110,11 @@ export function App() {
 }
 ```
 
-The `AuthenticatedBoundary` component is using the `useIsAuthenticated()` hook to determine if a user is authenticated or not. Alternatively, the `useSession()` hook could also be used but it isn't necessary as the component doesn't need additional information from the session.
+The `AuthenticationBoundary` component is using the `useIsAuthenticated()` hook to determine if a user is authenticated or not. Alternatively, the `useSession()` hook could also be used but it isn't necessary as the component doesn't need additional information from the session.
 
-By wrapping the root layout with a pathless route bound to `<AuthenticatedBoundary />`, only authenticated users will have access to the module routes that are not hoisted.
+By wrapping the root layout with a pathless route bound to `<AuthenticationBoundary />`, only authenticated users will have access to the module routes that are not hoisted.
 
-👉 Clear the session and try to navigate to a route protected by the authentication boundary. You should be redirecte to the login page.
+👉 Clear the session and navigate to any route protected by the authentication boundary. You should be redirected to the login page.
 
 ### Use the event bus
 
@@ -2206,23 +2124,138 @@ TBD
 
 TBD
 
-### Register a custom service
+### Share a custom service
 
-TBD
+The shell runtime implementation offer a few services by default but by no mean covers all the services a mature federated application will need.
 
-useService<TService>("service-name")
+That's why the shell runtime accept at instanciation a bucket of custom services which will then be made available to all the modules.
 
-new ShellRuntime({ 
+👉 First, create a custom tracking service in the host application.
+
+```tsx
+// host - trackingService.ts
+
+export class TrackingService {
+    track(data: unknown) {
+        console.log("Tracking data: ", data);
+    }
+}
+```
+
+👉 Then register the service with the shell runtime by providing the `services` option.
+
+```tsx
+// host - bootstrap.tsx
+
+import { ConsoleLogger, RuntimeContext, ShellRuntime, registerStaticModules } from "wmfnext-shell";
+
+import { App } from "./App";
+import { Loading } from "./components";
+import type { RemoteDefinition } from "wmfnext-remote-loader";
+import { Suspense } from "react";
+import { TrackingService } from "./services";
+import { TrackingServiceKey } from "wmfnext-shared";
+import { createRoot } from "react-dom/client";
+import { registerRemoteModules } from "wmfnext-remote-loader";
+import { register as registerStaticModule1 } from "wmfnext-static-module-1";
+import { sessionAccessor } from "./session";
+
+const StaticModules = [
+    registerStaticModule1
+];
+
+const Remotes: RemoteDefinition[] = [
+    {
+        url: "http://localhost:8081",
+        name: "remote1"
+    }
+];
+
+const runtime = new ShellRuntime({
+    loggers: [new ConsoleLogger()],
+    // Register the tracking service.
     services: {
-        "service-name": new CustomService() 
-    } 
-})
+        "tracking": new TrackingService()
+    },
+    sessionAccessor
+});
 
-### Share custom components between the modules
+registerStaticModules(StaticModules, runtime);
 
-TBD
+registerRemoteModules(Remotes, runtime);
 
--> Have a shared components package in the host monorepos
+const root = createRoot(document.getElementById("root"));
+
+root.render(
+    <RuntimeContext.Provider value={runtime}>
+        <Suspense fallback={<Loading />}>
+            <App />
+        </Suspense>
+    </RuntimeContext.Provider>
+);
+```
+
+👉 Now, before a module can use the shared custom service, it's type must be shared. We'll reuse the "shared" project created earlier in this tutorial to do so.
+
+```tsx
+// shared - trackingService.ts
+
+export interface TrackingService {
+    track: (data: unknown) => void;
+}
+```
+
+👉 Instead of retrieving a custom service through the runtime with an untyped key, we recommend creating a custom hook. In this example, we'll create the `useTrackingService()` hook.
+
+```tsx
+// shared - trackingService.ts
+
+import { useRuntime } from "wmfnext-shell";
+
+export interface TrackingService {
+    track: (data: unknown) => void;
+}
+
+export function useTrackingService() {
+    const runtime = useRuntime();
+
+    return runtime.getService<TrackingService>("tracking");
+}
+```
+
+👉 Then, create a new page in the remote module which will use the shared custom service.
+
+```tsx
+// remote-1 - Page6.tsx
+
+import { useLogger } from "wmfnext-shell";
+import { useTrackingService } from "wmfnext-shared";
+
+export default function Page6() {
+    const logger = useLogger();
+    const trackingService = useTrackingService();
+
+    logger.debug("Rendering \"page6\" from module \"remote1\"");
+
+    trackingService.track({
+        page: "page6",
+        module: "remote-1"
+    });
+
+    return (
+        <main>
+            <h1>Page 6</h1>
+            <p>From remote-1</p>
+        </main>
+    );
+}
+```
+
+👉 Start all the projects and navigate to _"Remote1/Page 6"_. Open the console and you should see the following log:
+
+```
+Tracking data:  {page: 'page6', module: 'remote-1'}
+```
 
 ### Fetch data
 

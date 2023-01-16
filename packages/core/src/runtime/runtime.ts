@@ -1,11 +1,8 @@
 import type { RootNavigationItem, RootRoute } from "../federation";
 
 import type { RuntimeLogger } from "./RuntimeLogger";
-import type { Session } from "../session";
 
-export type RuntimeSession = Readonly<Session> | undefined;
-
-export type SessionAccessorFunction = () => RuntimeSession;
+export type SessionAccessorFunction = () => unknown;
 
 export interface Runtime {
     registerRoutes: (routes: RootRoute[]) => void;
@@ -16,5 +13,6 @@ export interface Runtime {
 
     readonly logger: RuntimeLogger;
 
-    getSession: () => RuntimeSession;
+    getService: <T = unknown>(name: string) => T;
+    getSession: <T = unknown>() => Readonly<T> | undefined;
 }
