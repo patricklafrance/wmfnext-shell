@@ -1,5 +1,6 @@
 import type { RootNavigationItem, RootRoute } from "../federation";
 
+import type { EventBus } from "../messaging";
 import type { RuntimeLogger } from "./RuntimeLogger";
 
 export type SessionAccessorFunction = () => unknown;
@@ -12,6 +13,7 @@ export interface Runtime {
     readonly navigationItems: Readonly<RootNavigationItem[]>;
 
     readonly logger: RuntimeLogger;
+    readonly eventBus: EventBus;
 
     getService: <T = unknown>(name: string) => T;
     getSession: <T = unknown>() => Readonly<T> | undefined;

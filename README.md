@@ -25,6 +25,7 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
     - [Isolate module failures](#isolate-module-failures)
     - [Override the host layout for a module page](#override-the-host-layout-for-a-module-page)
     - [Share a user session](#share-a-user-session)
+    - [Use the event bus](#use-the-event-bus)
     - [Share a custom service](#share-a-custom-service)
 - [API](#api)
 - [Contributors](./CONTRIBUTING.md)
@@ -37,7 +38,7 @@ This federated application shell include the following features:
 - Loading of modules from a static function at build time
 - Routing & navigation
 - Share a user session
-- Cross application pub/sub
+- Cross application messaging
 - Logging
 - Stubs to develop an independent module in isolation
 
@@ -2005,7 +2006,7 @@ export class AppSession implements IAppSession {
 }
 ```
 
-👉 Finally, create a new page in the remote module and use the current session to render the user name.
+👉 Then, create a new page in the remote module and use the current session to render the user name.
 
 ```tsx
 // remote-1 - Page5.tsx
@@ -2030,8 +2031,6 @@ export default function Page5() {
 }
 ```
 
-Did you notice that the page is using the `useSession()` hook to retrieve the current session?
-
 👉 Start all the projects and navigate to the login page, authenticate with "temp" / "temp" and navigate to the _"Remote1/Page 5"_ page. You should see the logged in user in the page content.
 
 👉 Now, it will work fine if every user manually navigate to the login page to authenticate before accessing a page using the session but I doubt those expections will stand for a real application. Let's conclude this section by using React Router to protect the routes using the user session.
@@ -2049,7 +2048,7 @@ import { useAreRemotesReady } from "wmfnext-remote-loader";
 const LoginPage = lazy(() => import("./pages/Login"));
 const NotFoundPage = lazy(() => import("./pages/NotFound"));
 
-// Will protect our authenticated routes by redirecting to the login page if the user is not authenticated.
+// Will redirect to the login page if the user is not authenticated.
 function AuthenticationBoundary() {
     return useIsAuthenticated() ? <Outlet /> : <Navigate to="/login" />;
 }
@@ -2116,17 +2115,141 @@ By wrapping the root layout with a pathless route bound to `<AuthenticationBound
 
 👉 Clear the session and navigate to any route protected by the authentication boundary. You should be redirected to the login page.
 
+There might be times when you'll want to access the session outside of a React scope. Since the runtime has access the current user session you can do so from the runtime API.
+
+```tsx
+// remote-1 - register.tsx
+
+export const register: ModuleRegisterFunction = (runtime: Runtime) => {
+    const session = runtime.getSession<AppSession>();
+});
+```
+
 ### Use the event bus
 
-TBD
+Most independent parts of a distributed applications usually ends up needing to talk to each others in a loosely coupled manner. To help with that, the shell comes with a basic implementation of a pub/sub mecanism called the event bus.
 
-### Register a custom logger
+👉 Update the host application root layout to add a counter and an event listener.
 
-TBD
+```tsx
+// host - RootLayout.tsx
+
+import "./RootLayout.css";
+
+import { Link, Outlet } from "react-router-dom";
+import type { RenderItemFunction, RenderSectionFunction } from "wmfnext-shell";
+import { Suspense, useCallback, useState } from "react";
+import { useEventBusListener, useNavigationItems, useRenderedNavigationItems, useSession } from "wmfnext-shell";
+import type { AppSession } from "../session";
+import { IncrementCountEvent } from "wmfnext-shared";
+import { Loading } from "../components";
+
+export function RootLayout() {
+    // The counter is basically only a useState.
+    const [count, setCount] = useState(0);
+
+    const session = useSession<AppSession>();
+    const navigationItems = useNavigationItems();
+
+    // Add an event listener to react to increment request from independent modules.
+    useEventBusListener(IncrementCountEvent, () => {
+        setCount(x => x + 1);
+    });
+
+    const renderItem: RenderItemFunction = useCallback(({ content, linkProps, additionalProps: { highlight, ...additionalProps } }, index, level) => {
+        return (
+            <li key={`${level}-${index}`} className={highlight && "highlight-item"}>
+                <Link {...linkProps} {...additionalProps}>
+                    {content}
+                </Link>
+            </li>
+        );
+    }, []);
+
+    const renderSection: RenderSectionFunction = useCallback((itemElements, index, level) => {
+        return (
+            <ul key={`${level}-${index}`}>
+                {itemElements}
+            </ul>
+        );
+    }, []);
+
+    const renderedNavigationItems = useRenderedNavigationItems(navigationItems, renderItem, renderSection);
+
+    return (
+        <div className="wrapper">
+            {session && (
+                <div className="top-bar">
+                    <div className="counter">
+                        <span>Count: {count}</span>
+                    </div>
+                    <div>
+                        <span>Current user: </span>{session.user.name}
+                    </div>
+                </div>
+            )}
+            <nav className="nav">
+                {renderedNavigationItems}
+            </nav>
+            <Suspense fallback={<Loading />}>
+                <Outlet />
+            </Suspense>
+        </div>
+    );
+}
+```
+
+In this example, the layout is using the `useEventBusListener` hook to start listening to an event. The hook will take care of adding and disposing of the listener through re-renders.
+
+Did you notice that the constant variable `IncrementCountEvent` used as the event name of the listener is coming from a shared package? This is not mandatory but as a package was already shared between the host and the modules, it is used in the example to faciliate code updates.
+
+👉 Add a new page to the remote module application dispatching events to increment the counter.
+
+```tsx
+// remote-1 - Page7.tsx
+
+import { useEventBusDispatcher, useLogger } from "wmfnext-shell";
+import { IncrementCountEvent } from "wmfnext-shared";
+import { useCallback } from "react";
+
+export default function Page7() {
+    const logger = useLogger();
+    const dispatch = useEventBusDispatcher();
+
+    logger.debug("Rendering \"page7\" from module \"remote1\"");
+
+    const handleIncrementCount = useCallback(() => {
+        // When the button is clicked, an event is dispatched to inform that an increment is requested.
+        dispatch(IncrementCountEvent);
+    }, [dispatch]);
+
+    return (
+        <main>
+            <h1>Page 7</h1>
+            <p>From remote-1</p>
+            <button type="button" onClick={handleIncrementCount}>
+                Increment count
+            </button>
+        </main>
+    );
+}
+```
+
+👉 Start all the projects and navigation to the _*Remote1/Page 7*_. Click on the button "Increment count", you should notice the count at the top left corner of the page increments. 
+
+There might be times when you'll want to using the event bus outside of a React scope. Since the runtime has access to the event bus you can do so from the runtime API.
+
+```tsx
+// remote-1 - register.tsx
+
+export const register: ModuleRegisterFunction = (runtime: Runtime) => {
+    const eventBus = runtime.eventBus;
+});
+```
 
 ### Share a custom service
 
-The shell runtime implementation offer a few services by default but by no mean covers all the services a mature federated application will need.
+The shell offer a few services by default but by no mean covers all the services a mature federated application will need.
 
 That's why the shell runtime accept at instanciation a bucket of custom services which will then be made available to all the modules.
 
@@ -2148,7 +2271,6 @@ export class TrackingService {
 // host - bootstrap.tsx
 
 import { ConsoleLogger, RuntimeContext, ShellRuntime, registerStaticModules } from "wmfnext-shell";
-
 import { App } from "./App";
 import { Loading } from "./components";
 import type { RemoteDefinition } from "wmfnext-remote-loader";
@@ -2173,7 +2295,7 @@ const Remotes: RemoteDefinition[] = [
 
 const runtime = new ShellRuntime({
     loggers: [new ConsoleLogger()],
-    // Register the tracking service.
+    // Register the tracking service with "tracking" as the key.
     services: {
         "tracking": new TrackingService()
     },
@@ -2256,6 +2378,10 @@ export default function Page6() {
 ```
 Tracking data:  {page: 'page6', module: 'remote-1'}
 ```
+
+### Use a custom logger
+
+TBD
 
 ### Fetch data
 

@@ -2,6 +2,7 @@ import { NavigationItemRegistry, RouteRegistry } from "../federation";
 import type { RootNavigationItem, RootRoute } from "../federation";
 import type { Runtime, SessionAccessorFunction } from "./runtime";
 
+import { EventBus } from "../messaging";
 import type { Logger } from "../logging";
 import { RuntimeLogger } from "./RuntimeLogger";
 
@@ -15,11 +16,13 @@ export class ShellRuntime implements Runtime {
     protected _routeRegistry = new RouteRegistry();
     protected _navigationItemRegistry = new NavigationItemRegistry();
     protected _logger: RuntimeLogger;
+    protected _eventBus: EventBus;
     protected _services: Record<string, unknown>;
     protected _sessionAccessor: SessionAccessorFunction;
 
     constructor({ loggers = [], services, sessionAccessor }: ShellRuntimeOptions = {}) {
         this._logger = new RuntimeLogger(loggers);
+        this._eventBus = new EventBus();
         this._services = services;
         this._sessionAccessor = sessionAccessor;
     }
@@ -50,6 +53,10 @@ export class ShellRuntime implements Runtime {
 
     get logger() {
         return this._logger;
+    }
+
+    get eventBus() {
+        return this._eventBus;
     }
 
     getService<T = unknown>(name: string) {
