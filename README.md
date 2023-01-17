@@ -29,6 +29,7 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
     - [Share a custom service](#share-a-custom-service)
     - [Use a custom logger](#use-a-custom-logger)
     - [Fetch data](#fetch-data)
+    - [Develop a module in isolation](#develop-a-module-in-isolation)
 - [API](#api)
 - [Contributors guide](./CONTRIBUTING.md)
 
@@ -52,19 +53,19 @@ For examples of applications using this shell, have a look at:
 
 ## Installation
 
-To install the packages, [open a terminal in VSCode](https://code.visualstudio.com/docs/editor/integrated-terminal#_managing-multiple-terminals) and execute the following command at the root of the host and modules projects workspace:
+To install the packages, [open a terminal in VSCode](https://code.visualstudio.com/docs/editor/integrated-terminal#_managing-multiple-terminals) and execute the following command at the root of the projects (host and modules) workspace:
 
 ```bash
 yarn add wmfnext-shell
 ```
 
-If you wish to include remote modules at runtime using [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) also execute the following command at the root of the host and modules projects workspace:
+If you wish to include remote modules loaded at runtime using [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) also execute the following command at the root of the projects (host and *remote* modules) workspace:
 
 ```bash
 yarn add wmfnext-remote-loader
 ```
 
-Once, installed, we recommend that you configure your projects to use [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. To do so, open the `package.json` file of the project and add the root property `"type": "module"`:
+Once, installed, we recommend that you configure your projects to use [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. To do so, open the `package.json` file and add the `type` property:
 
 ```json
 {
@@ -80,7 +81,7 @@ Once, installed, we recommend that you configure your projects to use [ESM](http
 >
 > For a complete example, or, if you prefer to skip this walkthrough and jump right into it have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) and [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repositories or the [API documentation](#api).
 
-To use this shell, you must create projects for an host application and at least one module application. In this tutorial, we'll first load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) then, we'll load a static package module at build time.
+To use this shell, you must create projects for an host application and at least one module application. In this tutorial, we'll first load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) then, later on, we'll load a static module at build time.
 
 ### Setup an host application
 
@@ -425,7 +426,7 @@ export default {
             "Access-Control-Allow-Origin": "*"
         }
     },
-    entry: "./src/register.tsx"
+    entry: "./src/index.ts"
     output: {
         // The trailing / is important otherwise hot reload doesn't work.
         publicPath: "http://localhost:8081/"
@@ -531,7 +532,7 @@ remote-app
 }
 ```
 
-> We'll see later on when going through the *fake* development environment for modules why this command is named `serve-dev` instead of `dev`.
+> We'll see later on when going through the *module development environment* section why this command is named `serve-dev` instead of `dev`.
 
 👉 Start the remote module application with the `serve-dev` command, you should see __Hello from remote!__.
 
@@ -564,6 +565,18 @@ export const register: ModuleRegisterFunction = (runtime, { context }) => {
 ```
 
 For now we won't register anything, we'll use the `runtime` to log something in the console.
+
+👉 Update the webpack config to use the `register.js` file as an entry point rather than the index file.
+
+```js
+export default {
+    ...
+
+    entry: "./src/index.ts"
+    
+    ...
+};
+```
 
 👉 In distinct terminals, start the remote module application with the `serve-dev` command, then the host application with the `dev` command. You should see similar logs in the host application if you open the dev tools:
 
@@ -2337,7 +2350,7 @@ const runtime = new Runtime({
 
 ### Fetch data
 
-Data fetching is an important part of an application and React Router is now really good at it with the [loader API](https://reactrouter.com/en/main/route/loader). In this example, we'll render in a new page the first 5 characters returned by the [Rick and Morty API](https://rickandmortyapi.com/).
+Data fetching is an important part of an application and React Router is now really good at it with the [loader API](https://reactrouter.com/en/main/route/loader). In this example, we'll render the first 5 characters returned by the [Rick and Morty API](https://rickandmortyapi.com/).
 
  > Loaders is a data fetching solution which works very well with React Router. Depending of the needs of your application, there might be a better solution out there. For example, [TanStack Query](https://tanstack.com/query/latest) is a great choice if you need to prefetch a lot of data and are looking for a client side state management solution. 
  
@@ -2423,7 +2436,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 👉 Start all the applications and navigate to the _"Remote1/Page 8"_ page. You should see the Rick and Morty characters at the bottom of the page.
 
-### Use the fake runtime
+### Develop a module in isolation
 
 TBD
 
