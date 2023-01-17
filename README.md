@@ -1465,7 +1465,6 @@ const Page3 = lazy(() => import("./pages/Page3"));
 export const register: ModuleRegisterFunction = (runtime: Runtime) => {
     runtime.registerRoutes([
         ...
-
         {
             path: "remote1/page-3",
             element: <Page3 />
@@ -1474,7 +1473,6 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
     runtime.registerNavigationItems([
         ...
-
         {
             to: "remote1/page-3",
             content: "Remote1/Page 3 - Failing page"
@@ -1528,7 +1526,6 @@ const Page4 = lazy(() => import("./pages/Page4"));
 export const register: ModuleRegisterFunction = (runtime: Runtime) => {
     runtime.registerRoutes([
         ...
-
         {
             // By setting "hoist: true", the page is now hoisted.
             hoist: true,
@@ -1541,9 +1538,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
                 }
             ]
         },
-
         ...
-
         {
             hoist: true,
             path: "remote1/page-4",
@@ -1554,14 +1549,11 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
     runtime.registerNavigationItems([
         ...
-
         {
             to: "remote1/page-2",
             content: "Remote1/Page 2 - Overrided layout"
         },
-
         ...
-
         {
             to: "remote1/page-4",
             content: "Remote1/Page 4 - Hoisted route"
@@ -1729,9 +1721,7 @@ export class AppSession {
 
 class SessionManager {
     setSession(session: AppSession) { ... }
-
     getSession() { ... }
-
     clearSession() { ... }
 }
 
@@ -1936,7 +1926,7 @@ import { AppSession } from "wmfnext-shared";
 
 export default function Page5() {
     const logger = useLogger();
-    const session = useSession<AppSession>();
+    const session = useSession() as AppSession;
 
     logger.debug("Rendering \"page5\" from module \"remote1\"");
 
@@ -2006,7 +1996,7 @@ There might be times when you'll want to access the session outside of a React s
 // remote-1 - register.tsx
 
 export const register: ModuleRegisterFunction = (runtime: Runtime) => {
-    const session = runtime.getSession<AppSession>();
+    const session = runtime.getSession();
 });
 ```
 
@@ -2170,7 +2160,7 @@ export interface TrackingService {
 export function useTrackingService() {
     const runtime = useRuntime();
 
-    return runtime.getService<TrackingService>("tracking");
+    return runtime.getService("tracking") as TrackingService;
 }
 ```
 
@@ -2318,6 +2308,10 @@ Static pages are usually not why an organization will create a federated applica
 
 Data fetching is an important part of an application and React Router is really good at it with the [loader API](https://reactrouter.com/en/main/route/loader). In this example, we will render in a page the first 5 characters returned by the [Rick and Morty API](https://rickandmortyapi.com/).
 
+ > **Note**
+ >
+ > Using React Router loader is one solution to data fetching. Depending of the needs of an application, it might not be the best solution. For example, React Router loaders doesn't play very well with [TanStack Query](https://tanstack.com/query/latest).
+
 👉 First, add a new page with a loader function to the remote module application.
 
 ```tsx
@@ -2385,7 +2379,6 @@ const Page8 = lazy(() => import("./pages/Page8"));
 export const register: ModuleRegisterFunction = (runtime: Runtime) => {
     runtime.registerRoutes([
         ...
-
         {
             path: "remote1/page-8",
             element: <Page8 />,
@@ -2395,7 +2388,6 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
     runtime.registerNavigationItems([
         ...
-
         {
             to: "remote1/page-8",
             content: "Remote1/Page 8 - Fetch data"

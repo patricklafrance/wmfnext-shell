@@ -1,7 +1,7 @@
 import { useRuntime } from "./RuntimeContext";
 
-export function useService<T = unknown>(name: string) {
+export function useService(name: string) {
     const runtime = useRuntime();
 
-    return runtime.getService<T>(name);
+    return runtime.getService(name);
 }

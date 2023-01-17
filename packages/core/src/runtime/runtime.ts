@@ -15,6 +15,6 @@ export interface Runtime {
     readonly logger: RuntimeLogger;
     readonly eventBus: EventBus;
 
-    getService: <T = unknown>(name: string) => T;
-    getSession: <T = unknown>() => Readonly<T> | undefined;
+    getService: (name: string) => unknown;
+    getSession: () => Readonly<unknown> | undefined;
 }

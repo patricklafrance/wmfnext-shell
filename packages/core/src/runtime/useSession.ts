@@ -1,7 +1,7 @@
 import { useRuntime } from "./RuntimeContext";
 
-export function useSession<T = unknown>() {
+export function useSession() {
     const runtime = useRuntime();
 
-    return runtime.getSession<T>();
+    return runtime.getSession();
 }
