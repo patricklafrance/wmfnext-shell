@@ -281,7 +281,7 @@ host-app
 ```tsx
 // host - bootstrap.tsx
 
-import { ConsoleLogger, RuntimeContext, ShellRuntime } from "wmfnext-shell";
+import { ConsoleLogger, RuntimeContext, Runtime } from "wmfnext-shell";
 import type { RemoteDefinition } from "wmfnext-remote-loader";
 import { App } from "./App";
 import { createRoot } from "react-dom/client";
@@ -289,7 +289,7 @@ import { registerRemoteModules } from "wmfnext-remote-loader";
 
 // Instanciate a runtime instance that will be shared among the host and the modules. 
 // The runtime contains common functionalities such as routing and navigation services.
-const runtime = new ShellRuntime({
+const runtime = new Runtime({
     // By default, the shell comes with a basic console logger.
     // Custom logger can be implemented by implementing the Logger interface.
     loggers: [new ConsoleLogger()]
@@ -654,7 +654,7 @@ export function App() {
 ```tsx
 // host - bootstrap.tsx
 
-import { ConsoleLogger, RuntimeContext, ShellRuntime } from "wmfnext-shell";
+import { ConsoleLogger, RuntimeContext, Runtime } from "wmfnext-shell";
 import type { RemoteDefinition } from "wmfnext-remote-loader";
 import { App } from "./App";
 import { createRoot } from "react-dom/client";
@@ -668,7 +668,7 @@ const Remotes: RemoteDefinition[] = [
     }
 ];
 
-const runtime = new ShellRuntime({
+const runtime = new Runtime({
     loggers: [new ConsoleLogger()]
 });
 
@@ -853,7 +853,7 @@ export function App() {
 ```tsx
 // host - bootstrap.tsx
 
-import { ConsoleLogger, RuntimeContext, ShellRuntime } from "wmfnext-shell";
+import { ConsoleLogger, RuntimeContext, Runtime } from "wmfnext-shell";
 import type { RemoteDefinition } from "wmfnext-remote-loader";
 import { App } from "./App";
 import { createRoot } from "react-dom/client";
@@ -866,7 +866,7 @@ const Remotes: RemoteDefinition[] = [
     }
 ];
 
-const runtime = new ShellRuntime({
+const runtime = new Runtime({
     loggers: [new ConsoleLogger()]
 });
 
@@ -1064,7 +1064,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 ```tsx
 // host - bootstrap.tsx
 
-import { ConsoleLogger, RuntimeContext, ShellRuntime } from "wmfnext-shell";
+import { ConsoleLogger, RuntimeContext, Runtime } from "wmfnext-shell";
 import type { RemoteDefinition } from "wmfnext-remote-loader";
 import { App } from "./App";
 import { createRoot } from "react-dom/client";
@@ -1082,7 +1082,7 @@ const Remotes: RemoteDefinition[] = [
     }
 ];
 
-const runtime = new ShellRuntime({
+const runtime = new Runtime({
     loggers: [new ConsoleLogger()]
 });
 
@@ -1602,7 +1602,7 @@ export function App() {
     const isReady = useAreRemotesReady();
     const routes = useRoutes();
 
-    const wrapManagedRoutes = useCallback(managedRoutes => {
+    const wrapManagedRoutes = useCallback((managedRoutes: Readonly<Route[]>) => {
         return {
             path: "/",
             element: <RootLayout />,
@@ -1845,7 +1845,7 @@ import { sessionAccessor } from "./session";
 
 ...
 
-const runtime = new ShellRuntime({
+const runtime = new Runtime({
     loggers: [new ConsoleLogger()],
     // The session accessor is passed down to the runtime.
     sessionAccessor
@@ -1972,7 +1972,7 @@ function AuthenticationBoundary() {
 export function App() {
     ...
 
-    const wrapManagedRoutes = useCallback(managedRoutes => {
+    const wrapManagedRoutes = useCallback((managedRoutes: Readonly<Route[]>) => {
         return {
             // Pathless route to set an authentication boundary around the 
             // managed routes of the application.
@@ -2138,7 +2138,7 @@ import { TrackingServiceKey } from "wmfnext-shared";
 
 ...
 
-const runtime = new ShellRuntime({
+const runtime = new Runtime({
     loggers: [new ConsoleLogger()],
     // Register the tracking service with "tracking" as the key.
     services: {
@@ -2217,7 +2217,7 @@ Tracking data:  {page: 'page7', module: 'remote-1'}
 By default, the shell comes with a console logger. If you prefer not to use it, you can opt out by not providing it to the runtime at instanciation.
 
 ```diff
-const runtime = new ShellRuntime({
+const runtime = new Runtime({
 -    loggers: [new ConsoleLogger()]
 });
 ```
@@ -2294,7 +2294,7 @@ import { CustomLogger } from "./customLogger";
 
 ...
 
-const runtime = new ShellRuntime({
+const runtime = new Runtime({
     loggers: [
         new ConsoleLogger(),
         // Add the newly created CustomLogger.
