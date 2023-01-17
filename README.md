@@ -203,7 +203,8 @@ export default {
         extensions: [".js", ".ts", ".tsx", ".css"]
     },
     plugins: [
-        // You only need to setup the ModuleFederationPlugin plugin if you want to load remote modules at runtime.
+        // You only need to setup the ModuleFederationPlugin plugin if you 
+        // want to load remote modules at runtime.
         new ModuleFederationPlugin(createHostConfiguration("host", packageJson)),
         new HtmlWebpackPlugin({
             template: "./public/index.html"
@@ -284,16 +285,19 @@ import { App } from "./App";
 import { createRoot } from "react-dom/client";
 import { registerRemoteModules } from "wmfnext-remote-loader";
 
-// Instanciate a runtime instance that will be shared among the host and the modules. The runtime contains common functionalities such as routing and navigation services.
+// Instanciate a runtime instance that will be shared among the host and the modules. 
+// The runtime contains common functionalities such as routing and navigation services.
 const runtime = new ShellRuntime({
-    // By default, the shell comes with a basic console logger. Custom logger can be implemented by implementing the Logger interface.
+    // By default, the shell comes with a basic console logger.
+    // Custom logger can be implemented by implementing the Logger interface.
     loggers: [new ConsoleLogger()]
 });
 
 const Remotes: RemoteDefinition[] = [
     {
         url: "http://localhost:8081",
-        // Have to match the name defined in the remote application Webpack configuration that we'll define later.
+        // Have to match the name defined in the remote applicatio
+        // Webpack configuration that we'll define later.
         name: "remote1"
     }
 ];
@@ -931,7 +935,8 @@ import { Loading } from "../components";
 import { Suspense } from "react";
 
 export function RootLayout() {
-    // Remove the home page from the links and update Remote1/Page1 link to "/" as it's now the index route.
+    // Remove the home page from the links and update Remote1/Page1 link 
+    // to "/" as it's now the index route.
     return (
         <div>
             <nav>
@@ -1219,7 +1224,9 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
             content: (
                 <>
                     <ArchiveIcon />
-                    <span>Static1/Page 1 - Navigation item with a React element as content and additional Link props</span>
+                    <span>
+                        Static1/Page 1 - Navigation item with a React element as content and additional Link props
+                    </span>
                 </>
             ),
             style: {
@@ -1607,7 +1614,8 @@ export function App() {
         };
     }, []);
 
-    // Using the useHoistedRoutes hook allow routes hoisted by modules to be rendered at the root of the router.
+    // Using the useHoistedRoutes hook allow routes hoisted by modules to 
+    // be rendered at the root of the router.
     // To disallow the hoisting functionality, do not use this hook.
     const hoistedRoutes = useHoistedRoutes(routes, {
         wrapManagedRoutes
@@ -1961,7 +1969,8 @@ export function App() {
 
     const wrapManagedRoutes = useCallback(managedRoutes => {
         return {
-            // Pathless route to set an authentication boundary around the managed routes of the application.
+            // Pathless route to set an authentication boundary around the 
+            // managed routes of the application.
             element: <AuthenticationBoundary />,
             children: [
                 {
@@ -2310,7 +2319,7 @@ Data fetching is an important part of an application and React Router is really 
 
  > **Note**
  >
- > Using React Router loader is one solution to data fetching. Depending of the needs of an application, it might not be the best solution. For example, React Router loaders doesn't play very well with [TanStack Query](https://tanstack.com/query/latest).
+ > Loaders is one solution for data fetching which works very well with React Router. Depending of the needs of your application, it might not be the best solution. An alternative like [TanStack Query](https://tanstack.com/query/latest) is also a great choice even if it's not a data fetching solution supported natively by React Router.
 
 👉 First, add a new page with a loader function to the remote module application.
 
@@ -2319,16 +2328,6 @@ Data fetching is an important part of an application and React Router is really 
 
 import { useLoaderData } from "react-router-dom";
 import { useLogger } from "wmfnext-shell";
-
-// React Router loader function.
-export async function loader() {
-    return fetch("https://rickandmortyapi.com/api/character/1,2,3,4,5", {
-        method: "GET",
-        headers: {
-            "Accept": "application/json"
-        }
-    });
-}
 
 interface Character {
     id: number;
@@ -2370,8 +2369,6 @@ export default function Page8() {
 ```tsx
 // remote-1 - register.tsx
 
-import { loader as page8Loader } from "./pages/Page8";
-
 ...
 
 const Page8 = lazy(() => import("./pages/Page8"));
@@ -2382,7 +2379,15 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
         {
             path: "remote1/page-8",
             element: <Page8 />,
-            loader: page8Loader
+            // New loader function fetching the API data.
+            loader: async function loader() {
+                return fetch("https://rickandmortyapi.com/api/character/1,2,3,4,5", {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
+            }
         }
     ]);
 
