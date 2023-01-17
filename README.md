@@ -1225,7 +1225,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
                 <>
                     <ArchiveIcon />
                     <span>
-                        Static1/Page 1 - Navigation item with a React element as content and additional Link props
+                        Static1/Page 1 - Item with a React element as content + additional Link props
                     </span>
                 </>
             ),
@@ -1237,21 +1237,21 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
         },
         {
             to: "static1/page-2",
-            content: "Static1/Page 2 - Navigation item with children",
+            content: "Static1/Page 2 - Item with children",
             children: [
                 {
                     to: "static1/page-4",
-                    content: "Static1/Page 4 - Child navigation item"
+                    content: "Static1/Page 4 - Child item"
                 },
                 {
                     to: "static1/page-5",
-                    content: "Static1/Page 5 - Child navigation item"
+                    content: "Static1/Page 5 - Child item"
                 }
             ]
         },
         {
             to: "static1/page-3",
-            content: "Static1/Page 3 - Navigation item with a top priority and custom additional props",
+            content: "Static1/Page 3 - Item with a top priority and custom additional props",
             priority: 99,
             additionalProps: {
                 highlight: true
@@ -1293,7 +1293,8 @@ import type { RenderNavigationItem } from "wmfnext-shell";
 export function RootLayout() {
     const navigationItems = useNavigationItems();
 
-    const renderItem: RenderItemFunction = useCallback(({ content, linkProps, additionalProps: { highlight, ...additionalProps } }, index, level) => {
+    const renderItem: RenderItemFunction = useCallback(
+        ({ content, linkProps, additionalProps: { highlight, ...additionalProps } }, index, level) => {
         return (
             <li key={`${level}-${index}`} className={highlight && "highlight"}>
                 <Link {...linkProps} {...additionalProps}>
@@ -1381,11 +1382,13 @@ export function RootErrorBoundary() {
     const location = useLocation();
     const logger = useLogger();
 
-    logger.error(`[shell] An unmanaged error occured while rendering the route with path ${location.pathname}`, error);
+    logger.error(`[shell] An unmanaged error occured while rendering the 
+        route with path ${location.pathname}`, error);
 
     return (
         <p className="error-message">
-            An unmanaged error occured insisde a module and other parts of the application are still fully functional!
+            An unmanaged error occured insisde a module and other parts of the application 
+            are still fully functional!
             <br />
             <span role="img" aria-label="pointer">👉</span> {getErrorMessage(error)}
         </p>
