@@ -4,9 +4,9 @@
 >
 > This repository will not be maintained as it's purpose is to inspire teams by showcasing how a SPA federated application could be build on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/).
 
-[Webpack Module Federation](https://webpack.js.org/concepts/module-federation) is a great infrastructure piece to makes sharing code and dependencies between different independant codebases easier. But as is, it's pretty raw as it's a low level mecanism.
+Webpack Module Federation is a great infrastructure piece to makes sharing code and dependencies between different independant codebases easier. But as is, it's pretty raw as it's a low level mecanism.
 
-This shell aims to add a very thin and opinionated layer on top of Webpack Module Federation and [React Router](https://reactrouter.com/) to complement the federation mecanism with additional functionalities. Those functionalities will gentle the adoption of a federated application architecture and provide an opinionated direction on how to implement a federated SPA application.
+This shell aims to add a very thin and opinionated layer on top of Webpack Module Federation and React Router to complement the federation mecanism with additional functionalities. Those functionalities will gentle the adoption of a federated application architecture and provide an opinionated direction on how to implement a federated SPA application.
 
 The idea behind this shell is to have an host application responsible of loading modules and providing shared functionalities like routing, messaging and logging. With this shell, a module is considered as an independent codebase which should usually match a specific sub domain of the application. At bootstrap, the host application loads the modules and call a registration function for each of them with shared functionalities and a customazible context. During the registration phase, each module dynamically *register it's routes and navigation links*. Then, pages and components of a module can use the provided hooks to access shared functionalities.
 
@@ -19,7 +19,7 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
     - [Setup an host application](#setup-an-host-application)
     - [Setup a remote application](#setup-a-remote-application)
     - [Register a module routes](#register-a-module-routes)
-    - [Re-render the host application after remote modules registration](#re-render-the-host-application-after-remote-modules-registration)
+    - [Re-render the host application after the remote modules are ready](#re-render-the-host-application-after-the-remote-modules-are-ready)
     - [Setup a static module application](#setup-a-static-module-application)
     - [Register a module dynamic navigation items](#register-a-module-dynamic-navigation-items)
     - [Isolate module failures](#isolate-module-failures)
@@ -30,11 +30,11 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
     - [Use a custom logger](#use-a-custom-logger)
     - [Fetch data](#fetch-data)
 - [API](#api)
-- [Contributors](./CONTRIBUTING.md)
+- [Contributors guide](./CONTRIBUTING.md)
 
 ## Features
 
-This federated application shell include the following features:
+This federated application shell includes the following features:
 
 - Loading of hosted remote modules at runtime
 - Loading of modules from a static function at build time
@@ -46,7 +46,9 @@ This federated application shell include the following features:
 
 ## Examples
 
-For examples of applications using this shell, have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) repository for a sample host application + a static module example and have a look at the [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repository for a sample remote module.
+For examples of applications using this shell, have a look at:
+- [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) repository for an host application example + a static module example
+- [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repository for a remote module example
 
 ## Installation
 
@@ -782,7 +784,7 @@ Start both applications and try navigating to the remote pages.
 
 You probably noticed that you are redirected to the 404 page! What's going on?!
 
-### Re-render the host application after remote modules registration
+### Re-render the host application after the remote modules are ready
 
 > **Note**
 >
@@ -1265,7 +1267,7 @@ Independent modules can use the `registerNavigationItems()` function to tell the
 
 A navigation item must have a `to` and `content` props. The `content` prop can be a `string` value or a `React element`.
 
-Let's focus on the navigation items registered by the static module (_"static-1 - register.tsx"_) as there are many "special" cases shown there.
+Let's focus on the navigation items registered by the static module as there are many features shown there.
 
 The first thing to notice is that _"Static1/Page 3"_ as a `priority` prop. The `priority` props allow a module to have a say in the order at which the navigation item will be rendered. The higher the priority, the highest the navigation item will be rendered. Still, the priority will only hint the host application about the module preference. It's up to the host application to choose the final rendering order of the navigation items.
 
@@ -1495,7 +1497,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 > **Warning**
 >
-> If your application support hoisted module routes (view the next section "[override the host layout for a module page](#override-the-host-layout-for-a-module-page)" for more information), failures isolation might not behave as explained in this section because hoisted routes will be rendered outside the host application error boundary. 
+> If your application support hoisted module routes (view the next section [override the host layout for a module page](#override-the-host-layout-for-a-module-page) for more information), failures isolation might not behave as explained in this section because hoisted routes will be rendered outside the host application error boundary. 
 >
 > To ensure strict failures isolation, an host application can either choose to not support hoisted module routes by not using the `useHoistedRoutes()` hook or restrict routes allowed to use hoisting with the `allowedPaths` option of the `useHoistedRoutes()` hook.
 
@@ -1513,7 +1515,7 @@ By doing so, the module is in full control of the hoisted page layout.
 
 > **Note**
 >
-> As explained in the previous section "[isolate module failures](isole-module-failures)", by declaring a page as hoisted, the page will not be protected from failures anymore by the host application error boundary and could crash the application if an unmanaged error occurs. This is highly recommended that every hoisted page is assigned a React Router [errorElement](https://reactrouter.com/en/main/route/error-element) prop.
+> As explained in the previous section [isolate module failures](isole-module-failures), by declaring a page as hoisted, the page will not be protected from failures anymore by the host application error boundary and could crash the application if an unmanaged error occurs. This is highly recommended that every hoisted page is assigned a React Router [errorElement](https://reactrouter.com/en/main/route/error-element) prop.
 
 To define a module page as hoisted, set the page definition `hoist` prop as `true` during registration.
 
@@ -2320,9 +2322,7 @@ Static pages are usually not why an organization will create a federated applica
 
 Data fetching is an important part of an application and React Router is really good at it with the [loader API](https://reactrouter.com/en/main/route/loader). In this example, we will render in a page the first 5 characters returned by the [Rick and Morty API](https://rickandmortyapi.com/).
 
- > **Note**
- >
- > Loaders is one solution for data fetching which works very well with React Router. Depending of the needs of your application, it might not be the best solution. An alternative like [TanStack Query](https://tanstack.com/query/latest) is also a great choice even if it's not a data fetching solution supported natively by React Router.
+ > Loaders is one solution for data fetching which works very well with React Router. Depending of the needs of your application, it might not be the best solution. An alternative solution like [TanStack Query](https://tanstack.com/query/latest) is also a great choice even if it's not native to React Router.
 
 👉 First, add a new page with a loader function to the remote module application.
 
@@ -2412,11 +2412,11 @@ TBD
 
 ## API
 
-### Remote loader
+### Remote module loader
 
 TBD
 
-### Package loader
+### Static module loader
 
 TBD
 
@@ -2450,4 +2450,4 @@ TBD
 
 ## Contributors
 
-Have a look at the [contributors guide](./CONTRIBUTING.md).
+Before contributing, have a look at the [contributors guide](./CONTRIBUTING.md).
