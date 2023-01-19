@@ -705,7 +705,7 @@ root.render(
 );
 ```
 
-By using the `useRoutes()` hook we'll get access to the modules routes registered in the runtime at bootstrap. By passing those routes to the router, they will be rendered in the host application.
+By using the `useRoutes()` hook you'll get access to the modules routes registered in the runtime at bootstrap. By passing those routes to the router, they will be rendered in the host application.
 
 The `runtime.registerRoutes()` function support the same syntax and options as React Router [createBrowserRouter()](https://reactrouter.com/en/main/routers/create-browser-router) `RouteObject` and a few additional custom properties. Have a look at the [React Router documentation](https://reactrouter.com/en/main/route/route#type-declaration) to find out about the options.
 
@@ -814,7 +814,7 @@ You probably noticed that you are redirected to the 404 page! What's going on?!
 
 The issue is that the host application finish rendering **before** the remote module is registered. Therefore, only the host application routes are rendered.
 
-To fix this, we have to re-render the host application once the remote module is registered.
+To fix this, the host application have to re-render once the remote module is registered.
 
 > It's only problematic with remote modules registered at runtime. When strictly using modules registered at build time, it's not an issue and you don't need to add the following code.
 
@@ -1173,7 +1173,7 @@ The `package.json` file indicates that the main file will be available in a `/di
 }
 ```
 
-👉 Start all the applications and libraries and navigate to "/static1/page-1" and "static1/page-2".
+👉 Start the project with the `dev` command, then start all the applications and libraries and navigate to "/static1/page-1" and "static1/page-2".
 
 ### Register a module dynamic navigation items
 
