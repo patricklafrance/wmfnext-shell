@@ -36,7 +36,7 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
 
 ## 🙌 Features
 
-The following features are supported:
+The following features are supported by this shell:
 
 - Loading of hosted remote modules at runtime
 - Loading of static modules at build time
@@ -76,19 +76,21 @@ Once, installed, we recommend that you configure your projects to use [ESM](http
 }
 ```
 
-## 📘 Basic usage
+## 📄 Basic usage
 
-TBD
+To use this shell, you must create projects for an host application and at least one module application. To keep it short, in this example, we'll focus only on creating a single remote module with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation). To learn more about the creation of a static module application, have a look at the section ["setup a static module application"](#setup-a-static-module-application) of the [guides](#📚-guides).
+
+### Create an host application
+
+### Create a remote module application
 
 ## 📚 Guides
 
 > **Warning**
 >
-> While going through this tutorial, keep in mind that some parts of the application has ben intentionally left out from code samples to emphasis on the more important one's.
+> While going through those step by step guides, keep in mind that some parts of the application has ben intentionally left out from code samples to emphasis the more important stuff.
 >
-> For a complete example, or, if you prefer to skip this walkthrough and jump right into it have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) and [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repositories or the [API documentation](#api).
-
-To use this shell, you must create projects for an host application and at least one module application. In this tutorial, we'll first load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) then, later on, we'll load a static module at build time.
+> For a complete example, or, if you prefer to jump right into it, have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) and [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repositories or the [API documentation](#api).
 
 ### Setup an host application
 
@@ -907,7 +909,7 @@ root.render(
 
 👉 Then, move the homepage to the remote module.
 
-> You can keep as many pages as you want in the host application. In this tutorial we'll move most of them in modules.
+> You can keep as many pages as you want in the host application. In those guides we'll move most of them in modules.
 
 ```tsx
 // host - App.tsx
@@ -1538,7 +1540,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 ### Override the host layout for a module page
 
-Most applications, usually have a default layout with at least a navigation menu and an authenticated user avatar. It's useful as 90% of the pages of an application tend to use the same layout. In fact, this is what we've done so far in this tutorial with the host application root layout (minus the authenticated user avatar, which will come later on 😃).
+Most applications, usually have a default layout with at least a navigation menu and an authenticated user avatar. It's useful as 90% of the pages of an application tend to use the same layout. In fact, this is what we've done so far in those guides with the host application root layout (minus the authenticated user avatar, which will come later on 😃).
 
 For the remaining 10%, there are use cases for which the default layout will not work thought. For example, a module might include a login page, or any other pages which are not bound to a user session.
 
@@ -1879,7 +1881,7 @@ packages
 
 > **Note**
 >
-> To keep things simple for this tutorial, everything is added to the same shared package. When developing a real application, we recommend splitting the shared code in multiple standalone packages to maximise dependency segregation, improve cohesion and minimize the scope of a package update.
+> To keep things simple for those guides, everything is added to the same shared package. When developing a real application, we recommend splitting the shared code in multiple standalone packages to maximise dependency segregation, improve cohesion and minimize the scope of a package update.
 
 👉 Create the new shared project and add the session TS type.
 
@@ -2405,16 +2407,13 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 ### Develop a module in isolation
 
-#### Code sharing
+Intro with a shared project
 
-- Application shell
-- Other stuff
-
-#### Rempte modules
+#### Remote modules
 
 #### Static modules
 
-## 📃 API
+## 🔧 API
 
 ### Remote module loader
 
