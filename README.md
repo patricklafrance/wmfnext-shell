@@ -1161,7 +1161,9 @@ export function RootLayout() {
 }
 ```
 
-👉 The `package.json` file indicates that the main file will be available in a `/dist` folder. That's because the module will share transpiled code. To do so, add your [TypeScript configuration](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) at the root of the project and a command in the `package.json` file to transpile the code using the `tsx` CLI.
+The `package.json` file indicates that the main file will be available in a `/dist` folder. That's because the module will share transpiled code. 
+
+👉 To do so, add your [TypeScript configuration](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) at the root of the project and a command in the `package.json` file to transpile the code using the `tsx` CLI.
 
 ```json
 {
@@ -1171,7 +1173,7 @@ export function RootLayout() {
 }
 ```
 
-👉 Start all the applications and navigate to "/static1/page-1" and "static1/page-2".
+👉 Start all the applications and libraries and navigate to "/static1/page-1" and "static1/page-2".
 
 ### Register a module dynamic navigation items
 
@@ -1376,7 +1378,7 @@ Each render function must return a single `React element`.
 
 Notice that the `renderItem` function receive the `highlight` additional props. When provided, the host application root layout will render an "highlight" CSS class on the link. This is the type of use cases `additionalProps` are for.
 
-👉 Start all the applications and try navigating between pages.
+👉 Start all the applications and libraries and try navigating between pages.
 
 > **Note**
 >
@@ -1526,7 +1528,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 };
 ```
 
-👉 Start all the applications and navigate to _"Remote1/Page 3"_. The page will throw but the application should still be functional.
+👉 Start all the applications and libraries and navigate to _"Remote1/Page 3"_. The page will throw but the application should still be functional.
 
 > **Warning**
 >
@@ -2109,7 +2111,7 @@ export default function Page6() {
 }
 ```
 
-👉 Start all the applications and navigate to the _*Remote1/Page 6*_ page. Click on the button *"Increment count"*. Everytime the button is clicked, the top left counter should increment by 1.
+👉 Start all the applications and libraries and navigate to the _*Remote1/Page 6*_ page. Click on the button *"Increment count"*. Everytime the button is clicked, the top left counter should increment by 1.
 
 ### Share a custom service
 
@@ -2306,7 +2308,7 @@ const runtime = new Runtime({
 ...
 ```
 
-👉 Start all the applications, then open the dev tools and refresh the application. The console logs should now be displayed twice.
+👉 Start all the applications and libraries, then open the dev tools and refresh the application. The console logs should now be displayed twice.
 
 ```
 [shell] Found 1 static modules to register
@@ -2399,7 +2401,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 };
 ```
 
-👉 Start all the applications and navigate to the _"Remote1/Page 8"_ page. You should see the Rick and Morty characters at the bottom of the page.
+👉 Start all the applications and libraries and navigate to the _"Remote1/Page 8"_ page. You should see the Rick and Morty characters at the bottom of the page.
 
 ### Develop a module in isolation
 
