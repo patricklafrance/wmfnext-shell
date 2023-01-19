@@ -12,11 +12,11 @@ The idea behind this shell is to have an host application responsible of loading
 
 We recommend to aim for remote hosted modules loaded at runtime as it enables your teams to be fully autonomous by deploying their modules independently from the other parts of the application. Still, sometimes teams might want to gradually migrate toward a distributed architecture and would prefer to extract subdomains into independent modules in a monolithic but decoupled way before fully committing to remote modules. To accomodate those migration solutions, this shell support loading modules from a static registration function at build time. The functions could come from a package in a monorepos setup or could even come from a subdomain folder of a modular monolith. A dual bootstrapping setup is also supported, meaning an application could load a few remote hosted modules at runtime while also loading a few other modules at build time.
 
-- [Features](#features)
-- [Examples](#examples)
-- [Installation](#installation)
-- [Basic usage](#basic-usage)
-- [Guides](#guides)
+- [Features](#🙌-features)
+- [Examples](#🎉-examples)
+- [Installation](#🤘-installation)
+- [Basic usage](#📄-basic-usage)
+- [Guides](#📚-guides)
     - [Setup an host application](#setup-an-host-application)
     - [Setup a remote application](#setup-a-remote-application)
     - [Register a module routes](#register-a-module-routes)
@@ -31,7 +31,7 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
     - [Use a custom logger](#use-a-custom-logger)
     - [Fetch data](#fetch-data)
     - [Develop a module in isolation](#develop-a-module-in-isolation)
-- [API](#api)
+- [API](#🔧-api)
 - [Contributors guide](./CONTRIBUTING.md)
 
 ## 🙌 Features
@@ -78,7 +78,9 @@ Once, installed, we recommend that you configure your projects to use [ESM](http
 
 ## 📄 Basic usage
 
-In the following example, we'll focus solely on showcasing the happy path to create a federated application with this shell. To do so, we will only created a single remote module application. To learn about the other options, and how to [create a static module application]((#setup-a-static-module-application)), have a look at the [guides](#📚-guides) and the [API](#🔧-api) section.
+In the following example, we'll focus solely on showcasing the happy path to create a federated application with this shell. 
+
+To do so, we'll only create a single remote module application (and of course an host application). To learn about the other features and options, have a look at the [guides](#📚-guides) and the [API](#🔧-api) section.
 
 ### Host application
 
@@ -309,6 +311,14 @@ export default {
 > While going through those step by step guides, keep in mind that some parts of the application has ben intentionally left out from code samples to emphasis the more important stuff.
 >
 > For a complete example, or, if you prefer to jump right into it, have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) and [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repositories or the [API documentation](#🔧-api).
+
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
 
 ### Setup an host application
 
