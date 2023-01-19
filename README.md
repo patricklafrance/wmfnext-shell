@@ -30,26 +30,27 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
     - [Share a custom service](#share-a-custom-service)
     - [Use a custom logger](#use-a-custom-logger)
     - [Fetch data](#fetch-data)
-    - [Develop a remote module in isolation](#develop-a-remote-module-in-isolation)
-    - [Develop a static module in isolation](#develop-a-static-module-in-isolation)
+    - [Develop a module in isolation](#develop-a-module-in-isolation)
 - [API](#api)
-- [Contributing guide](./CONTRIBUTING.md)
+- [Contributors guide](./CONTRIBUTING.md)
 
 ## Features
 
 This federated application shell includes the following features:
 
 - Loading of hosted remote modules at runtime
-- Loading of modules from a static function at build time
-- Routing & navigation
-- Share a user session
+- Loading of static modules at build time
+- Routing
+- Navigation
+- Shared user session
 - Cross application messaging
 - Logging
-- Stubs to develop an independent module in isolation
+- Failures isolation
+- Module development in isolation
 
 ## Examples
 
-For examples of applications using this shell, have a look at:
+For full examples of applications using this shell, have a look at:
 - [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) repository for an host application example + a static module example
 - [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repository for a remote module example
 
@@ -1922,9 +1923,7 @@ export default function Page5() {
 3. Navigate to the _"Remote1/Page 5"_ page
 4. The user name should be rendered in the page content.
 
-The application works fine has long as every users manually do the previous steps. I feel like those expections will not stand with real users.
-
-👉 Let's use React Router [nested routes](https://reactrouter.com/en/main/start/overview#nested-routes) to protect the routes depending on the user session by redirecting unauthenticated users to the login page.
+👉 The application will work fine has long as every users manually do the previous steps. I doubt those expections will stand with real users. Let's use React Router [nested routes](https://reactrouter.com/en/main/start/overview#nested-routes) to protect the routes depending on the user session by redirecting unauthenticated users to the login page.
 
 ```tsx
 // host - App.jsx
@@ -1979,8 +1978,6 @@ There's one more thing to do thought. [Webpack Module Federation](https://webpac
 ```js
 // host - webpack.dev.js
 
-...
-
 export default {
     ...
     plugins: [
@@ -2001,9 +1998,6 @@ export default {
 
 ```js
 // remote-1 - webpack.dev.js
-
-
-...
 
 export default {
     ...
@@ -2407,7 +2401,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 👉 Start all the applications and navigate to the _"Remote1/Page 8"_ page. You should see the Rick and Morty characters at the bottom of the page.
 
-### Develop module in isolation
+### Develop a module in isolation
 
 #### Code sharing
 
@@ -2460,6 +2454,6 @@ TBD
 
 TBD
 
-## Contributing Guide
+## Contributors guide
 
 To contribute, have a look at the [contributors guide](./CONTRIBUTING.md).
