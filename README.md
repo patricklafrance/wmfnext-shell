@@ -80,7 +80,7 @@ Once, installed, we recommend that you configure your projects to use [ESM](http
 
 In the following example, to keep it brief, we'll focus only on creating a single remote module and we will only showcase the basic functionalities of the shell. To know more about the other options, have a look at [guides](#📚-guides) and the [API](#🔧-api) section.
 
-> For more information about the creation of a static module application, have a look at the section ["setup a static module application"](#setup-a-static-module-application) of the guides.
+> To learn how to create a static module application, have a look at the section ["setup a static module application"](#setup-a-static-module-application) of the guides.
 
 ### Host application
 
@@ -143,7 +143,7 @@ root.render(
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { lazy, useMemo } from "react";
 import { useRoutes } from "wmfnext-shell";
-import { RootLayout } from "./layouts";
+import { RootLayout } from "./RootLayout";
 import { useAreRemotesReady } from "wmfnext-remote-loader";
 
 const HomePage = lazy(() => import("./HomePage"));
@@ -320,9 +320,10 @@ export default {
 
 ```
 host-app
-├── App.tsx
-├── bootstrap.tsx
-└── index.ts
+├── src
+├──── App.tsx
+├──── bootstrap.tsx
+└──── index.ts
 ```
 
 👉 First, create an `App.tsx` file which will act as the entry point of your React application.
@@ -583,8 +584,9 @@ It's time to create our first remote module! We'll use a file structure similar 
 
 ```
 remote-app
-├── App.tsx
-└── index.tsx
+├── src
+├──── App.tsx
+└──── index.tsx
 ```
 
 👉 First, create an `App.tsx` file which will act as the entry point of your React application.
@@ -761,9 +763,10 @@ At bootstrap, it's this file which will act as the remote module entry point, e.
 
 ```
 remote-app
-├── App.tsx
-└── index.ts
-└── register.tsx
+├── src
+├──── App.tsx
+└──── index.ts
+└──── register.tsx
 ```
 
 ```tsx
@@ -1224,7 +1227,9 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 };
 ```
 
-👉 Now you can start both applications again and try navigating between pages, everything should work.
+👉 Now you can start both applications again and try navigating between pages, everything should work fine.
+
+> If you are having issues, make sure that the host application and the remote module application `package.json` file have `react`, `react-dom`, `react-router-dom`, `wmfnext-shell`, `wmfnext-remote-loader` listed in their dependencies and that they are using the same dependency versions.
 
 ### Setup a static module application
 
@@ -1239,10 +1244,6 @@ Static modules can either come from a sibling project in a monorepos setup or fr
 ```
 packages
 ├── app (the host application)
-├─────src
-├───────boostrap.tsx
-├───────index.tsx
-├─────package.json
 ├── static-module-1
 ├─────src
 ├───────index.ts
