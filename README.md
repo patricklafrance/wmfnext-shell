@@ -4,13 +4,13 @@
 >
 > This repository will not be maintained as it's purpose is to inspire teams by showcasing how a SPA federated application could be build on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/).
 
-Webpack Module Federation is a great infrastructure piece to makes sharing code and dependencies between different independant codebases easier. But as is, it's pretty raw as it's a low level mecanism.
+Webpack Module Federation is a great infrastructure piece to share code and dependencies between different independent codebases easier. But as is, it's pretty raw as it's a low level mecanism.
 
-This shell aims to add a very thin and opinionated layer on top of Webpack Module Federation and React Router to complement the federation mecanism with additional functionalities. Those functionalities will gentle the adoption of a federated application architecture and provide an opinionated direction on how to implement a federated SPA application.
+This shell aims to add a very thin and opinionated layer on top of Webpack Module Federation and React Router to complement the sharing mecanism with additional functionalities. Those functionalities will gentle the adoption of a federated application architecture and provide an opinionated direction on how to implement a federated SPA application.
 
-The idea behind this shell is to have an host application responsible of loading modules and providing shared functionalities like routing, messaging and logging. With this shell, a module is considered as an independent codebase which should usually match a specific sub domain of the application. At bootstrap, the host application loads the modules and call a registration function for each of them with shared functionalities and a customazible context. During the registration phase, each module dynamically *register it's routes and navigation links*. Then, pages and components of a module can use the provided hooks to access shared functionalities.
+The idea behind this shell is to have an host application responsible of loading modules and providing shared functionalities like routing, messaging and logging. With this shell, a module is considered as an independent codebase matching a specific subdomain of the application. At bootstrap, the host application loads the modules and call a registration function for each of them with shared functionalities and an optional context. During the registration phase, each module dynamically *register it's routes and navigation links*. Then, pages and components of a module can use the provided hooks to access shared functionalities provided by the shell.
 
-We recommend to aim for remote hosted modules loaded at runtime as it enables your teams to be fully autonomous by deploying their module independently from the other pieces of the application. Still, sometimes teams might want to gradually migrate toward this type of architecture and would prefer to extract sub domains into independent modules in a mololithic way before fully committing to independent modules and autonomous teams. To accomodate different migration solutions, this shell also support loading modules from a static registration function at build time. The functions could come from a independent packages in a monorepos setup or could even come from a subdomain folder of a modular application. A dual bootstrapping setup is also supported, meaning an application could load a few remote hosted modules at runtime while also loading a few other modules at build time.
+We recommend to aim for remote hosted modules loaded at runtime as it enables your teams to be fully autonomous by deploying their modules independently from the other parts of the application. Still, sometimes teams might want to gradually migrate toward a distributed architecture and would prefer to extract subdomains into independent modules in a monolithic but decoupled way before fully committing to remote modules. To accomodate those migration solutions, this shell support loading modules from a static registration function at build time. The functions could come from a package in a monorepos setup or could even come from a subdomain folder of a modular monolith. A dual bootstrapping setup is also supported, meaning an application could load a few remote hosted modules at runtime while also loading a few other modules at build time.
 
 - [Features](#features)
 - [Examples](#examples)
@@ -34,9 +34,9 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
 - [API](#api)
 - [Contributors guide](./CONTRIBUTING.md)
 
-## Features
+## 🙌 Features
 
-This federated application shell includes the following features:
+The following features are supported:
 
 - Loading of hosted remote modules at runtime
 - Loading of static modules at build time
@@ -48,13 +48,13 @@ This federated application shell includes the following features:
 - Failures isolation
 - Module development in isolation
 
-## Examples
+## 🎉 Examples
 
 For full examples of applications using this shell, have a look at:
 - [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) repository for an host application example + a static module example
 - [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repository for a remote module example
 
-## Installation
+## 🤘 Installation
 
 To install the packages, [open a terminal in VSCode](https://code.visualstudio.com/docs/editor/integrated-terminal#_managing-multiple-terminals) and execute the following command at the root of the projects (host and modules) workspace:
 
@@ -76,11 +76,11 @@ Once, installed, we recommend that you configure your projects to use [ESM](http
 }
 ```
 
-## Basic usage
+## 📘 Basic usage
 
 TBD
 
-## Guides
+## 📚 Guides
 
 > **Warning**
 >
@@ -530,7 +530,7 @@ Again, you probably noticed that the [ModuleFederationPlugin](https://webpack.js
 
 👉 Start the remote module application with the `serve-dev` command, you should see __Hello from remote!__.
 
-Now, as stated previously, this shell add an opinionated layer on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) dependencies sharing mecanism. Our take is that remote modules should not share standalone components but rather strictly share an whole sub domain of the application.
+Now, as stated previously, this shell add an opinionated layer on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) dependencies sharing mecanism. Our take is that remote modules should not share standalone components but rather strictly share an whole subdomain of the application.
 
 Remember earlier when we told that by convention a remote module must expose a `register.js` file?
 
@@ -2414,7 +2414,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 #### Static modules
 
-## API
+## 📃 API
 
 ### Remote module loader
 
@@ -2456,6 +2456,6 @@ TBD
 
 TBD
 
-## Contributors guide
+## 🙏 Contributors guide
 
 To contribute, have a look at the [contributors guide](./CONTRIBUTING.md).
