@@ -78,9 +78,7 @@ Once, installed, we recommend that you configure your projects to use [ESM](http
 
 ## 📄 Basic usage
 
-In the following example, to keep it brief, we'll focus only on creating a single remote module and we will only showcase the basic functionalities of the shell. To know more about the other options, have a look at [guides](#📚-guides) and the [API](#🔧-api) section.
-
-> To learn how to create a static module application, have a look at the section ["setup a static module application"](#setup-a-static-module-application) of the guides.
+In the following example, we'll focus solely on showcasing the happy path to create a federated application with this shell. To do so, we will only created a single remote module application. To learn about the other options, and how to [create a static module application]((#setup-a-static-module-application)), have a look at the [guides](#📚-guides) and the [API](#🔧-api) section.
 
 ### Host application
 
