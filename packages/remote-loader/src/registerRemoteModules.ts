@@ -29,14 +29,14 @@ export interface RegisterRemoteModulesOptions {
     context?: any;
 }
 
-export async function registerRemoteModules(remotes: RemoteDefinition[], runtime: Runtime, { context }: RegisterRemoteModulesOptions = {}): Promise<RegistrationError[]> {
+export async function registerRemoteModules(remotes: RemoteDefinition[], runtime: Runtime, { context }: RegisterRemoteModulesOptions = {}) {
     if (registrationStatus !== "none") {
         throw new Error("[shell] The \"registerRemoteModules\" function can only be called once");
     }
 
     const errors: RegistrationError[] = [];
 
-    runtime.logger.information(`[shell] Found ${remotes.length} remote modules to register`);
+    runtime.logger.information(`[shell] Found ${remotes.length} remote module${remotes.length > 1 ? "s" : ""} to register`);
 
     registrationStatus = "in-progress";
 

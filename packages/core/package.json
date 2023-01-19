@@ -21,7 +21,7 @@
   "scripts": {
     "prebuild": "yarn clean",
     "build": "tsc --build ./tsconfig.build.json",
-    "clean": "run-p delete-dist delete-ts-cache unlink-pkg",
+    "clean": "run-p --continue-on-error delete-dist delete-ts-cache unlink-pkg",
     "delete-dist": "rimraf dist",
     "delete-ts-cache": "rimraf *.tsbuildinfo",
     "dev": "tsc --watch --project ./tsconfig.build.json",
@@ -29,8 +29,8 @@
     "unlink-pkg": "yarn unlink"
   },
   "peerDependencies": {
-    "react": "*",
-    "react-dom": "*",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "react-router-dom": ">=6.4.0"
   },
   "dependencies": {

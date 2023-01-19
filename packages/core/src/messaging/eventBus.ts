@@ -1,8 +1,13 @@
 import { EventEmitter } from "eventemitter3";
+import type { Logger } from "../logging";
 
 export type EventName = string | symbol;
 
 export type EventCallbackFunction = (data?: unknown) => void;
+
+export interface EventBusOptions {
+    logger?: Logger;
+}
 
 export interface AddListenerOptions {
     context?: unknown;
@@ -15,10 +20,12 @@ export interface RemoveListenerOptions {
 }
 
 export class EventBus {
-    private _eventEmitter;
+    private _eventEmitter: EventEmitter;
+    private _logger: Logger;
 
-    constructor() {
+    constructor({ logger }: EventBusOptions = {}) {
         this._eventEmitter = new EventEmitter();
+        this._logger = logger;
     }
 
     addListener(eventName: EventName, callback: EventCallbackFunction, { context, once }: AddListenerOptions = {}) {
@@ -34,6 +41,8 @@ export class EventBus {
     }
 
     dispatch(eventName: EventName, data?: unknown) {
+        this._logger.debug(`[shell] - Dispatching event "${String(eventName)}"`, data);
+
         this._eventEmitter.emit(eventName, data);
     }
 }

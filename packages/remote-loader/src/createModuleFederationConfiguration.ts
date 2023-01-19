@@ -1,6 +1,6 @@
 // TODO: isDevelopment option?!?!
 
-import { PackageJson } from "type-fest";
+import type { PackageJson } from "type-fest";
 
 // Based on https://webpack.js.org/plugins/module-federation-plugin/#sharing-hints
 // The "version" prop has been intentionaly omitted has we want to force the usage of the "requiredVersion" prop.
@@ -17,7 +17,7 @@ export interface SharedDependency {
 
 export type SharedDependencies = Record<string, SharedDependency>;
 
-const RequiredDependencies = ["react", "react-dom", "react-router-dom", "wmfnext-shell"] as const;
+const RequiredDependencies = ["react", "react-dom", "react-router-dom", "wmfnext-shell", "wmfnext-remote-loader"] as const;
 
 function parseDependencyObject(obj: Record<string, string>, targetDependencies: string[]) {
     const found = targetDependencies.reduce((acc, x) => {
@@ -133,7 +133,7 @@ export function createHostConfiguration(moduleName: string, packageJson: Package
 //    - filename is always: "remoteEntry.js"
 //    - only a single module called "./register" is exposed
 //
-export function createRemoteConfiguration(moduleName: string, packageJson: PackageJson, { sharedDependencies = {} }: CreateConfigurationOptions = {}) {
+export function createModuleConfiguration(moduleName: string, packageJson: PackageJson, { sharedDependencies = {} }: CreateConfigurationOptions = {}) {
     const unresolvedDependencies = getUnresolvedDependencies(sharedDependencies);
     const foundVersions = findDependenciesVersion(packageJson, unresolvedDependencies);
 

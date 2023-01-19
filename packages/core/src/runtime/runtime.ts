@@ -23,7 +23,7 @@ export class Runtime {
 
     constructor({ loggers = [], services, sessionAccessor }: RuntimeOptions = {}) {
         this._logger = new RuntimeLogger(loggers);
-        this._eventBus = new EventBus();
+        this._eventBus = new EventBus({ logger: this._logger });
         this._services = services;
         this._sessionAccessor = sessionAccessor;
     }

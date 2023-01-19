@@ -32,7 +32,7 @@ function getAllRoutePaths(route: Route) {
 
 export function useHoistedRoutes(routes: Readonly<RootRoute[]>, { wrapManagedRoutes, allowedPaths }: UseHoistedRoutesOptions = {}) {
     // Hack to reuse the same array reference through re-renders.
-    const [_allowedPaths] = useState(allowedPaths);
+    const [memoizedAllowedPaths] = useState(allowedPaths);
 
     return useMemo(() => {
         const hoistedRoutes: Route[] = [];
@@ -46,11 +46,11 @@ export function useHoistedRoutes(routes: Readonly<RootRoute[]>, { wrapManagedRou
             }
         });
 
-        if (_allowedPaths) {
+        if (memoizedAllowedPaths) {
             // Find hoisted routes which are not included in allowedPaths
             hoistedRoutes.forEach(x => {
                 const allRoutePaths = getAllRoutePaths(x);
-                const restrictedPaths = allRoutePaths.filter(y => !_allowedPaths.includes(y));
+                const restrictedPaths = allRoutePaths.filter(y => !memoizedAllowedPaths.includes(y));
 
                 if (restrictedPaths.length > 0) {
                     throw new Error(`[shell] A module is hoisting the following routes [${restrictedPaths.map(y => `"${y}"`).join(", ")}] which are not included in the provided "allowedRoutes" option`);
@@ -64,5 +64,5 @@ export function useHoistedRoutes(routes: Readonly<RootRoute[]>, { wrapManagedRou
         ];
 
         return deepFreeze(allRoutes);
-    }, [routes, wrapManagedRoutes, _allowedPaths]);
+    }, [routes, wrapManagedRoutes, memoizedAllowedPaths]);
 }

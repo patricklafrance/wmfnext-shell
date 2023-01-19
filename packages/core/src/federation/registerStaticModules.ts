@@ -2,18 +2,22 @@ import type { ModuleRegisterFunction, RegisterModuleOptions } from "./registerMo
 
 import type { Runtime } from "../runtime";
 
-export function registerStaticModules(registerFunctions: ModuleRegisterFunction[], runtime: Runtime, options?: RegisterModuleOptions): Promise<void> {
-    runtime.logger.information(`[shell] Found ${registerFunctions.length} static modules to register`);
+let isRegistered = false;
 
-    return new Promise(resolve => {
-        registerFunctions.forEach((x, index) => {
-            runtime.logger.information(`[shell] ${index + 1}/${registerFunctions.length} Registering static module`);
+export async function registerStaticModules(registerFunctions: ModuleRegisterFunction[], runtime: Runtime, options?: RegisterModuleOptions) {
+    if (isRegistered) {
+        throw new Error("[shell] The \"registerRemoteModules\" function can only be called once");
+    }
 
-            x(runtime, options);
+    runtime.logger.information(`[shell] Found ${registerFunctions.length} static module${registerFunctions.length > 1 ? "s" : ""} to register`);
 
-            runtime.logger.information(`[shell] ${index + 1}/${registerFunctions.length} Registering completed`);
-        });
+    registerFunctions.forEach((x, index) => {
+        runtime.logger.information(`[shell] ${index + 1}/${registerFunctions.length} Registering static module`);
 
-        resolve();
+        x(runtime, options);
+
+        runtime.logger.information(`[shell] ${index + 1}/${registerFunctions.length} Registration completed`);
     });
+
+    isRegistered = true;
 }

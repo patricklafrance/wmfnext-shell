@@ -15,7 +15,8 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
 - [Features](#features)
 - [Examples](#examples)
 - [Installation](#installation)
-- [Usage](#usage)
+- [Basic usage](#basic-usage)
+- [Guides](#guides)
     - [Setup an host application](#setup-an-host-application)
     - [Setup a remote application](#setup-a-remote-application)
     - [Register a module routes](#register-a-module-routes)
@@ -29,9 +30,10 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
     - [Share a custom service](#share-a-custom-service)
     - [Use a custom logger](#use-a-custom-logger)
     - [Fetch data](#fetch-data)
-    - [Develop a module in isolation](#develop-a-module-in-isolation)
+    - [Develop a remote module in isolation](#develop-a-remote-module-in-isolation)
+    - [Develop a static module in isolation](#develop-a-static-module-in-isolation)
 - [API](#api)
-- [Contributors guide](./CONTRIBUTING.md)
+- [Contributing guide](./CONTRIBUTING.md)
 
 ## Features
 
@@ -73,7 +75,11 @@ Once, installed, we recommend that you configure your projects to use [ESM](http
 }
 ```
 
-## Usage
+## Basic usage
+
+TBD
+
+## Guides
 
 > **Warning**
 >
@@ -138,7 +144,31 @@ root.render(
 
 Now, let's assume that you want to load a remote module at runtime with [Webpack Module Federation](https://webpack.js.org/concepts/module-federation/) (make sure you installed `wmfnext-remote-loader` dependency).
 
-👉 The first thing to do is to configure Webpack and add [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin).
+👉 The first thing to do is updating the Webpack config to add the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin).
+
+```js
+// host - webpack.dev.js
+
+import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
+import { createHostConfiguration } from "wmfnext-remote-loader/createModuleFederationConfiguration.js";
+import packageJson from "./package.json" assert { type: "json" };
+
+...
+
+export default {
+    ...
+    plugins: [
+        // You only need to setup the ModuleFederationPlugin plugin if you 
+        // want to load remote modules at runtime.
+        new ModuleFederationPlugin(createHostConfiguration("host", packageJson)),
+        ...
+    ]
+}
+```
+
+<details>
+    <summary>View the full Webpack config</summary>
+    <br />
 
 ```js
 // host - webpack.dev.js
@@ -171,7 +201,7 @@ export default {
     module: {
         rules: [
             {
-                test: /\.ts[x]$/,
+                test: /\.(ts|tsx)$/,
                 exclude: /node_modules/,
                 use: {
                     loader: "ts-loader",
@@ -213,6 +243,7 @@ export default {
     ]
 };
 ```
+</details>
 
 > **Note**
 >
@@ -251,31 +282,7 @@ new ModuleFederationPlugin(
 )
 ```
 
-👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used in this example, a `public` folder with an `index.html` file must also be added at the root of the application.
-
-```
-host-app
-├── public
-├─────index.html
-├── App.tsx
-├── bootstrap.tsx
-└── index.ts
-```
-
-```html
-<!-- host - index.html -->
-
-<!DOCTYPE html>
-<html>
-    <head>
-    </head>
-    <body>
-        <div id="root"></div>
-    </body>
-</html>
-```
-
-👉 Finally, add your [TypeScript configuration](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) at the root of the project and a command in the `package.json` file to start webpack in development mode.
+👉 Finally, add your [TypeScript configuration](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) at the root of the project and a command in the `package.json` file to start Webpack in development mode.
 
 ```json
 {
@@ -353,11 +360,8 @@ It's time to create our first remote module! We'll use a file structure similar 
 
 ```
 remote-app
-├── public
-├─────index.html
 ├── App.tsx
-├── bootstrap.tsx
-└── index.ts
+└── index.tsx
 ```
 
 👉 First, create an `App.tsx` file which will act as the entry point of your React application.
@@ -372,20 +376,10 @@ export function App() {
 }
 ```
 
-👉 Then, create an `index.ts` file which will strictly contain a dynamic import to the `bootstrap.tsx` file.
-
-> An "async boundary" is also needed here to let Webpack negotiate the shared dependencies with the host application. Additional information is available [here](https://dev.to/infoxicator/module-federation-shared-api-ach#using-an-async-boundary).
-
-```ts
-// remote-1 - index.ts
-
-import("./bootstrap");
-```
-
-👉 Next, create a `bootstrap.tsx` file to render the React application.
+👉 Then, create an `index.tsx` file to render the React application.
 
 ```tsx
-// remote-1 - bootstrap.tsx
+// remote-1 - index.tsx
 
 import { App } from "./App";
 import { createRoot } from "react-dom/client";
@@ -402,9 +396,31 @@ root.render(
 ```js
 // remote-1 - webpack.dev.js
 
+import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
+import { createModuleConfiguration } from "wmfnext-remote-loader/createModuleFederationConfiguration.js";
+import packageJson from "./package.json" assert { type: "json" };
+
+...
+
+export default {
+    ...
+    plugins: [
+        new ModuleFederationPlugin(createModuleConfiguration("remote1", packageJson)),
+        ...
+    ]
+}
+```
+
+<details>
+    <summary>View the full Webpack config</summary>
+    <br />
+
+```js
+// remote-1 - webpack.dev.js
+
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
-import { createRemoteConfiguration } from "wmfnext-remote-loader/createModuleFederationConfiguration.js";
+import { createModuleConfiguration } from "wmfnext-remote-loader/createModuleFederationConfiguration.js";
 import path from "path";
 import url from "url";
 import packageJson from "./package.json" assert { type: "json" };
@@ -426,7 +442,7 @@ export default {
             "Access-Control-Allow-Origin": "*"
         }
     },
-    entry: "./src/index.ts"
+    entry: "./src/register.tsx"
     output: {
         // The trailing / is important otherwise hot reload doesn't work.
         publicPath: "http://localhost:8081/"
@@ -434,7 +450,7 @@ export default {
     module: {
         rules: [
             {
-                test: /\.ts[x]$/,
+                test: /\.(ts|tsx)$/,
                 exclude: /node_modules/,
                 use: {
                     loader: "ts-loader",
@@ -467,13 +483,14 @@ export default {
         extensions: [".js", ".ts", ".tsx", ".css"]
     },
     plugins: [
-        new ModuleFederationPlugin(createRemoteConfiguration("remote1", packageJson)),
+        new ModuleFederationPlugin(createModuleConfiguration("remote1", packageJson)),
         new HtmlWebpackPlugin({
             template: "./public/index.html"
         })
     ]
 };
 ```
+</details>
 
 > **Note**
 >
@@ -485,7 +502,7 @@ export default {
 > require("wmfnext-remote-loader/createModuleFederationConfiguration.cjs");
 > ```
 
-Again, you probably noticed that the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin) is configured with the output of the  `createRemoteConfiguration()` function. The function has an identical signature as the `createHostConfiguration()` function described in the previous section and serve the same purpose, e.g. gentle the configuration of the plugin and ensure the shell conventions are followed.
+Again, you probably noticed that the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin) is configured with the output of the  `createModuleConfiguration()` function. The function has an identical signature as the `createHostConfiguration()` function described in the previous section and serve the same purpose, e.g. gentle the configuration of the plugin and ensure the shell conventions are followed.
 
 > The shell conventions are quite simple, there's only one... A remote module must configure `ModuleFederationPlugin` with:
 >
@@ -498,31 +515,7 @@ Again, you probably noticed that the [ModuleFederationPlugin](https://webpack.js
 > }
 > ```
 
-👉 As the [HtmlWebpackPlugin](https://webpack.js.org/plugins/html-webpack-plugin) is used, a `public` folder with an `index.html` file must also be added at the root of the application.
-
-```
-remote-app
-├── public
-├─────index.html
-├── App.tsx
-├── bootstrap.tsx
-└── index.ts
-```
-
-```html
-<!-- remote-1 - index.html -->
-
-<!DOCTYPE html>
-<html>
-  <head>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
-</html>
-```
-
-👉 Finally, add your [TypeScript configuration](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) at the root of the project and a command in the `package.json` file to start webpack in development mode.
+👉 Finally, add your [TypeScript configuration](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) at the root of the project and a command in the `package.json` file to start Webpack in development mode.
 
 ```json
 {
@@ -532,7 +525,7 @@ remote-app
 }
 ```
 
-> We'll see later on when going through the *module development environment* section why this command is named `serve-dev` instead of `dev`.
+> We'll explain in the *module development environment* section why this command is named `serve-dev` instead of `dev`.
 
 👉 Start the remote module application with the `serve-dev` command, you should see __Hello from remote!__.
 
@@ -542,20 +535,17 @@ Remember earlier when we told that by convention a remote module must expose a `
 
 At bootstrap, it's this file which will act as the remote module entry point, e.g. it will be loaded and called by the host application with all the shared stuff as parameters.
 
-👉 So, let's create a `register.js` file at the root of the remote module application.
+👉 So, let's create a `register.tsx` file at the root of the remote module application.
 
 ```
 remote-app
-├── public
-├─────index.html
 ├── App.tsx
-├── bootstrap.tsx
 └── index.ts
-└── register.js
+└── register.tsx
 ```
 
 ```tsx
-// remote-1 - register.js
+// remote-1 - register.tsx
 
 import { ModuleRegisterFunction } from "wmfnext-shell";
 
@@ -566,14 +556,12 @@ export const register: ModuleRegisterFunction = (runtime, { context }) => {
 
 For now we won't register anything, we'll use the `runtime` to log something in the console.
 
-👉 Update the webpack config to use the `register.js` file as an entry point rather than the index file.
+👉 Update the Webpack config to use the `register.tsx` file as an entry point rather than the index file.
 
 ```js
 export default {
     ...
-
-    entry: "./src/index.ts"
-    
+    entry: "./src/register.tsx"
     ...
 };
 ```
@@ -720,10 +708,10 @@ By using the `useRoutes()` hook we'll get access to the modules routes registere
 
 The `runtime.registerRoutes()` function support the same syntax and options as React Router [createBrowserRouter()](https://reactrouter.com/en/main/routers/create-browser-router) `RouteObject` and a few additional custom properties. Have a look at the [React Router documentation](https://reactrouter.com/en/main/route/route#type-declaration) to find out about the options.
 
-👉 Now that the host application is ready to render modules routes, let's update the remote application to register some routes! To do so, open the `register.ts` file of the remote application and add routes by using the `runtime.registerRoutes()` function (you could also use `runtime.registerRoute()`).
+👉 Now that the host application is ready to render modules routes, let's update the remote application to register some routes! To do so, open the `register.tsx` file of the remote application and add routes by using the `runtime.registerRoutes()` function (you could also use `runtime.registerRoute()`).
 
 ```tsx
-// remote-1 - register.ts
+// remote-1 - register.tsx
 
 import type { ModuleRegisterFunction, Runtime } from "wmfnext-shell";
 import { lazy } from "react";
@@ -1033,6 +1021,7 @@ packages
 ├── app (the host application)
 ├─────src
 ├───────boostrap.tsx
+├───────index.tsx
 ├─────package.json
 ├── static-module-1
 ├─────src
@@ -1051,7 +1040,7 @@ packages
 }
 ```
 
-👉 Then export the `register.tsx` file the `index.ts` file.
+👉 Then export the `register.tsx` file in the `index.ts` file.
 
 ```ts
 // static-1 - index.ts
@@ -1084,14 +1073,12 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 };
 ```
 
-No `boostrap.tsx` file is required this time because static modules do not depend on Webpack Module Federation.
-
 👉 Now, let's go back to the host application and register the newly created package as a dependency of the application. Open the host application `package.json` file and add the following dependency.
 
 ```json
 {
     "dependency": {
-        "wmfnext-static-module-1": "file:../static-module-1"
+        "wmfnext-static-module-1": "0.0.1"
     }
 }
 ```
@@ -1183,7 +1170,7 @@ export function RootLayout() {
 }
 ```
 
-👉 Start all the applications and try navigating to "/static1/page-1" and "static1/page-2".
+👉 Start all the applications and navigate to "/static1/page-1" and "static1/page-2".
 
 ### Register a module dynamic navigation items
 
@@ -1710,89 +1697,36 @@ const hoistedRoutes = useHoistedRoutes(routes, {
 
 ### Share a user session
 
-An application without a user session is not that useful. Hopefully, the shell runtime offer a mecanism to shared a user session object between the host and the modules.
+The shell runtime offer a mecanism to share a user session object between the host and the modules.
 
-👉 First, create a session object.
+To keep things simple, for this example, we'll use the fake user session manager implementation from the `wmfnext-fakes` package. 
 
-```ts
-// host - session.ts
+> The `wmfnext-fakes` package is a collection of fake implementation designed to faciliate the development of a module in isolation and demos applications like this one.
 
-export class AppUser {
-    private _name: string;
-
-    constructor(name: string) {
-        this._name = name;
-    }
-
-    get name() {
-        return this._name;
-    }
-}
-
-export class AppSession {
-    private _user: AppUser;
-
-    constructor(user: AppUser) {
-        this._user = user;
-    }
-
-    get user() {
-        return this._user;
-    }
-}
-```
-
-👉 Then, create a persistance layer to store the session. In this example, we'll use a class called `SessionManager`. The implementation is not included as it doesn't matter (have a look at [wmfnext-host repository](https://github.com/patricklafrance/wmfnext-host/blob/master/packages/app/src/session.ts) for the actual implementation).
+👉 The first things to do, are to create a session manager instance to store the session object and a session accessor function to access the session.
 
 ```ts
-// host - session.ts
+// host -session.ts
 
+import type { Session } from "wmfnext-shared";
 import type { SessionAccessorFunction } from "wmfnext-shell";
+import { SessionManager } from "wmfnext-fakes";
 
-export class AppUser {
-    private _name: string;
+export const sessionManager = new SessionManager<Session>();
 
-    constructor(name: string) {
-        this._name = name;
-    }
-
-    get name() {
-        return this._name;
-    }
-}
-
-export class AppSession {
-    private _user: AppUser;
-
-    constructor(user: AppUser) {
-        this._user = user;
-    }
-
-    get user() {
-        return this._user;
-    }
-}
-
-class SessionManager {
-    setSession(session: AppSession) { ... }
-    getSession() { ... }
-    clearSession() { ... }
-}
-
-export const sessionManager = new SessionManager();
-
-// Accessor function that will be provided to the shell runtime.
 export const sessionAccessor: SessionAccessorFunction = () => {
     return sessionManager.getSession();
 };
 ```
 
-👉 Then, add a login page to the host application using the newly created session manager.
+> The `SessionManager` instance has been created with a shared TS type called `Session` imported from the package `wmfnext-shared`. We'll create this package later in this section and explain why we need it.
+
+👉 Then, add a login page to the host application and use the newly created session manager to store the session object. Make sure to register the login page at the root of the router.
 
 ```tsx
 // host - Login.tsx
 
-import { AppSession, AppUser, sessionManager } from "../session";
+import { sessionManager } from "../session";
 import type { ChangeEvent, MouseEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useCallback, useState } from "react";
@@ -1807,10 +1741,11 @@ export default function Login() {
         event.preventDefault();
 
         if (username === "temp" && password === "temp") {
-            const user = new AppUser(username);
-            const session = new AppSession(user);
-
-            sessionManager.setSession(session);
+            sessionManager.setSession({
+                user: {
+                    name: temp
+                }
+            });
 
             navigate("/");
         }
@@ -1846,8 +1781,6 @@ export default function Login() {
 }
 ```
 
-When the user authenticate in the login page, a new user session object is created and set as the current session of the `SessionManager` instance.
-
 ```tsx
 // host - App.tsx
 
@@ -1875,7 +1808,7 @@ export function App() {
 }
 ```
 
-👉 Finally, provide the session accessor to the shell runtime.
+👉 The last step before creating the shared package and and using the session in the remote module is to connect everything together by passing the session accessor to the shell runtime at instanciation.
 
 ```tsx
 // host - bootstrap.tsx
@@ -1886,7 +1819,6 @@ import { sessionAccessor } from "./session";
 
 const runtime = new Runtime({
     loggers: [new ConsoleLogger()],
-    // The session accessor is passed down to the runtime.
     sessionAccessor
 });
 
@@ -1902,90 +1834,73 @@ root.render(
 );
 ```
 
-The `sessionAccessor()` function created earlier in the `session.ts` file is passed down to the shell runtime at instanciation through the `sessionAccesor` option. Since the session manager has access to the user session and the `sessionAccessor()` function know how to retrieve the current user session from the session manager, modules will have access to the session.
+The `sessionAccessor()` function created earlier is passed down to the shell runtime at instanciation through the `sessionAccesor` option. Since the `sessionManager` instance have access to the user session and the `sessionAccessor()` function knows how to accessed the current user session from the `sessionManager`, modules will have access to the session through the runtime instance.
 
-> A suspense boundary has been added around the `<App />` component. *At the moment, I don't understand why it's necessary, but it's required otherwise the application will throw when navigating between pages.*
+The runtime session instance can either be accessed anywhere from the runtime instance:
 
-👉 Now, before a module can use the shared session, the `AppUser` and `AppSession` TS types must be shared. To do so, let's create a new project in the host application monorepos to share stuff.
+```tsx
+// remote-1 - register.tsx
 
-> For the sake of this example, a single *"shared"* project is created. For a real federated application, it is recommended to split concerns in multiple packages rather than mixing everything together in a single package.
+export const register: ModuleRegisterFunction = (runtime: Runtime) => {
+    const session = runtime.getSession();
+});
+```
+
+Or in a React component scope with the `useSession` hook:
+
+```tsx
+export function Page() {
+    const session = useSession() as Session;
+    ...
+}
+```
+
+> A suspense boundary has also been added around the `<App />` component. *At the moment, I don't understand why it is necessary, but otherwise the application will throw when navigating between pages.*
+
+👉 Now, for the host application and the remote module to share the same `Session` TS type, there's no secret magic sauce, we must create a shared package. The package can live it's own repo or be part of the host application monorepos. For this example, we'll add the project to the host application monorepos.
 
 ```
 packages
 ├── app (the host application)
-├── shared
+├── shared (the new shared package)
 ├─────src
-├───────index.ts
-├────── session.ts
+├────── components
+├────── services
+├────── events
+├────── utils
+├────── types
+├───────── session.ts
+├────── index.ts
 ├─────package.json
 ```
 
-👉 Create the shared project with the following `package.json` configuration.
+> **Note**
+>
+> To keep things simple for this tutorial, everything is added to the same shared package. When developing a real application, we recommend splitting the shared code in multiple standalone packages to maximise dependency segregation, improve cohesion and minimize the scope of a package update.
 
-```json
-{
-    "name": "wmfnext-shared",
-    "version": "0.0.1",
-}
-```
-
-👉 Once the shared project is created, add the session TS types to the project.
+👉 Create the new shared project and add the session TS type.
 
 ```ts
 // shared - session.ts
 
-export interface AppUser {
-    readonly name;
-}
-
-export interface AppSession {
-    readonly user: AppUser;
+export interface Session {
+    user: {
+        name: string;
+    };
 }
 ```
 
-👉 Then, update the host application to use the shared TS types.
-
-```ts
-// host - session.ts
-
-import type { AppSession as IAppSession, AppUser as IAppUser } from "wmfnext-shared";
-
-export class AppUser implements IAppUser {
-    private _name: string;
-
-    constructor(name: string) {
-        this._name = name;
-    }
-
-    get name() {
-        return this._name;
-    }
-}
-
-export class AppSession implements IAppSession {
-    private _user: AppUser;
-
-    constructor(user: AppUser) {
-        this._user = user;
-    }
-
-    get user() {
-        return this._user;
-    }
-}
-```
-
-👉 Then, create a new page in the remote module using the current user session to render the user name.
+👉 Next, create a new page in the remote module using the current user session to render the user name.
 
 ```tsx
 // remote-1 - Page5.tsx
 
 import { useLogger, useSession } from "wmfnext-shell";
-import { AppSession } from "wmfnext-shared";
+import { Session } from "wmfnext-shared";
 
 export default function Page5() {
     const logger = useLogger();
-    const session = useSession() as AppSession;
+    const session = useSession() as Session;
 
     logger.debug("Rendering \"page5\" from module \"remote1\"");
 
@@ -2000,9 +1915,16 @@ export default function Page5() {
 }
 ```
 
-👉 Start all the applications and navigate to the login page. Authenticate with "temp" / "temp" and navigate to the _"Remote1/Page 5"_ page. The user name should be rendered in the page content.
+👉 Then, add references to the newly created `wmfnext-shared` package and start everything. 
 
-👉 The applications works fine if every user manually navigate to the login page and authenticate before going to pages using the session. But I doubt those expections will stand with real users. Let's use React Router nested routes to protect the managed routes which may depend on the user session.
+1. Navigate to the login page
+2. Authenticate with "temp" / "temp"
+3. Navigate to the _"Remote1/Page 5"_ page
+4. The user name should be rendered in the page content.
+
+The application works fine has long as every users manually do the previous steps. I feel like those expections will not stand with real users.
+
+👉 Let's use React Router [nested routes](https://reactrouter.com/en/main/start/overview#nested-routes) to protect the routes depending on the user session by redirecting unauthenticated users to the login page.
 
 ```tsx
 // host - App.jsx
@@ -2044,27 +1966,68 @@ export function App() {
 }
 ```
 
-The `AuthenticationBoundary` component is using the `useIsAuthenticated()` hook to determine if a user is authenticated or not. Alternatively, the `useSession()` hook could also be used but it isn't necessary as the component don't need additional information from the session.
+The `AuthenticationBoundary` component is using the `useIsAuthenticated()` hook to determine if a user is authenticated or not. Alternatively, the `useSession()` hook could also be used.
 
-By wrapping the root layout with the `<AuthenticationBoundary />` element, only authenticated users will have access to the module routes that are not hoisted.
+By wrapping the root layout with the `<AuthenticationBoundary />` element, only authenticated users will have access to the managed module routes that are not hoisted.
 
-👉 Clear the session and navigate to any route protected by the authentication boundary. You should be redirected to the login page.
+👉 Clear your session storage and navigate to any route protected by the authentication boundary. You should be redirected to the login page.
 
-To conclude this section... there might be times when you'll want to access the user session object outside of a React scope. Since the runtime has access to the current user session, you can pass around the runtime instance and retrieve the session from the runtime API at any given time.
+There's one more thing to do thought. [Webpack Module Federation](https://webpack.js.org/concepts/module-federation/) have this concept called [shared dependencies](https://dev.to/infoxicator/module-federation-shared-api-ach) and... well we added a package shared by every application.
 
-```tsx
-// remote-1 - register.tsx
+👉 Before jumping to the next section, let's add the `wmfnext-shared` package as a shared singleton for the host application and the remote module.
 
-export const register: ModuleRegisterFunction = (runtime: Runtime) => {
-    const session = runtime.getSession();
-});
+```js
+// host - webpack.dev.js
+
+...
+
+export default {
+    ...
+    plugins: [
+        new ModuleFederationPlugin(
+            createHostConfiguration("host", packageJson, {
+                sharedDependencies: {
+                    "wmfnext-shared": {
+                        singleton: true,
+                        requiredVersion: "0.0.1"
+                    }
+                }
+            })
+        ),
+        ...
+    ]
+}
+```
+
+```js
+// remote-1 - webpack.dev.js
+
+
+...
+
+export default {
+    ...
+    plugins: [
+        new ModuleFederationPlugin(
+            createModuleConfiguration("remote1", packageJson, {
+                sharedDependencies: {
+                    "wmfnext-shared": {
+                        singleton: true,
+                        requiredVersion: "0.0.1"
+                    }
+                }
+            })
+        ),
+        ...
+    ]
+}
 ```
 
 ### Use the event bus
 
-Independent parts of a distributed application usually need to communicate with each others in a loosely coupled manner. To help with that, the shell offer a basic implementation of a pub/sub mecanism called the event bus.
+To faciliate a loosely coupled communication between the parts of the federated applications, the shell offer a basic implementation of a pub/sub mecanism called the event bus.
 
-👉 To showcase how it works, we'll start by adding a counter to the host application and an event listener to increment the value when a specific event is dispatched.
+👉 To showcase how it works, we'll start by adding a counter functionality to the host application and an event listener to increment the value when a specific event is dispatched.
 
 ```tsx
 // host - RootLayout.tsx
@@ -2108,9 +2071,19 @@ export function RootLayout() {
 }
 ```
 
-The root layout is using the `useEventBusListener` hook to start listening to the increment event. The listener could also be added with the runtime API but in a component, it's convenient to use a hook as it takes care of disposing the listener through re-renders.
+In this example, the root layout is using the `useEventBusListener` hook to listening for increment event. The listener could also have been added by using the runtime API but in a component, it's convenient to use the hook as it also takes care of disposing the listener when the component re-render.
 
-👉 Add a new page to the remote module application to dispatch events.
+If you want to use the event bus outside of a React component scope, access the event bus directly from the runtime:
+
+```tsx
+// remote-1 - register.tsx
+
+export const register: ModuleRegisterFunction = (runtime: Runtime) => {
+    const eventBus = runtime.eventBus;
+});
+```
+
+👉 Next, add a new page to the remote module application to dispatch increment events.
 
 ```tsx
 // remote-1 - Page6.tsx
@@ -2126,7 +2099,7 @@ export default function Page6() {
     logger.debug("Rendering \"page6\" from module \"remote1\"");
 
     const handleIncrementCount = useCallback(() => {
-        // When the button is clicked, an event is dispatched to inform that an increment is requested.
+        // When the button is clicked, an increment event is dispatched.
         dispatch(IncrementCountEvent);
     }, [dispatch]);
 
@@ -2142,21 +2115,11 @@ export default function Page6() {
 }
 ```
 
-👉 Start all the applications and navigate to the _*Remote1/Page 6*_ page. Click on the button "Increment count". Every the button is clicked, you should notice that the count at the top left corner of the page increment by 1. 
-
-To conclude this section... there might be times when you'll want to use the event bus outside of a React scope. Since the runtime has access to the event bus, you can save an instance and pass around the event bus to use it at any given time.
-
-```tsx
-// remote-1 - register.tsx
-
-export const register: ModuleRegisterFunction = (runtime: Runtime) => {
-    const eventBus = runtime.eventBus;
-});
-```
+👉 Start all the applications and navigate to the _*Remote1/Page 6*_ page. Click on the button *"Increment count"*. Everytime the button is clicked, the top left counter should increment by 1.
 
 ### Share a custom service
 
-The shell offer a few services by default but by no mean covers all the services a mature federated application will need. That's why the shell runtime accept at instanciation a bucket of custom services that will be made available to all the modules.
+The shell offer a few services by default but by no mean covers all the services a mature application will need. That's why the shell runtime accept at instanciation a bucket of additional custom services to make available for all the modules.
 
 👉 First, create a custom tracking service in the host application.
 
@@ -2165,18 +2128,17 @@ The shell offer a few services by default but by no mean covers all the services
 
 export class TrackingService {
     track(data: unknown) {
-        console.log("Tracking data: ", data);
+        console.log("[tracking] Tracking the following data: ", data);
     }
 }
 ```
 
-👉 Then register the service with the shell runtime by providing the `services` option.
+👉 Then register the service with the runtime by passing the `services` option.
 
 ```tsx
 // host - bootstrap.tsx
 
 import { TrackingService } from "./trackingService";
-import { TrackingServiceKey } from "wmfnext-shared";
 
 ...
 
@@ -2192,7 +2154,7 @@ const runtime = new Runtime({
 ...
 ```
 
-👉 Before a module can use the shared custom service, it's TS type must be shared. To do so, we'll reuse the *"shared"* project created earlier.
+👉 Before a module can use the shared custom service, it's TS type must be shared. To do so, we'll reuse the *"shared"* package created earlier.
 
 ```tsx
 // shared - trackingService.ts
@@ -2202,7 +2164,17 @@ export interface TrackingService {
 }
 ```
 
-👉 The tracking service could be retrieved by a given module from the runtime API but it would be done in an untyped manner. Instead, we'll also add to the *"shared"* project a `useTrackingService()` hook which will take care of retrieving the service from the runtime.
+The tracking service instance can now be retrieved by any module from the runtime:
+
+```ts
+// remote-1 - register.tsx
+
+export const register: ModuleRegisterFunction = (runtime: Runtime) => {
+    const trackingService = runtime.getService("tracking");
+});
+```
+
+👉 As the tracking service will mostly be used by React components, for convenience and maintability, we'll create a `useTrackingService()` hook to retrieve the service instance.
 
 ```tsx
 // shared - trackingService.ts
@@ -2220,7 +2192,7 @@ export function useTrackingService() {
 }
 ```
 
-👉 Finally, create a new page in the remote module using the tracking service.
+👉 Finally, create a new page in the remote module and use the tracking service.
 
 ```tsx
 // remote-1 - Page7.tsx
@@ -2251,16 +2223,16 @@ export default function Page7() {
 👉 Start all the application and navigate to the _"Remote1/Page 7"_ page. Open the console and you should see the following log:
 
 ```
-Tracking data:  {page: 'page7', module: 'remote-1'}
+[tracking] Tracking the following data: {page: 'page7', module: 'remote-1'}
 ```
 
 ### Use a custom logger
 
-By default, the shell comes with an opt in console logger. For many applications, it's not enough thought as applications usually have to integrate with specific remote logging solutions like [Datadog](https://www.datadoghq.com/) and [Azure Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview).
+For most applications, a console logger is not enough as the application have to integrate with specific remote logging solutions like [Datadog](https://www.datadoghq.com/) and [Azure Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview).
 
-That's why the shell accept any custom loggers as long as it implements the `Logger` interface. For the sake of simplicity, in this tutorial, we'll define a custom logger that also log to the console.
+Hopefully, the shell runtime accepts any custom loggers as long as it implements the `Logger` interface.
 
-👉 Define a custom logger in the host application.
+👉 For this example, we'll create a new logger in the host application that also log to the console.
 
 ```ts
 // host - customLogger.ts
@@ -2317,7 +2289,7 @@ export class CustomLogger implements Logger {
 }
 ```
 
-👉 Update the host application to add the newly created `CustomLogger`.
+👉 Once it's created, update the host application to register an instance of the `CustomLogger` in the runtime.
 
 ```tsx
 // host - bootstrap.tsx
@@ -2329,7 +2301,6 @@ import { CustomLogger } from "./customLogger";
 const runtime = new Runtime({
     loggers: [
         new ConsoleLogger(),
-        // Add the newly created CustomLogger.
         new CustomLogger()
     ],
     services: {
@@ -2341,7 +2312,7 @@ const runtime = new Runtime({
 ...
 ```
 
-👉 Start all the applications, then open the dev tools and refresh the application. All the logs should be added twice to the console.
+👉 Start all the applications, then open the dev tools and refresh the application. The console logs should now be displayed twice.
 
 ```
 [shell] Found 1 static modules to register
@@ -2350,9 +2321,9 @@ const runtime = new Runtime({
 
 ### Fetch data
 
-Data fetching is an important part of an application and React Router is now really good at it with the [loader API](https://reactrouter.com/en/main/route/loader). In this example, we'll render the first 5 characters returned by the [Rick and Morty API](https://rickandmortyapi.com/).
+React Router v6+ is really good at data fetching with the [loader API](https://reactrouter.com/en/main/route/loader). For this example, we'll render the first 5 characters returned by the [Rick and Morty API](https://rickandmortyapi.com/).
 
- > Loaders is a data fetching solution which works very well with React Router. Depending of the needs of your application, there might be a better solution out there. For example, [TanStack Query](https://tanstack.com/query/latest) is a great choice if you need to prefetch a lot of data and are looking for a client side state management solution. 
+ > Depending of the needs of your application, there might be a more appropriate data feching solution than React Router loaders for your application. To only name one, [TanStack Query](https://tanstack.com/query/latest) is also a great choice if your application needs to prefetch a lot of data and you are thinking about using a client side state management solution. 
  
 👉 First, add a new page to the remote module application.
 
@@ -2397,7 +2368,7 @@ export default function Page8() {
 }
 ```
 
-👉 Then, register the page with a React Router [loader](https://reactrouter.com/en/main/route/loader) function.
+👉 Then, register the page and set a React Router [loader](https://reactrouter.com/en/main/route/loader) function.
 
 ```tsx
 // remote-1 - register.tsx
@@ -2436,9 +2407,16 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 👉 Start all the applications and navigate to the _"Remote1/Page 8"_ page. You should see the Rick and Morty characters at the bottom of the page.
 
-### Develop a module in isolation
+### Develop module in isolation
 
-TBD
+#### Code sharing
+
+- Application shell
+- Other stuff
+
+#### Rempte modules
+
+#### Static modules
 
 ## API
 
@@ -2482,6 +2460,6 @@ TBD
 
 TBD
 
-## Contributors
+## Contributing Guide
 
-Before contributing, have a look at the [contributors guide](./CONTRIBUTING.md).
+To contribute, have a look at the [contributors guide](./CONTRIBUTING.md).
