@@ -315,7 +315,7 @@ In the following guides, we'll build step by a step a federated SPA. As we progr
 
 > **Warning**
 >
-> Some parts of the application has been intentionally omitted from the code samples to emphasis on the important stuff.
+> Some parts of the application has been intentionally omitted from the code samples to put emphasis on the more important stuff.
 
 ### Setup an host application
 
