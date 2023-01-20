@@ -307,7 +307,7 @@ export default {
 
 ## 📚 Guides
 
-In the following guides, we'll go step by a step through the creation of a federated SPA. As we progress, we'll add parts to the federated application to ultimately end up with an application matching the following diagram:
+In the following guides, we'll go step by a step through the creation of a federated SPA. As we progress, we'll add parts to the federated application to ultimately end up with an application matching the following diagram.
 
 <p align="center">
     <img alt="Target application" src="./app-dark.drawio.svg#gh-dark-mode-only" />
