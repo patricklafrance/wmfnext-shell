@@ -78,13 +78,13 @@ Once, installed, we recommend that you configure your projects to use [ESM](http
 
 ## 📄 Basic usage
 
-In the following example, we'll focus solely on showcasing the happy path to create a federated application with this shell. 
+In this example, we'll focus solely on showcasing the happy path to create a federated SPA with this shell. 
 
-To do so, we'll only create a single remote module application (and of course an host application). To learn about the other features and options, have a look at the [guides](#📚-guides) and the [API](#🔧-api) section.
+To do so, we'll create a single remote module application (and of course an host application) and leave out static module application. To learn more about the other features and options of this shell, have a look at the [guides](#-guides) and the [API](#-api) section.
 
 ### Host application
 
-👉 Create a new application with the following files.
+👉 First, create a new application with the following files.
 
 ```
 host-app
@@ -99,7 +99,7 @@ host-app
 
 > To learn more about the `bootstrap.tsx` file, read the following [article](https://dev.to/infoxicator/module-federation-shared-api-ach#using-an-async-boundary).
 
-👉 In the `boostrap.tsx` file, instanciate the shell `Runtime` and load the remote module.
+👉 Then, in the `boostrap.tsx` file, instanciate the shell `Runtime` and load the remote module.
 
 ```tsx
 // host - boostrap.tsx
@@ -135,7 +135,7 @@ root.render(
 );
 ```
 
-👉 In the `App.tsx` file, retrieve the routes registered by the module and render the router.
+👉 Next, in the `App.tsx` file, retrieve the routes registered by the module and render the router.
 
 ```tsx
 // host - App.tsx
@@ -187,7 +187,7 @@ export function App() {
 }
 ```
 
-👉 Create the `RootLayout` component to render the navigation items.
+👉 And, create the `RootLayout` component to render the navigation items.
 
 ```tsx
 // host - RootLayout.tsx
@@ -220,7 +220,7 @@ export function RootLayout() {
 }
 ```
 
-👉 Add the Webpack Module Federation plugin to the `webpack.config.js` file by using the `createHostConfiguration` function to follow the shell conventions.
+👉 Finally, add the Webpack Module Federation plugin to the `webpack.config.js` file by using the `createHostConfiguration` function to follow the shell conventions.
 
 ```js
 // host webpack.config.js
@@ -242,7 +242,7 @@ export default {
 
 ### Remote module application
 
-👉 Create a new application with a `register.tsx` file and a page.
+👉 Start by creating a new application with a `register.tsx` file and a page.
 
 ```
 remote-app
@@ -252,7 +252,7 @@ remote-app
 ├── webpack.config.js
 ```
 
-👉 Use the `register.tsx` file, to register the module pages and navigation items.
+👉 Then, use the `register.tsx` file, to register the module pages and navigation items.
 
 ```tsx
 // remote-1 - register.tsx
@@ -283,7 +283,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 }
 ```
 
-👉 Add the Webpack Module Federation plugin to the `webpack.config.js` file by using the `createModuleConfiguration` function to follow the shell conventions. Make sure the `entry` prop value is using the `register.tsx` file rather than the default index file.
+👉 And, add the [Webpack Module Federation plugin](https://webpack.js.org/plugins/module-federation-plugin/) to the `webpack.config.js` file by using the `createModuleConfiguration` function to follow the shell conventions. Make sure the `entry` prop value is using the `register.tsx` file rather than the default index file.
 
 ```js
 import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
@@ -300,9 +300,9 @@ export default {
 }
 ```
 
-👉 Start the remote application, then the host application. You should see a navigation item to the _"Remote1/Page 1"_ and be able to navigate to the page by clicking on the item.
+👉 Start the remote application, then the host application. You should see a navigation item named _"Remote1/Page 1"_. Click on it to navigate to the federated page.
 
-> If you are having issues, make sure that both applications `package.json` file have `react`, `react-dom`, `react-router-dom`, `wmfnext-shell`, `wmfnext-remote-loader` listed in their dependencies and that they are using the same dependency versions.
+> If you are having issues, make sure that both applications `package.json` file have `react`, `react-dom`, `react-router-dom`, `wmfnext-shell` and `wmfnext-remote-loader` listed in their dependencies. The dependency versions should also match between both applications.
 
 ## 📚 Guides
 
@@ -1233,7 +1233,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 👉 Now you can start both applications again and try navigating between pages, everything should work fine.
 
-> If you are having issues, make sure that the host application and the remote module application `package.json` file have `react`, `react-dom`, `react-router-dom`, `wmfnext-shell`, `wmfnext-remote-loader` listed in their dependencies and that they are using the same dependency versions.
+> If you are having issues, make sure that both applications `package.json` file have `react`, `react-dom`, `react-router-dom`, `wmfnext-shell` and `wmfnext-remote-loader` listed in their dependencies. The dependency versions should also match between both applications.
 
 ### Setup a static module application
 
