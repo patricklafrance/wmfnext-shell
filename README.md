@@ -2,11 +2,11 @@
 
 > **Warning**
 >
-> This repository will not be maintained as it's purpose is to inspire teams by showcasing how a SPA federated application could be build on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/).
+> This repository will not be maintained as it's purpose is to inspire teams by showcasing how a federated SPA could be build on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/).
 
 Webpack Module Federation is a great infrastructure piece to share code and dependencies between different independent codebases easier. But as is, it's pretty raw as it's a low level mecanism.
 
-This shell aims to add a very thin and opinionated layer on top of Webpack Module Federation and React Router to complement the sharing mecanism with additional functionalities. Those functionalities will gentle the adoption of a federated application architecture and provide an opinionated direction on how to implement a federated SPA application.
+This shell aims to add a very thin and opinionated layer on top of Webpack Module Federation and React Router to complement the sharing mecanism with additional functionalities. Those functionalities will gentle the adoption of a federated application architecture and provide an opinionated direction on how to implement a federated SPA.
 
 The idea behind this shell is to have an host application responsible of loading modules and providing shared functionalities like routing, messaging and logging. With this shell, a module is considered as an independent codebase matching a specific subdomain of the application. At bootstrap, the host application loads the modules and call a registration function for each of them with shared functionalities and an optional context. During the registration phase, each module dynamically *register it's routes and navigation links*. Then, pages and components of a module can use the provided hooks to access shared functionalities provided by the shell.
 
@@ -306,13 +306,18 @@ export default {
 
 ## 📚 Guides
 
+In the following guides, we'll build step by a step a federated SPA. As we progress, we'll add parts to the federated application to ultimately end up with a target architecture matching the following diagram:
+
+<div style="width: 100%; text-align: center;">
+    <figure>
+        <img alt="Target architecture diagram" src="./app.drawio.svg" />
+        <figcaption style="color: #808080">Target architecture diagram</figcaption>
+    </figure>
+</div>
+
 > **Warning**
 >
-> While going through those step by step guides, keep in mind that some parts of the application has ben intentionally left out from code samples to emphasis the more important stuff.
->
-> For a complete example, or, if you prefer to jump right into it, have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) and [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repositories or the [API documentation](#🔧-api).
-
-![Target application diagram](./app.drawio.svg)
+> Some parts of the application has been intentionally omitted from code samples to emphasis on the more important stuff.
 
 ### Setup an host application
 
