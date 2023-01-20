@@ -12,11 +12,11 @@ The idea behind this shell is to have an host application responsible of loading
 
 We recommend to aim for remote hosted modules loaded at runtime as it enables your teams to be fully autonomous by deploying their modules independently from the other parts of the application. Still, sometimes teams might want to gradually migrate toward a distributed architecture and would prefer to extract subdomains into independent modules in a monolithic but decoupled way before fully committing to remote modules. To accomodate those migration solutions, this shell support loading modules from a static registration function at build time. The functions could come from a package in a monorepos setup or could even come from a subdomain folder of a modular monolith. A dual bootstrapping setup is also supported, meaning an application could load a few remote hosted modules at runtime while also loading a few other modules at build time.
 
-- [Features](#🙌-features)
-- [Examples](#🎉-examples)
-- [Installation](#🤘-installation)
-- [Basic usage](#📄-basic-usage)
-- [Guides](#📚-guides)
+- [Features](#-features)
+- [Examples](#-examples)
+- [Installation](#-installation)
+- [Basic usage](#-basic-usage)
+- [Guides](#-guides)
     - [Setup an host application](#setup-an-host-application)
     - [Setup a remote application](#setup-a-remote-application)
     - [Register a module routes](#register-a-module-routes)
@@ -31,7 +31,7 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
     - [Use a custom logger](#use-a-custom-logger)
     - [Fetch data](#fetch-data)
     - [Develop a module in isolation](#develop-a-module-in-isolation)
-- [API](#🔧-api)
+- [API](#-api)
 - [Contributors guide](./CONTRIBUTING.md)
 
 ## 🙌 Features
