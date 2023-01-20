@@ -307,11 +307,15 @@ export default {
 
 ## 📚 Guides
 
-In the following guides, we'll build step by a step a federated SPA. As we progress, we'll add parts to the federated application to ultimately end up with a target architecture matching the following diagram:
+In the following guides, we'll go step by a step through the creation of a federated SPA. As we progress, we'll add parts to the federated application to ultimately end up with an application matching the following diagram:
 
-<p align="center">
-    <img alt="Target architecture diagram" src="./app.drawio.svg" />
-</p>
+```mermaid
+flowchart TB
+    host-->remote-1
+    subgraph identifier[" "]
+    host-->static-1
+    end
+```
 
 > **Warning**
 >
