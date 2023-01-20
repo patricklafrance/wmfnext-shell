@@ -312,13 +312,7 @@ export default {
 >
 > For a complete example, or, if you prefer to jump right into it, have a look at the [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) and [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) repositories or the [API documentation](#🔧-api).
 
-```mermaid
-graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
-```
+![Target application diagram](./app.drawio.svg)
 
 ### Setup an host application
 
