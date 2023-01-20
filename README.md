@@ -744,14 +744,12 @@ Again, you probably noticed that the `ModuleFederationPlugin` is configured with
 ```json
 {
     "scripts": {
-        "serve-dev": "webpack serve --config webpack.dev.js"
+        "dev": "webpack serve --config webpack.dev.js"
     }
 }
 ```
 
-> The [develop a module in isolation](#develop-a-module-in-isolation) section will explain module why a remote module command is named `serve-dev` rather than `dev`.
-
-👉 Start the remote module application with the `serve-dev` command. You should see a page displaying __Hello from remote!__.
+👉 Start the remote module application with the `dev` command. You should see a page displaying __Hello from remote!__.
 
 Now, as stated in the introduction of this README, this shell is an opinionated layer on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/). Our take is that a remote module should always match an whole subdomain of the application and should only share pages.
 
@@ -785,7 +783,7 @@ export default {
 };
 ```
 
-👉 In distinct terminals, start the remote module application with the `serve-dev` command, then the host application with the `dev` command. Refresh the host application, you should see similar logs if you open the dev tools.
+👉 In distinct terminals, start the remote module application with the `dev` command, then the host application with the `dev` command. Refresh the host application, you should see similar logs if you open the dev tools.
 
 ```bash
 [shell] Found 1 remote modules to register
@@ -1735,8 +1733,6 @@ export default function Login() {
 const LoginPage = lazy(() => import("./pages/Login"));
 
 export function App() {
-    ...
-
     const router = useMemo(() => {
         return createBrowserRouter([
             ...hoistedRoutes,
@@ -1751,8 +1747,6 @@ export function App() {
             }
         ]);
     }, [hoistedRoutes]);
-
-    ...
 }
 ```
 
@@ -1795,7 +1789,6 @@ Or in a React component scope with the `useSession()` hook:
 ```tsx
 export function Page() {
     const session = useSession() as Session;
-    ...
 }
 ```
 
@@ -2287,8 +2280,6 @@ export default function Page8() {
 
 ```tsx
 // remote-1 - register.tsx
-
-...
 
 const Page8 = lazy(() => import("./pages/Page8"));
 
