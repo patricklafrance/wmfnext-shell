@@ -309,7 +309,7 @@ export default {
 
 In the following guides, we'll go step by a step through the creation of a federated SPA. As we progress, we'll add parts to the federated application to ultimately end up with an application matching the following diagram:
 
-<img alt="Target application" src="app.drawio.svg#gh-dark-mode-only" />
+<img alt="Target application" src="./app.drawio.svg#gh-dark-mode-only" />
 
 ![Target application](app.drawio.svg#gh-dark-mode-only)
 
