@@ -308,16 +308,13 @@ export default {
 
 In the following guides, we'll build step by a step a federated SPA. As we progress, we'll add parts to the federated application to ultimately end up with a target architecture matching the following diagram:
 
-<div style="width: 100%; text-align: center;">
-    <figure>
-        <img alt="Target architecture diagram" src="./app.drawio.svg" />
-        <figcaption style="color: #808080">Target architecture diagram</figcaption>
-    </figure>
-</div>
+<p align="center">
+    <img alt="Target architecture diagram" src="./app.drawio.svg" />
+</p>
 
 > **Warning**
 >
-> Some parts of the application has been intentionally omitted from code samples to emphasis on the more important stuff.
+> Some parts of the application has been intentionally omitted from the code samples to emphasis on the important stuff.
 
 ### Setup an host application
 
