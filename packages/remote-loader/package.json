@@ -19,12 +19,13 @@
     "access": "public"
   },
   "scripts": {
-    "prebuild": "yarn clean",
+    "prebuild": "yarn clean:files",
     "build": "run-p build:*",
     "build:esm": "tsc --build ./tsconfig.build.esm.json",
     "build:cjs": "tsc --build ./tsconfig.build.cjs.json",
     "postbuild": "yarn rename-to-cjs",
-    "clean": "run-p --continue-on-error delete-dist delete-ts-cache unlink-pkg",
+    "clean": "run-p --continue-on-error clean:files unlink-pkg",
+    "clean:files": "run-p --continue-on-error delete-dist delete-ts-cache",
     "delete-dist": "rimraf dist",
     "delete-ts-cache": "rimraf *.tsbuildinfo",
     "dev": "run-p dev:*",

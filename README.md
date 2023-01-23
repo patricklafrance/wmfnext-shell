@@ -2,15 +2,37 @@
 
 > **Warning**
 >
-> This repository will not be maintained as it's purpose is to inspire teams by showcasing how a federated SPA could be build on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/).
+> This repository packages will not be maintained as it's purpose is to inspire teams by showcasing how a federated SPA could be build on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/).
 
-Webpack Module Federation is a great infrastructure piece to share code and dependencies between different independent codebases easier. But as is, it's pretty raw as it's a low level mecanism.
+Webpack Module Federation is a great infrastructure piece to share code and dependencies between independent codebases. But as is, it's pretty raw as it's a low level mecanism.
 
-This shell aims to add a very thin and opinionated layer on top of Webpack Module Federation and React Router to complement the sharing mecanism with additional functionalities. Those functionalities will gentle the adoption of a federated application architecture and provide an opinionated direction on how to implement a federated SPA.
+This shell add a very thin layer on top of Webpack Module Federation by complementing the sharing mecanism with additional functionalities. Those functionalities aims to gentle the adoption of a federated application architecture by offering an opinionated direction on how it should be implemented.
 
-The idea behind this shell is to have an host application responsible of loading modules and providing shared functionalities like routing, messaging and logging. With this shell, a module is considered as an independent codebase matching a specific subdomain of the application. At bootstrap, the host application loads the modules and call a registration function for each of them with shared functionalities and an optional context. During the registration phase, each module dynamically *register it's routes and navigation links*. Then, pages and components of a module can use the provided hooks to access shared functionalities provided by the shell.
+It works like this:
 
-We recommend to aim for remote hosted modules loaded at runtime as it enables your teams to be fully autonomous by deploying their modules independently from the other parts of the application. Still, sometimes teams might want to gradually migrate toward a distributed architecture and would prefer to extract subdomains into independent modules in a monolithic but decoupled way before fully committing to remote modules. To accomodate those migration solutions, this shell support loading modules from a static registration function at build time. The functions could come from a package in a monorepos setup or could even come from a subdomain folder of a modular monolith. A dual bootstrapping setup is also supported, meaning an application could load a few remote hosted modules at runtime while also loading a few other modules at build time.
+1. At bootstrap, the host application will try to load the predefined modules and call a registration function matching a specific name and signature for each module who successfully loaded. 
+
+2. During it's registration, a module will receive the shared services of the application and use them to dynamically register it's routes and navigation items.
+
+3. Once all the remote modules are registered, the host application will render a React Router instance with the registered routes and will also render a navigation menu with the registered navigation items.
+
+That's about it! Of course there's more to it but that's the main ideas.
+
+Oh, there's one more thing.. A module is considered as an independent codebase matching a unique subdomain of the application. There's no such thing as loading a standalone remote component with this shell.
+
+### Remote modules vs Static modules
+
+Loading remote modules at runtime with Webpack Module Federation is the reason why this shell exist and what we recommend products to aim for. It enables teams to be fully autonomous by deploying their module independently from the other parts of the application.
+
+However, we understand that teams working on mature products will most likely prefer to gradually migrate toward a distributed architecture by first extracting subdomains into independent modules in their actual monolithic setup before fully committing to remote modules loaded at runtime. 
+
+To faciliate this transition, this shell also support static modules registered at build time.
+
+What we consider a static module is a local bundle of code exposing a registration function. A registration function could either be imported from a standalone package, a sibling project in a monorepos setup, or even a local folder of the host application.
+
+Remote and static modules can both be used in the same application as this shell support dual bootstrapping, e.g. an application could be configured to load a few remote hosted modules at runtime and also register a few static modules at build time.
+
+## 📌 Table of content
 
 - [Features](#-features)
 - [Examples](#-examples)
@@ -29,14 +51,11 @@ We recommend to aim for remote hosted modules loaded at runtime as it enables yo
     - [Use the event bus](#use-the-event-bus)
     - [Share a custom service](#share-a-custom-service)
     - [Use a custom logger](#use-a-custom-logger)
-    - [Fetch data](#fetch-data)
     - [Develop a module in isolation](#develop-a-module-in-isolation)
 - [API](#-api)
 - [Contributors guide](./CONTRIBUTING.md)
 
 ## 🙌 Features
-
-The following features are supported by this shell:
 
 - Loading of hosted remote modules at runtime
 - Loading of static modules at build time
@@ -78,9 +97,9 @@ Once, installed, we recommend that you configure your projects to use [ESM](http
 
 ## 📄 Basic usage
 
-In this example, we'll focus solely on showcasing the happy path to create a federated SPA with this shell. 
+If you don't feel like going through our guides, here's a bare minimal example showcasing the happy path to create a federated SPA with this shell. The example focus solely on remote module application and leave out static module application.
 
-To do so, we'll create a single remote module application (and of course an host application) and leave out static module application. To learn more about the other features and options of this shell, have a look at the [guides](#-guides) and the [API](#-api) section.
+To learn more about the other features/options of this shell and static module application, have a look at the [guides](#-guides) and the [API](#-api) section.
 
 ### Host application
 
@@ -221,20 +240,17 @@ export function RootLayout() {
 }
 ```
 
-👉 Finally, add the Webpack Module Federation plugin to the `webpack.config.js` file by using the `createHostConfiguration` function to follow the shell conventions.
+👉 Finally, add the Webpack Module Federation plugin to the `webpack.config.js` file by using the `createHostPlugin` function.
 
 ```js
 // host webpack.config.js
 
-import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
-import { createHostConfiguration } from "wmfnext-remote-loader/createModuleFederationConfiguration.js";
+import { createHostPlugin } from "wmfnext-remote-loader/webpack.js";
 import packageJson from "../package.json" assert { type: "json" };
 
 export default {
     plugins: [
-        new ModuleFederationPlugin(
-            createHostConfiguration("host", packageJson)
-        )
+        createHostConfiguration("host", packageJson)
     ]
 }
 ```
@@ -284,19 +300,16 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 }
 ```
 
-👉 And, add the [Webpack Module Federation plugin](https://webpack.js.org/plugins/module-federation-plugin/) to the `webpack.config.js` file by using the `createModuleConfiguration` function to follow the shell conventions. Make sure the `entry` prop value is using the `register.tsx` file rather than the default index file.
+👉 And, add the [Webpack Module Federation plugin](https://webpack.js.org/plugins/module-federation-plugin/) to the `webpack.config.js` file by using the `createModulePlugin` function. Make sure the `entry` prop value is using the `register.tsx` file rather than the default index file.
 
 ```js
-import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
-import { createModuleConfiguration } from "wmfnext-remote-loader/createModuleFederationConfiguration.js";
+import { createModulePlugin } from "wmfnext-remote-loader/webpack.js";
 import packageJson from "../package.json" assert { type: "json" };
 
 export default {
     entry: "./src/register.tsx",
     plugins: [
-        new ModuleFederationPlugin(
-            createModuleConfiguration("remote1", packageJson)
-        )
+        createModulePlugin("remote1", packageJson)
     ]
 }
 ```
@@ -316,7 +329,7 @@ In the following guides, we'll go step by a step through the creation of a feder
 
 > **Warning**
 >
-> Some parts of the application has been intentionally omitted from the code samples to put emphasis on the more important stuff.
+> Some parts of the application has been intentionally omitted from the code samples to put emphasis on the more important ones.
 
 ### Setup an host application
 
@@ -379,19 +392,14 @@ Now, let's assume that you want to load a remote module at runtime with [Webpack
 ```js
 // host - webpack.dev.js
 
-import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
-import { createHostConfiguration } from "wmfnext-remote-loader/createModuleFederationConfiguration.js";
-
+import { createHostPlugin } from "wmfnext-remote-loader/webpack.js";
 import packageJson from "./package.json" assert { type: "json" };
-
 
 export default {
     plugins: [
-        // You only have to setup the ModuleFederationPlugin plugin if you 
-        // want to load remote modules at runtime.
-        new ModuleFederationPlugin(
-            createHostConfiguration("host", packageJson)
-        )
+        // Only use the ModuleFederationPlugin plugin if you 
+        // are loading remote modules at runtime.
+        createHostPlugin("host", packageJson)
     ]
 }
 ```
@@ -404,8 +412,7 @@ export default {
 // host - webpack.dev.js
 
 import HtmlWebpackPlugin from "html-webpack-plugin";
-import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
-import { createHostConfiguration } from "wmfnext-remote-loader/createModuleFederationConfiguration.js";
+import { createHostPlugin } from "wmfnext-remote-loader/webpack.js";
 import path from "path";
 import url from "url";
 import packageJson from "./package.json" assert { type: "json" };
@@ -464,11 +471,9 @@ export default {
         extensions: [".js", ".ts", ".tsx", ".css"]
     },
     plugins: [
-        // You only have to setup the ModuleFederationPlugin plugin if you 
-        // want to load remote modules at runtime.
-        new ModuleFederationPlugin(
-            createHostConfiguration("host", packageJson)
-        ),
+        // Only use the ModuleFederationPlugin plugin if you 
+        // are loading remote modules at runtime.
+        createHostConfiguration("host", packageJson),
         new HtmlWebpackPlugin({
             template: "./public/index.html"
         })
@@ -479,38 +484,42 @@ export default {
 
 > **Note**
 >
-> If you are using a [CommonJS](https://en.wikipedia.org/wiki/CommonJS) Webpack configuration file, import the `createHostConfiguration()` function from `wmfnext-remote-loader/createModuleFederationConfiguration.cjs` instead.
+> If you are using a [CommonJS](https://en.wikipedia.org/wiki/CommonJS) Webpack configuration file, import the `createHostPlugin()` function from `wmfnext-remote-loader/webpack.cjs` instead.
 
-You probably noticed that the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin) is configured with the output of the  `createHostConfiguration()` function.
+You probably noticed that the [ModuleFederationPlugin](https://webpack.js.org/plugins/module-federation-plugin) is created by the  `createHostPlugin()` function.
 
 This is an utility function provided by the shell to help configure the federation plugin and enforce the shell conventions. 
 
-The `createHostConfiguration()` function accept as it's first parameter the name of the application and as a second parameter a `package.json` configuration. At build time, the function will parse the package configuration in search of the version of the mandatory shared dependencies of the shell.
+The `createHostPlugin()` function accept as it's first parameter the name of the application and as a second parameter a `package.json` configuration. At build time, the function will parse the package configuration in search of the version of the mandatory shared dependencies of the shell.
 
 > Mandatory shared dependencies are libraries like [react](https://reactjs.org/), react-dom, [react-router-dom](https://reactrouter.com/) and the shell itself.
 
-The `createHostConfiguration()` function also accept a third parameter, an object literal used to specify options. One of those option is a `sharedDependencies` object to add other shared dependencies that are specific to your application, like a design system library.
+The `createHostPlugin()` function also accept a third parameter, an object literal used to specify options. One of those option is a `sharedDependencies` object to add other shared dependencies that are specific to your application, like a design system library.
 
-If the `requiredVersion` of a shared dependency is not specified, the `createHostConfiguration()` function will try to resolve the dependency version from the provided package configuration.
+If the `requiredVersion` of a shared dependency is not specified, the `createHostPlugin()` function will try to resolve the dependency version from the provided package configuration.
 
 The `sharedDependencies` object support the same syntax as the ModuleFederationPlugin [`shared` object](https://webpack.js.org/plugins/module-federation-plugin/#sharing-hints) minus the `version` property.
 
 ```js
-new ModuleFederationPlugin(
-    createHostConfiguration(
-        "host",
-        packageJson,
-        {
-            sharedDependencies: {
-                "@sharegate/orbit-ui": {
-                    singleton: true,
-                    requiredVersion: "10.0.0"
+export default {
+    plugins: [
+        createHostPlugin(
+            "host",
+            packageJson,
+            {
+                sharedDependencies: {
+                    "@sharegate/orbit-ui": {
+                        singleton: true,
+                        requiredVersion: "10.0.0"
+                    }
                 }
             }
-        }
-    )
-)
+        )
+    ]
+};
 ```
+
+> There's an underlying function supporting the `createHostPlugin()` function called `createHostConfiguration()`. If you prefer to create the ModuleFederationPlugin plugin instance by yourself but still want to benefit from a preconfigured options object, use this function instead.
 
 👉 Finally, add your [TypeScript configuration](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) at the root of the project and a command in the `package.json` file to start Webpack in development mode.
 
@@ -580,7 +589,9 @@ registerRemoteModules(Remotes, runtime)
 
 > The `registerRemoteModules()` function can only be called once. Trying to call the function multiple times will result in an error.
 
-👉 Start the host application with the `dev` command. You should see a page displaying _"Hello world!"_. Note than even if the remote module application has not been created yet, the host application will render what is currently available. In this case, it's the default page of the host application.
+👉 Start the host application with the `dev` command. You should see a page displaying _"Hello world!"_.
+
+> Even if the remote module application has not been created yet, the host application will render what is currently available. In this case, it's the default page of the host application.
 
 ### Setup a remote application
 
@@ -627,16 +638,12 @@ root.render(
 ```js
 // remote-1 - webpack.dev.js
 
-import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
-import { createModuleConfiguration } from "wmfnext-remote-loader/createModuleFederationConfiguration.js";
-
+import { createModulePlugin } from "wmfnext-remote-loader/webpack.js";
 import packageJson from "./package.json" assert { type: "json" };
 
 export default {
     plugins: [
-        new ModuleFederationPlugin(
-            createModuleConfiguration("remote1", packageJson)
-        )
+        createModuleConfiguration("remote1", packageJson)
     ]
 }
 ```
@@ -649,8 +656,7 @@ export default {
 // remote-1 - webpack.dev.js
 
 import HtmlWebpackPlugin from "html-webpack-plugin";
-import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
-import { createModuleConfiguration } from "wmfnext-remote-loader/createModuleFederationConfiguration.js";
+import { createModulePlugin } from "wmfnext-remote-loader/webpack.js";
 import path from "path";
 import url from "url";
 import packageJson from "./package.json" assert { type: "json" };
@@ -713,7 +719,7 @@ export default {
         extensions: [".js", ".ts", ".tsx", ".css"]
     },
     plugins: [
-        new ModuleFederationPlugin(createModuleConfiguration("remote1", packageJson)),
+        createModuleConfiguration("remote1", packageJson),
         new HtmlWebpackPlugin({
             template: "./public/index.html"
         })
@@ -724,9 +730,9 @@ export default {
 
 > **Note**
 >
-> If you are using a [CommonJS](https://en.wikipedia.org/wiki/CommonJS) Webpack configuration file, import the `createModuleConfiguration()` function from `wmfnext-remote-loader/createModuleFederationConfiguration.cjs` instead.
+> If you are using a [CommonJS](https://en.wikipedia.org/wiki/CommonJS) Webpack configuration file, import the `createModulePlugin()` function from `wmfnext-remote-loader/webpack.cjs` instead.
 
-Again, you probably noticed that the `ModuleFederationPlugin` is configured with the output of the  `createModuleConfiguration()` function. This function signature is the same as the `createHostConfiguration()` function and serve the same purpose, e.g. help configure the plugin and enfore the shell conventions.
+Again, you probably noticed that the `ModuleFederationPlugin` instance is created by the  `createModuleConfiguration()` function. The function signature is the same as the `createHostPlugin()` function and serve the same purpose, e.g. create a preconfigured instance of the plugin with the shell conventions and the mandatory shared dependencies.
 
 > There's only one shell convention... A remote module `ModuleFederationPlugin` configuration must expose a single module called `./register`.
 >
@@ -738,6 +744,8 @@ Again, you probably noticed that the `ModuleFederationPlugin` is configured with
 >    }
 > }
 > ```
+
+> There's an underlying function supporting the `createModulePlugin()` function called `createModuleConfiguration()`. If you prefer to create the ModuleFederationPlugin plugin instance by yourself but still want to benefit from a preconfigured options object, use this function instead.
 
 👉 Finally, add your [TypeScript configuration](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) at the root of the project and a command in the `package.json` file to start Webpack in development mode.
 
@@ -1908,18 +1916,18 @@ There's one more thing to do thought. [Webpack Module Federation](https://webpac
 ```js
 // host - webpack.dev.js
 
+import { createHostPlugin } from "wmnext-remote-loader/webpack.js";
+
 export default {
     plugins: [
-        new ModuleFederationPlugin(
-            createHostConfiguration("host", packageJson, {
-                sharedDependencies: {
-                    "wmfnext-shared": {
-                        singleton: true,
-                        requiredVersion: "0.0.1"
-                    }
+        createHostPlugin("host", packageJson, {
+            sharedDependencies: {
+                "wmfnext-shared": {
+                    singleton: true,
+                    requiredVersion: "0.0.1"
                 }
-            })
-        )
+            }
+        })
     ]
 }
 ```
@@ -1927,18 +1935,18 @@ export default {
 ```js
 // remote-1 - webpack.dev.js
 
+import { createModulePlugin } from "wmnext-remote-loader/webpack.js";
+
 export default {
     plugins: [
-        new ModuleFederationPlugin(
-            createModuleConfiguration("remote1", packageJson, {
-                sharedDependencies: {
-                    "wmfnext-shared": {
-                        singleton: true,
-                        requiredVersion: "0.0.1"
-                    }
+        createModulePlugin("remote1", packageJson, {
+            sharedDependencies: {
+                "wmfnext-shared": {
+                    singleton: true,
+                    requiredVersion: "0.0.1"
                 }
-            })
-        )
+            }
+        })
     ]
 }
 ```
@@ -2226,90 +2234,6 @@ const runtime = new Runtime({
 [shell] Found 1 static modules to register
 [custom-logger] [shell] Found 1 static modules to register
 ```
-
-### Fetch data
-
-React Router v6.4+ is really good at data fetching with the [loader API](https://reactrouter.com/en/main/route/loader). In this example, we'll render in a federated page the first 5 characters returned by the [Rick and Morty API](https://rickandmortyapi.com/).
-
- > Depending of the needs of your application, React Router might be the best data fetching solution for you. Other solutions like [TanStack Query](https://tanstack.com/query/latest) are also great choices if your application needs to prefetch a lot of data or need a client side state management solution. 
- 
-👉 First, add a new page to the remote module application and use the `useLoaderData()` to retrieve the data.
-
-```tsx
-// remote-1 - Page8.tsx
-
-import { useLoaderData } from "react-router-dom";
-import { useLogger } from "wmfnext-shell";
-
-interface Character {
-    id: number;
-    name: string;
-    species: string;
-}
-
-export default function Page8() {
-    // React Router provide the useLoaderData hook to retrieve the data returned by the loader.
-    const characters = useLoaderData() as Character[];
-    const logger = useLogger();
-
-    logger.debug("Rendering \"page8\" from module \"remote1\"");
-
-    return (
-        <main>
-            <h1>Page 8</h1>
-            <p>From remote-1</p>
-            <div>
-                {characters.map(x => {
-                    return (
-                        <div key={x.id}>
-                            <span>Id: {x.id}</span>
-                            <span> - </span>
-                            <span>Name: {x.name}</span>
-                            <span> - </span>
-                            <span>Species: {x.species}</span>
-                        </div>
-                    );
-                })}
-            </div>
-        </main>
-    );
-}
-```
-
-👉 Then, register the page in the remote module `register.tsx` file and set a React Router [loader](https://reactrouter.com/en/main/route/loader) function to the route definition.
-
-```tsx
-// remote-1 - register.tsx
-
-const Page8 = lazy(() => import("./pages/Page8"));
-
-export const register: ModuleRegisterFunction = (runtime: Runtime) => {
-    runtime.registerRoutes([
-        {
-            path: "remote1/page-8",
-            element: <Page8 />,
-            // New loader function fetching the API data.
-            loader: async function loader() {
-                return fetch("https://rickandmortyapi.com/api/character/1,2,3,4,5", {
-                    method: "GET",
-                    headers: {
-                        "Accept": "application/json"
-                    }
-                });
-            }
-        }
-    ]);
-
-    runtime.registerNavigationItems([
-        {
-            to: "remote1/page-8",
-            content: "Remote1/Page 8 - Fetch data"
-        }
-    ]);
-};
-```
-
-👉 Start all the applications and libraries and navigate to the _"Remote1/Page 8"_ page. You should see 5 Rick and Morty characters at the bottom of the page.
 
 ### Develop a module in isolation
 

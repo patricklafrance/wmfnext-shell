@@ -1,5 +1,3 @@
-// TODO: isDevelopment option?!?!
-
 import type { PackageJson } from "type-fest";
 
 // Based on https://webpack.js.org/plugins/module-federation-plugin/#sharing-hints
@@ -37,10 +35,6 @@ function parsePackageDependencies(packageJson: PackageJson, targetDependencies: 
         ...parseDependencyObject(packageJson.devDependencies ?? {}, targetDependencies),
         ...parseDependencyObject(packageJson.dependencies ?? {}, targetDependencies)
     };
-}
-
-export interface CreateConfigurationOptions {
-    sharedDependencies?: SharedDependencies;
 }
 
 function findDependenciesVersion(packageJson: PackageJson, targetDependencies: string[]) {
@@ -119,7 +113,14 @@ function createSharedObject(foundVersions: Record<string, string>, sharedDepende
     };
 }
 
-export function createHostConfiguration(moduleName: string, packageJson: PackageJson, { sharedDependencies = {} }: CreateConfigurationOptions = {}) {
+export interface CreateConfigurationOptions {
+    sharedDependencies?: SharedDependencies;
+}
+
+// TODO: find a way to import ModuleFederationPluginOptions type.
+export type CreateConfigurationFunction<T = unknown> = (moduleName: string, packageJson: PackageJson, options: CreateConfigurationOptions) => T;
+
+export const createHostConfiguration: CreateConfigurationFunction = (moduleName, packageJson, { sharedDependencies = {} } = {}) => {
     const unresolvedDependencies = getUnresolvedDependencies(sharedDependencies);
     const foundVersions = findDependenciesVersion(packageJson, unresolvedDependencies);
 
@@ -127,13 +128,13 @@ export function createHostConfiguration(moduleName: string, packageJson: Package
         name: moduleName,
         shared: createSharedObject(foundVersions, sharedDependencies)
     };
-}
+};
 
 // By conventions, the remote:
 //    - filename is always: "remoteEntry.js"
 //    - only a single module called "./register" is exposed
 //
-export function createModuleConfiguration(moduleName: string, packageJson: PackageJson, { sharedDependencies = {} }: CreateConfigurationOptions = {}) {
+export const createModuleConfiguration: CreateConfigurationFunction = (moduleName, packageJson, { sharedDependencies = {} } = {}) => {
     const unresolvedDependencies = getUnresolvedDependencies(sharedDependencies);
     const foundVersions = findDependenciesVersion(packageJson, unresolvedDependencies);
 
@@ -145,4 +146,4 @@ export function createModuleConfiguration(moduleName: string, packageJson: Packa
         },
         shared: createSharedObject(foundVersions, sharedDependencies)
     };
-}
+};

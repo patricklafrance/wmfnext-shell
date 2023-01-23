@@ -2,10 +2,17 @@
 
 import fs from "fs";
 
-const FileName = "./dist/cjs/createModuleFederationConfiguration";
+const Files = [
+    "./dist/cjs/createConfiguration",
+    "./dist/cjs/createPlugin",
+    "./dist/cjs/getFileDirectory",
+    "./dist/cjs/index"
+];
 
-fs.rename(`${FileName}.js`, `${FileName}.cjs`, error => {
-    if (error) {
-        console.log(error);
-    }
+Files.forEach(x => {
+    fs.rename(`${x}.js`, `${x}.cjs`, error => {
+        if (error) {
+            console.log(error);
+        }
+    });
 });

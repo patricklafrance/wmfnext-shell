@@ -8,5 +8,5 @@
         // Otherwise the generated typings files will be create next to their source code files instead of the "dist" folder
         "outDir": "./dist/cjs"
     },
-    "files": ["./src/createModuleFederationConfiguration.ts"]
+    "files": ["./src/webpack/index.ts"]
 }
