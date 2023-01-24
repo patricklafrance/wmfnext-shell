@@ -60,8 +60,8 @@ export class Runtime {
         return this._eventBus;
     }
 
-    getService(name: string) {
-        return this._services[name];
+    getService(serviceName: string) {
+        return this._services[serviceName];
     }
 
     getSession() {

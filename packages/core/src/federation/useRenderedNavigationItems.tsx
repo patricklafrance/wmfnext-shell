@@ -53,12 +53,6 @@ function renderItems(navigationItems: NavigationItem[], renderItem: RenderItemFu
     return section;
 }
 
-export interface UseRenderedNavigationItems {
-    navigationItems: Readonly<RootNavigationItem[]>;
-    renderItem: RenderItemFunction;
-    renderSection: RenderSectionFunction;
-}
-
 export function useRenderedNavigationItems(
     navigationItems: Readonly<RootNavigationItem[]>,
     renderItem: RenderItemFunction,

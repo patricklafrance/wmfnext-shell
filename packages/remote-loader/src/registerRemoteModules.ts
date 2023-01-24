@@ -22,11 +22,11 @@ export interface RegistrationError {
     // The remote resource module name.
     moduleName: string;
     // The registration error.
-    error: any;
+    error: unknown;
 }
 
 export interface RegisterRemoteModulesOptions {
-    context?: any;
+    context?: unknown;
 }
 
 export async function registerRemoteModules(remotes: RemoteDefinition[], runtime: Runtime, { context }: RegisterRemoteModulesOptions = {}) {
@@ -55,7 +55,7 @@ export async function registerRemoteModules(remotes: RemoteDefinition[], runtime
 
             runtime.logger.information(`[shell] ${index + 1}/${remotes.length} Registering module "${ModuleName}" from container "${containerName}" of remote "${remoteUrl}"`);
 
-            registerModule(module.register, runtime, { context });
+            registerModule(module.register, runtime, context);
 
             runtime.logger.information(`[shell] ${index + 1}/${remotes.length} container "${containerName}" of remote "${remoteUrl}" registration completed"`);
         } catch (error: unknown) {
