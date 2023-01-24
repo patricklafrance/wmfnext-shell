@@ -2335,7 +2335,7 @@ With this setup in place, we can now configure our module applications to be dev
 
 For a remote module application to be developed locally and in isolation, there a couple things to do:
 
-1. Create a new `index.tsx` file instanciate the `Runtime` instance and register the remote module as a static module
+1. Create a new `index.tsx` file that will instanciate a `Runtime` instance and register the remote module as a static module
 2. Create a new `App.tsx` component to render the federated application shell
 3. Add Webpack `public` folder at the root of the project
 4. Add a new command to serve the app as a local application rather than a federated module
@@ -2345,7 +2345,7 @@ For a remote module application to be developed locally and in isolation, there 
 👉 Let's start by creating the new `index.tsx` and `App.tsx` files
 
 ```tsx
-// remote - index.tsx
+// remote-1 - index.tsx
 
 import { ConsoleLogger, Runtime, RuntimeContext, registerStaticModules } from "wmfnext-shell";
 import { Loading, TrackingService, TrackingServiceKey } from "wmfnext-shared";
@@ -2388,7 +2388,7 @@ root.render(
 ```
 
 ```tsx
-// remote - App.tsx
+// remote-1 - App.tsx
 
 import { Loading, useAppRouter } from "wmfnext-shared";
 import { RouterProvider } from "react-router-dom";
@@ -2421,8 +2421,8 @@ The `dev-local` command is very similar to the `dev` command but define a `LOCAL
 
 👉 Next, update the `webpack.dev.js` file to leverage the `LOCAL` environment variable.
 
-```js filename=webpack.dev.js
-// remote - webpack.dev.js
+```js
+// remote-1 - webpack.dev.js
 
 import { createModulePlugin, isLocal } from "wmfnext-shared/webpack.js";
 import HtmlWebpackPlugin from "html-webpack-plugin";
@@ -2439,14 +2439,160 @@ export default {
 };
 ```
 
-👉 Start the local application with the `dev-local` command. The federated application shell should render with the index route of your module.
+👉 Start the local application with the `dev-local` command. The federated application shell should render with the content of the index route of your module.
 
 #### Static modules
 
-Putting in place a setup 
+Putting in place a development setup for a static module application is very similar to what we've done previously for a remote module application. The key difference is that since a static module is never served as a remote bundle, we start with a blank Webpack configuration file and we do not have to deal with the `LOCAL` environment variable.
 
-- Add a webpack config
-- Add a yarn command
+Here's what we'll do:
+
+1. Create a new `index.tsx` file that will instanciate a `Runtime` instance and register the remote module as a static module
+2. Create a new `App.tsx` component to render the federated application shell
+3. Add Webpack `public` folder at the root of the project
+4. Add a new command to serve the local app
+5. Create a `webpack.config.js` file
+
+👉 First, create the new `index.tsx` and `App.tsx` files.
+
+```tsx
+// static-1 - index.tsx
+
+import { ConsoleLogger, Runtime, RuntimeContext, registerStaticModules } from "wmfnext-shell";
+import { Loading, TrackingService, TrackingServiceKey } from "wmfnext-shared";
+
+import { App } from "./App";
+import type { Session } from "wmfnext-shared";
+import { Suspense } from "react";
+import { createRoot } from "react-dom/client";
+import { register } from "./register";
+
+// Creating a runtime instance with a fake user session.
+// To use an in-memory session the "wmfnext-fakes"
+// SessionManager implementation can be used instead.
+const runtime = new Runtime({
+    loggers: [new ConsoleLogger()],
+    services: {
+        [TrackingServiceKey]: new TrackingService()
+    },
+    sessionAccessor: () => {
+        return {
+            user: {
+                name: "temp"
+            }
+        } as Session;
+    }
+});
+
+registerStaticModules([register], runtime);
+
+const root = createRoot(document.getElementById("root"));
+
+root.render(
+    <RuntimeContext.Provider value={runtime}>
+        <Suspense fallback={<Loading />}>
+            <App />
+        </Suspense>
+    </RuntimeContext.Provider>
+);
+```
+
+```tsx
+// static-1 - App.tsx
+
+import { Loading, useAppRouter } from "wmfnext-shared";
+import { RouterProvider } from "react-router-dom";
+
+export function App() {
+    // We are using again the hook that we created at the beginning
+    // of this section. useAppRouter takes care of creating the router
+    // instance and setuping the federated application shell.
+    const router = useAppRouter();
+
+    return (
+        <RouterProvider
+            router={router}
+            fallbackElement={<Loading />}
+        />
+    );
+}
+```
+
+👉 Next, add a new `dev-local` command to the `package.json` file to serve the app.
+
+```json
+{
+    "dev": "tsc --watch --project ./tsconfig.dev.json",
+    "dev-local": "webpack serve --config webpack.config.js"
+}
+```
+
+👉 Next, add a new `webpack.config.js` file.
+
+```js
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import { getFileDirectory } from "wmfnext-remote-loader/webpack.js";
+import path from "path";
+
+const __dirname = getFileDirectory(import.meta);
+
+/** @type {import("webpack").Configuration} */
+export default {
+    mode: "development",
+    target: "web",
+    devtool: "inline-source-map",
+    devServer: {
+        port: 8082,
+        historyApiFallback: true
+    },
+    entry: "./src/index.tsx",
+    output: {
+        // The trailing / is very important, otherwise paths will ne be resolved correctly.
+        publicPath: "http://localhost:8082/"
+    },
+    module: {
+        rules: [
+            {
+                test: /\.(ts|tsx)$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: "ts-loader",
+                    options: {
+                        transpileOnly: true,
+                        configFile: path.resolve(__dirname, "tsconfig.dev.json")
+                    }
+                }
+            },
+            {
+                // https://stackoverflow.com/questions/69427025/programmatic-webpack-jest-esm-cant-resolve-module-without-js-file-exten
+                test: /\.js/,
+                resolve: {
+                    fullySpecified: false
+                }
+            },
+            {
+                test: /\.(css)$/,
+                use: ["style-loader", "css-loader"]
+            },
+            {
+                test: /\.(png|jpe?g|gif)$/i,
+                type: "asset/resource"
+            }
+        ]
+    },
+    resolve: {
+        // Must add ".js" for files imported from node_modules.
+        extensions: [".js", ".ts", ".tsx", ".css"]
+    },
+    plugins: [
+        new HtmlWebpackPlugin({
+            template: "./public/index.html"
+        })
+    ]
+};
+```
+
+👉 Start the local application with the `dev-local` command. The federated application shell should render with the content of the index route of your module.
 
 ## 🔧 API
 
