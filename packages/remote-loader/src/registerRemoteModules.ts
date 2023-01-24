@@ -6,7 +6,6 @@ import { registerModule } from "wmfnext-shell";
 // By conventions, the remote:
 //    - filename is always: "remoteEntry.js"
 //    - only a single module called "./register" is exposed
-//
 const EntryPoint = "remoteEntry.js";
 const ModuleName = "./register";
 

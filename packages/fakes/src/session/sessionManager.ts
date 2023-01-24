@@ -4,7 +4,7 @@ export interface SessionManagerOptions {
     key?: string;
 }
 
-export class SessionManager<T> {
+export class SessionManager<T = unknown> {
     private _key: string;
     private _cache: Readonly<T> = undefined;
 

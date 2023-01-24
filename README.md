@@ -53,6 +53,18 @@ Remote and static modules can both be used in the same application as this shell
     - [Use a custom logger](#use-a-custom-logger)
     - [Develop a module in isolation](#develop-a-module-in-isolation)
 - [API](#-api)
+    - [wmfnext-shell package](#wmfnext-shell-package)
+        - [Runtime](#runtime)
+        - [Static modules registration](#static-modules-registration)
+        - [Routing](#routing)
+        - [Navigation items](#navigation-items)
+        - [Logging](#logging)
+        - [Messaging](#messaging)
+        - [Utils](#utils)
+    - [wmfnext-remote-loader package](#wmfnext-remote-loader-package)
+        - [Remote modules registration](#remote-modules-registration)
+        - [Webpack config utils](#webpack-config-utils)
+    - [wmfnext-fakes package](#wmfnext-fakes-package)
 - [Contributors guide](./CONTRIBUTING.md)
 
 ## 🙌 Features
@@ -1229,9 +1241,11 @@ export function RootLayout() {
 
 ### Register a module dynamic navigation items
 
-We now have a federated SPA displaying pages from a remote module loaded at runtime and a static module registered at build time.
+We now have a federated SPA displaying pages from a remote module application loaded at runtime and a static module application registered at build time.
 
-Still, _teams are not fully autonomous yet_ as links to the pages are hardcoded in the host application layout. To release changes to the application navigation, teams will have to coordinate with each others.
+Still, _teams are not fully autonomous yet_ as links to pages are hardcoded in the host application layout. To change those links, teams have to coordinate with each others.
+
+Our second take is that a module should be fully autonomous. It shouldn't have to coordinate with other parts of the application for things as trivial such as navigation links.
 
 To _enable fully autonomous teams_, the shell has built-in support for dynamic navigation items. With this feature, a module can dynamically register it's navigation items at registration.
 
@@ -1572,7 +1586,7 @@ By default, the shell doesn't support page hoisting. To support page hoisting, t
 ```tsx
 // host - App.tsx
 
-import { useHoistedRoutes } from "wmfnext-shell";;
+import { useHoistedRoutes, useRoutes } from "wmfnext-shell";;
 
 const NotFoundPage = lazy(() => import("./pages/NotFound"));
 
@@ -1925,6 +1939,8 @@ export default {
 
 ### Use the event bus
 
+Our third take is that a federated application should feel homogenous. Parts of the application should communicate with each others and react to changes happening outside of their boundaries.
+
 To enable a loosely coupled communication between the parts of the application, the shell offer a basic implementation of a pub/sub mecanism called the event bus.
 
 👉 To showcase how it works, we'll start by adding a counter functionality to the host application and an event listener to increment the value when a specific event is dispatched.
@@ -1932,6 +1948,7 @@ To enable a loosely coupled communication between the parts of the application, 
 ```tsx
 // host - RootLayout.tsx
 
+import { useCallback } from "react";
 import { useEventBusListener } from "wmfnext-shell";
 import { IncrementCountEvent } from "wmfnext-shared";
 
@@ -1939,10 +1956,12 @@ export function RootLayout() {
     // The counter is basically only a useState.
     const [count, setCount] = useState(0);
 
-    // Add an event listener to react to increment request from independent modules.
-    useEventBusListener(IncrementCountEvent, () => {
+    const handleIncrementCountEvent = useCallback(() => {
         setCount(x => x + 1);
-    });
+    }, [setCount]);
+
+    // Add an event listener to react to increment request from independent modules.
+    useEventBusListener(IncrementCountEvent, handleIncrementCountEvent);
 
     return (
         <div className="wrapper">
@@ -2529,6 +2548,10 @@ export function App() {
 
 👉 Next, add a new `webpack.config.js` file.
 
+<details>
+    <summary>View configuration</summary>
+    <br />
+
 ```js
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import { getFileDirectory } from "wmfnext-remote-loader/webpack.js";
@@ -2591,12 +2614,401 @@ export default {
     ]
 };
 ```
+</details>
 
 👉 Start the local application with the `dev-local` command. The federated application shell should render with the content of the index route of your module.
 
 ## 🔧 API
 
-TBD
+### wmfnext-shell package
+
+#### Runtime
+
+##### Runtime({ loggers, services, sessionAccessor })
+
+```ts
+import { Runtime } from "wmfnext-shell";
+
+const runtime = new Runtime({
+    loggers: [],
+    services: {},
+    sessionAccessor: () => {}
+});
+
+runtime.registerRoutes([
+    {
+        path: "/page-1",
+        element: <Page />
+    }
+]);
+
+const routes = runtime.routes;
+
+runtime.registerNavigationItems([
+    {
+        to: "/page-1",
+        content: "Page 1"
+    }
+]);
+
+const navigationItems = runtime.navigationItems;
+
+const logger = runtime.logger;
+
+const eventBus = runtime.eventBus;
+
+const service = runtime.getService("serviceName") as TService;
+
+const session = runtime.getSession() as TSession;
+```
+
+##### RuntimeContext
+
+```tsx
+import { RuntimeContext } from "wmfnext-shell";
+
+const runtime = new Runtime();
+
+root.render(
+    <RuntimeContext.Provider value={runtime}>
+            <App />
+    </RuntimeContext.Provider>
+);
+```
+
+##### useRuntime()
+
+```ts
+import { useRuntime } from "wmfnext-shell";
+
+const runtime = useRuntime();
+```
+
+##### useRoutes()
+
+```ts
+import { useRoutes } from "wmfnext-shell";
+
+const routes = useRoutes();
+```
+
+##### useNavigationItems()
+
+```ts
+import { useNavigationItems } from "wmfnext-shell";
+
+const items = useNavigationItems();
+```
+
+##### useLogger()
+
+```ts
+import { useLogger } from "wmfnext-shell";
+
+const logger = useLogger();
+```
+
+##### useSession()
+
+```ts
+import { useSession } from "wmfnext-shell";
+
+const session = useSession() as T;
+```
+
+##### useService(serviceName)
+
+```ts
+import { useService } from "wmfnext-shell";
+
+const service = useService("serviceName") as T;
+```
+
+#### Static modules registration
+
+##### registerStaticModule(registerFunctions, runtime, { context })
+
+```ts
+import { registerStaticModule, Runtime, ModuleRegisterFunction } from "wmfnext-shell";
+
+const register: ModuleRegisterFunction = (runtime, context) => {
+    runtime.logger.debug(context.foo);
+};
+
+const runtime = new Runtime();
+
+registerStaticModules([register], runtime, {
+    context: {
+        foo: "bar"
+    }
+});
+```
+
+#### Routing
+
+##### useHoistedRoutes(routes, { wrapManagedRoutes, allowedPaths })
+
+```tsx
+import { useRoutes, useHoistedRoutes, Route } from "wmfnext-shell";
+import { useCallback } from "react";
+
+const routes = useRoutes();
+
+const wrapManagedRoutes = useCallback((managedRoutes: Readonly<Route[]>) => {
+    return {
+        path: "/",
+        element: <RootLayout />,
+        children: [
+            ...managedRoutes
+        ]
+    };
+}, []);
+
+const hoistedRoutes = useHoistedRoutes(routes, {
+    wrapManagedRoutes,
+    allowedPaths: [
+        "page-1"
+    ]
+});
+```
+
+#### Navigation items
+
+##### useRenderedNavigationItems(navigationItems, renderItem, renderSection)
+
+```tsx
+import { useNavigationItems, useRenderedNavigationItems } from "wmfnext-shell";
+import { useCallback } from "react";
+import { Link } from "react-router-dom";
+
+const navigationItems = useNavigationItems();
+
+const renderItem: RenderItemFunction = useCallback(({ content, linkProps, index, level }) => {
+    return (
+        <li key={`${level}-${index}`}>
+            <Link {...linkProps}>
+                {content}
+            </Link>
+        </li>
+    );
+}, []);
+
+const renderSection: RenderSectionFunction = useCallback((itemElements, index, level) => {
+    return (
+        <ul key={`${level}-${index}`}>
+            {itemElements}
+        </ul>
+    );
+}, []);
+
+const renderedNavigationItems = useRenderedNavigationItems(navigationItems, renderItem, renderSection);
+```
+
+#### Logging
+
+##### Logger
+
+```ts
+import { Logger } from "wmfnext-shell";
+
+class CustomLogger: Logger {
+    debug(log) { ... }
+    information(log) { ... }
+    warning(log) { ... }
+    error(log) { ... }
+    critical(log) { ... }
+}
+```
+
+##### ConsoleLogger
+
+```ts
+import { ConsoleLogger, LogLevel } from "wmfnext-shell";
+
+const logger = new ConsoleLogger(Loglevel.debug);
+
+logger.debug("Debug log", { foo: "bar" });
+logger.information("Info log");
+logger.warning("Warning log");
+logger.error("Error log");
+logger.critical("Critical log");
+```
+
+#### Messaging
+
+##### EventBus({ logger })
+
+```ts
+import { EventBus, ConsoleLogger } from "wmfnext-shell";
+
+const eventBus = new EventBus({
+    logger: new ConsoleLogger()
+});
+
+const handleFoo = (data, context) => {
+    // do something...
+}
+
+const context = {
+    toto: "toto"
+};
+
+eventBus.addListener("foo", handleFoo);
+eventBus.removeListener("foo", handleFoo);
+
+eventBus.addListener("foo-once", handleFoo, { once: true });
+eventBus.removeListener("foo-once", handleFoo, { once: true });
+
+eventBus.dispatch("foo", "bar");
+```
+
+##### useEventBusListener(eventName, callback, { once })
+
+```ts
+import { useEventBusListener } from "wmfnext-shell";
+import { useCallback } from "react";
+
+const handleFoo = useCallback(() => {
+    // do something...
+}, []);
+
+useEventBusListener("foo", handleFoo);
+```
+
+##### useEventBusDispatcher(eventName, data)
+
+```ts
+import { useEventBusDispatcher } from "wmfnext-shell";
+
+const dispatch = useEventBusDispatcher();
+
+dispatch("foo", "bar");
+```
+
+#### Utils
+
+##### deepFreeze(obj)
+
+```ts
+import { deepFreeze } from "wmfnext-shell";
+
+deepFreeze({
+    foo: {
+        bar: {
+            to: "to"
+        }
+    }
+});
+```
+
+### wmfnext-remote-loader package
+
+#### Remote modules registration
+
+##### registerRemoteModule(remotes, runtime, { context })
+
+```ts
+import { registerRemoteModules, RemoteDefinition } from "wmfnext-remote-loader";
+import { Runtime } from "wmfnext-shell";
+
+const runtime = new Runtime();
+
+const remotes: RemoteDefinition[] = [
+    { name: "remote-1", url: "http://localhost:8081" }
+];
+
+registerRemoteModules(remotes, runtime, {
+    foo: "bar"
+});
+```
+
+##### useAreRemotesReady()
+
+```ts
+import { useAreRemotesReady } from "wmfnext-remote-loader";
+
+const isReady = useAreRemotesReady();
+
+if (isReady) {
+    // do something...
+}
+```
+
+##### registrationStatus
+
+```ts
+import { registrationStatus } from "wmnext-remote-loader";
+
+if (registrationStatus !== "ready") {
+    // dom something...
+}
+```
+
+#### Webpack config utils
+
+##### getFileDirectory(meta)
+
+```ts
+import { getFileDirectory } from "wmfnext-remote-loader/webpack.js";
+
+const __dirname = getFileDirectory(import.meta);
+```
+
+##### createHostConfiguration(moduleName, packageJson, { sharedDependencies })
+
+```ts
+import { createHostConfiguration } from "wmfnext-remote-loader/webpack.js";
+import packageJson from "./package.json" assert { type: "json" };
+import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
+
+const config = createHostConfiguration("host", packageJson);
+const plugin = new ModuleFederationPlugin(config);
+```
+
+##### createModuleConfiguration(moduleName, packageJson, { sharedDependencies })
+
+```ts
+import { createModuleConfiguration } from "wmfnext-remote-loader/webpack.js";
+import packageJson from "./package.json" assert { type: "json" };
+import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
+
+const config = createModuleConfiguration("remote1", packageJson);
+const plugin = new ModuleFederationPlugin(config);
+```
+
+##### createHostPlugin(moduleName, packageJson, { sharedDependencies })
+
+```ts
+import { createHostPlugin } from "wmfnext-remote-loader/webpack.js";
+import packageJson from "./package.json" assert { type: "json" };
+
+const plugin = createHostPlugin("host", packageJson);
+```
+
+##### createModulePlugin(moduleName, packageJson, { sharedDependencies })
+
+```ts
+import { createModulePlugin } from "wmfnext-remote-loader/webpack.js";
+import packageJson from "./package.json" assert { type: "json" };
+
+const plugin = createModulePlugin("remote1", packageJson);
+```
+
+### wmfnext-fakes package
+
+#### Session manager({ key })
+
+```ts
+import { SessionManager } from "wmfnext-fakes";
+
+const sessionManager = new SessionManager();
+
+sessionManager.setSession({ username: "Foo" });
+
+const session = sessionManager.getSession();
+
+sessionManager.clearSession();
+```
 
 ## 🙏 Contributors guide
 

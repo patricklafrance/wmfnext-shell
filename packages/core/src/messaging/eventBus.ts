@@ -10,12 +10,10 @@ export interface EventBusOptions {
 }
 
 export interface AddListenerOptions {
-    context?: unknown;
     once?: boolean;
 }
 
 export interface RemoveListenerOptions {
-    context?: unknown;
     once?: boolean;
 }
 
@@ -28,16 +26,16 @@ export class EventBus {
         this._logger = logger;
     }
 
-    addListener(eventName: EventName, callback: EventCallbackFunction, { context, once }: AddListenerOptions = {}) {
+    addListener(eventName: EventName, callback: EventCallbackFunction, { once }: AddListenerOptions = {}) {
         if (once === true) {
-            this._eventEmitter.once(eventName, callback, context);
+            this._eventEmitter.once(eventName, callback);
         } else {
-            this._eventEmitter.addListener(eventName, callback, context);
+            this._eventEmitter.addListener(eventName, callback);
         }
     }
 
-    removeListener(eventName: EventName, callback: EventCallbackFunction, { context, once }: RemoveListenerOptions = {}) {
-        this._eventEmitter.removeListener(eventName, callback, context, once);
+    removeListener(eventName: EventName, callback: EventCallbackFunction, { once }: RemoveListenerOptions = {}) {
+        this._eventEmitter.removeListener(eventName, callback, once);
     }
 
     dispatch(eventName: EventName, data?: unknown) {
