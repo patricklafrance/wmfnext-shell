@@ -8,6 +8,8 @@ Webpack Module Federation is a great infrastructure piece to share code and depe
 
 This shell add a very thin layer on top of Webpack Module Federation by complementing the sharing mecanism with additional functionalities. Those functionalities aims to gentle the adoption of a federated application architecture by offering an opinionated direction on how it should be implemented.
 
+### Guiding principles
+
 It works like this:
 
 1. At bootstrap, the host application will try to load the predefined modules and call a registration function matching a specific name and signature for each module who successfully loaded.
@@ -24,11 +26,11 @@ Oh, there's one more thing.. A module is considered as an independent codebase m
 
 Loading remote modules at runtime with Webpack Module Federation is the reason why this shell exist and what we recommend products to aim for. It enables teams to be fully autonomous by deploying their module independently from the other parts of the application.
 
-However, we understand that teams working on mature products will most likely prefer to gradually migrate toward a distributed architecture by first extracting subdomains into independent modules in their actual monolithic setup before fully committing to remote modules loaded at runtime.
+However, we understand that _teams working on mature products_ will most likely prefer to _gradually migrate toward a distributed architecture_ by first extracting subdomains into independent modules in their actual monolithic setup before fully committing to remote modules loaded at runtime.
 
 To faciliate the transition, this shell also support static modules registered at build time.
 
-A static module is a local bundle of code exposing a registration function. A registration function could either be imported from a standalone package, a sibling project in a monorepos setup, or even a local folder of the host application.
+A static module is a local code bundle exposing a registration function. A registration function could either be imported from a standalone package, a sibling project in a monorepos setup, or even a local folder of the host application.
 
 Remote and static modules can both be used in the same application as this shell support dual bootstrapping, e.g. an application could be configured to load a few remote modules at runtime and also register a few static modules at build time.
 
@@ -51,6 +53,7 @@ Remote and static modules can both be used in the same application as this shell
     - [Use the event bus](#use-the-event-bus)
     - [Share a custom service](#share-a-custom-service)
     - [Use a custom logger](#use-a-custom-logger)
+    - [Data and state](#data-and-state)
     - [Develop a module in isolation](#develop-a-module-in-isolation)
 - [API](#-api)
     - [wmfnext-shell package](#wmfnext-shell-package)
@@ -338,10 +341,6 @@ In the following guides, we'll go step by step through the creation of a federat
     <img alt="Target application" src="./app-light.drawio.svg#gh-light-mode-only" />
 </p>
 
-> **Warning**
->
-> Some parts of the application has been intentionally omitted from the code samples to put emphasis on the more important ones.
-
 ### Setup an host application
 
 👉 The first thing to do is to create an host application. According to [Webpack Module Federation](https://webpack.js.org/concepts/module-federation/) best practices we'll create 3 files:
@@ -368,8 +367,6 @@ export function App() {
 
 👉 Then, create an `index.ts` file with a dynamic import to the `bootstrap.tsx` file.
 
-> **Note**
->
 > This indirection is called an "async boundary". It is needed so Webpack can load all the remote modules and their dependencies before rendering the host
 > application. Additional information is available [here](https://dev.to/infoxicator/module-federation-shared-api-ach#using-an-async-boundary).
 >
@@ -494,6 +491,8 @@ export default {
 ```
 </details>
 
+> **Note**
+>
 > If you are using a [CommonJS](https://en.wikipedia.org/wiki/CommonJS) Webpack configuration file, import the `createHostPlugin()` function from `wmfnext-remote-loader/webpack.cjs` instead.
 
 You probably noticed that the `ModuleFederationPlugin` is created by the `createHostPlugin()` function.
@@ -600,6 +599,8 @@ registerRemoteModules(Remotes, runtime)
     });
 ```
 
+> **Note**
+>
 > The `registerRemoteModules()` function can only be called once. Trying to call the function twice will throw an error.
 
 👉 Start the host application with the `dev` command. You should see a page displaying _"Hello world!"_. Even if the remote module application has not been created yet, the host application will render what is currently available. In this case, it's the default page of the host application.
@@ -736,6 +737,8 @@ export default {
 ```
 </details>
 
+> **Note**
+>
 > If you are using a [CommonJS](https://en.wikipedia.org/wiki/CommonJS) Webpack configuration file, import the `createModulePlugin()` function from `wmfnext-remote-loader/webpack.cjs` instead.
 
 The `createModulePlugin()` function serve the same purpose as the `createHostPlugin()` but return a `ModuleFederationPlugin` instance configured for a remote module application instead.
@@ -754,7 +757,7 @@ The `createModulePlugin()` function serve the same purpose as the `createHostPlu
 
 Now, as stated in the introduction of this document, the purpose of the shell is to provide an _opinionated direction_ on how to _implement a federation application_.
 
-Our first take is that a module should _always match a subdomain_ of the application business domain and should _only export pages_.
+💡 Our first take is that a module should _always match a subdomain_ of the application business domain and should _only export pages_.
 
 To do so, by convention, a remote module must only share a single file named `register.tsx` exporting a `register(runtime, context)` function responsible of registering the pages and navigation items of the remote module.
 
@@ -1245,7 +1248,7 @@ We now have a federated SPA displaying pages from a remote module application lo
 
 Still, _teams are not fully autonomous yet_ as links to pages are hardcoded in the host application layout. To change those links, teams have to coordinate with each others.
 
-Our second take is that a module should be fully autonomous. It shouldn't have to coordinate with other parts of the application for things as trivial such as navigation links.
+💡 Our second take is that a module should be fully autonomous. It shouldn't have to coordinate with other parts of the application for things that are as trivial as navigation links.
 
 To _enable fully autonomous teams_, the shell has built-in support for dynamic navigation items. With this feature, a module can dynamically register it's navigation items at registration.
 
@@ -1780,9 +1783,9 @@ Since the `sessionManager` instance has access to the user session and the `sess
 
 There's 2 way for a module to access the user session:
 
-1. By using the `useSession()` hook.
+1. By using the `useSession()` hook
 
-2. By using the `getSession()` function of the `runtime` instance.
+2. By using `runtime.getSession()`
 
 👉 Now, for the host application and the remote module to share the same `Session` type, there's no secret magic sauce, a shared package must be created. For this example, we'll add a `shared` project to the host application monorepos.
 
@@ -1803,7 +1806,7 @@ packages
 
 > **Note**
 >
-> To keep things simple, every shared assets will be added to a single shared package. When developing a real application, we recommend splitting shared assets in multiple standalone packages to maximise dependency segregation, improve cohesion and minimize the scope of updates.
+> For the sake of this demo, every shared assets will be added to a single shared package. When developing a real application, we recommend splitting shared assets in multiple standalone packages to maximise dependency segregation, improve cohesion and minimize the scope of updates.
 
 👉 First, create the new shared project and add the `Session` type.
 
@@ -1939,7 +1942,7 @@ export default {
 
 ### Use the event bus
 
-Our third take is that a federated application should feel homogenous. Parts of the application should communicate with each others and react to changes happening outside of their boundaries.
+💡 Our third take is that a federated application should feel homogenous. Parts of the application should communicate with each others and react to changes happening outside of their boundaries.
 
 To enable a loosely coupled communication between the parts of the application, the shell offer a basic implementation of a pub/sub mecanism called the event bus.
 
@@ -1990,9 +1993,13 @@ In this example, the `RootLayout` component is using the `useEventBusListener(ev
 
 There's 2 way to liste to events:
 
-1. Use the `useEventBusListener()` hook as we did in the previous example. It's convenient for components as the listener will be disposed automatically on re-renders.
+1. Use the `useEventBusListener()` hook as we did in the previous example. It's convenient for components as the listener will be disposed automatically when the components is disposed.
 
 2. Access the event bus directly from the `runtime` instance with `runtime.eventBus`.
+
+> **Note**
+>
+> To prevent the event listener from being removed through re-renders, it's important to provide a memoized function.
 
 👉 Next, add a new page to the remote module application to dispatch increment events.
 
@@ -2221,6 +2228,12 @@ const runtime = new Runtime({
 [shell] Found 1 static modules to register
 [custom-logger] [shell] Found 1 static modules to register
 ```
+
+### Data and state
+
+This shell doesn't offer any build-in feature to handle data and state management. Why?
+
+💡 It's time for our 4th take! Data and state should never be shared between parts of the federated application.
 
 ### Develop a module in isolation
 
