@@ -10,7 +10,7 @@ This shell add a very thin layer on top of Webpack Module Federation by compleme
 
 It works like this:
 
-1. At bootstrap, the host application will try to load the predefined modules and call a registration function matching a specific name and signature for each module who successfully loaded. 
+1. At bootstrap, the host application will try to load the predefined modules and call a registration function matching a specific name and signature for each module who successfully loaded.
 
 2. During it's registration, a module will receive the shared services of the federation application and use them to dynamically register it's routes and navigation items.
 
@@ -24,7 +24,7 @@ Oh, there's one more thing.. A module is considered as an independent codebase m
 
 Loading remote modules at runtime with Webpack Module Federation is the reason why this shell exist and what we recommend products to aim for. It enables teams to be fully autonomous by deploying their module independently from the other parts of the application.
 
-However, we understand that teams working on mature products will most likely prefer to gradually migrate toward a distributed architecture by first extracting subdomains into independent modules in their actual monolithic setup before fully committing to remote modules loaded at runtime. 
+However, we understand that teams working on mature products will most likely prefer to gradually migrate toward a distributed architecture by first extracting subdomains into independent modules in their actual monolithic setup before fully committing to remote modules loaded at runtime.
 
 To faciliate the transition, this shell also support static modules registered at build time.
 
@@ -356,7 +356,7 @@ export function App() {
 
 👉 Then, create an `index.ts` file with a dynamic import to the `bootstrap.tsx` file.
 
-> **Note** 
+> **Note**
 >
 > This indirection is called an "async boundary". It is needed so Webpack can load all the remote modules and their dependencies before rendering the host
 > application. Additional information is available [here](https://dev.to/infoxicator/module-federation-shared-api-ach#using-an-async-boundary).
@@ -384,7 +384,7 @@ root.render(
 );
 ```
 
-> **Note** 
+> **Note**
 >
 > If your application is not loading any remote modules, skip the `bootstrap.tsx` file and move the previous code to the `index.ts` file.
 
@@ -400,7 +400,7 @@ import packageJson from "./package.json" assert { type: "json" };
 
 export default {
     plugins: [
-        // Only use the ModuleFederationPlugin plugin if you 
+        // Only use the ModuleFederationPlugin plugin if you
         // are loading remote modules at runtime.
         createHostPlugin("host", packageJson)
     ]
@@ -471,7 +471,7 @@ export default {
         extensions: [".js", ".ts", ".tsx", ".css"]
     },
     plugins: [
-        // Only use the ModuleFederationPlugin plugin if you 
+        // Only use the ModuleFederationPlugin plugin if you
         // are loading remote modules at runtime.
         createHostConfiguration("host", packageJson),
         new HtmlWebpackPlugin({
@@ -486,7 +486,7 @@ export default {
 
 You probably noticed that the `ModuleFederationPlugin` is created by the `createHostPlugin()` function.
 
-The `createHostPlugin()` function is a built-in utility function to help configure the federation plugin by enforcing the shell conventions and adding the mandatory shared dependencies. 
+The `createHostPlugin()` function is a built-in utility function to help configure the federation plugin by enforcing the shell conventions and adding the mandatory shared dependencies.
 
 The function accept as it's first parameter the name of the application and as a second parameter a `package.json` configuration. At build time, the function will parse the package configuration in search of the version of the mandatory shared dependencies of the shell.
 
@@ -549,8 +549,8 @@ const Remotes: RemoteDefinition[] = [
     }
 ];
 
-// Instanciate a runtime instance to share among the host and the modules. 
-// The runtime instance will give modules access to functionalities such as 
+// Instanciate a runtime instance to share among the host and the modules.
+// The runtime instance will give modules access to functionalities such as
 // routing and navigation.
 const runtime = new Runtime({
     // The shell comes with a basic console logger.
@@ -570,9 +570,9 @@ root.render(
 
 > The remote modules are registered in the `bootstrap.ts` file rather than the `App.tsx` file as they must be loaded inside the "async boundary".
 
-At bootstrap, the `registerRemoteModules(modules, runtime)` function will try to asynchronously load the provided modules, then register every module who succesfully loaded. 
+At bootstrap, the `registerRemoteModules(modules, runtime)` function will try to asynchronously load the provided modules, then register every module who succesfully loaded.
 
-If an error occurs during the process, an message will automatically be logged with the runtime logger. 
+If an error occurs during the process, an message will automatically be logged with the runtime logger.
 
 If you prefer to manually deal with errors, you can chain an handler to the returned [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) object.
 
@@ -594,7 +594,7 @@ registerRemoteModules(Remotes, runtime)
 
 ### Setup a remote application
 
-Now that we have a working host application, it's time to create our first module. 
+Now that we have a working host application, it's time to create our first module.
 
 We'll start with the following files.
 
@@ -726,7 +726,7 @@ export default {
 
 > If you are using a [CommonJS](https://en.wikipedia.org/wiki/CommonJS) Webpack configuration file, import the `createModulePlugin()` function from `wmfnext-remote-loader/webpack.cjs` instead.
 
-The `createModulePlugin()` function serve the same purpose as the `createHostPlugin()` but return a `ModuleFederationPlugin` instance configured for a remote module application instead. 
+The `createModulePlugin()` function serve the same purpose as the `createHostPlugin()` but return a `ModuleFederationPlugin` instance configured for a remote module application instead.
 
 👉 Finally, add your [TypeScript configuration](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) at the root of the project and a command in the `package.json` file to start Webpack in development mode.
 
@@ -740,7 +740,7 @@ The `createModulePlugin()` function serve the same purpose as the `createHostPlu
 
 👉 Start the remote module application with the `dev` command. You should see a page displaying __Hello from remote!__.
 
-Now, as stated in the introduction of this document, the purpose of the shell is to provide an _opinionated direction_ on how to _implement a federation application_. 
+Now, as stated in the introduction of this document, the purpose of the shell is to provide an _opinionated direction_ on how to _implement a federation application_.
 
 Our first take is that a module should _always match a subdomain_ of the application business domain and should _only export pages_.
 
@@ -834,7 +834,7 @@ export function App() {
 
 👉 Start the application to validate that the home page successfully render.
 
-That's great progress but the home page is a local page of the host application, there's nothing fancy here! To render federated routes, there are a few other additions to make. 
+That's great progress but the home page is a local page of the host application, there's nothing fancy here! To render federated routes, there are a few other additions to make.
 
 👉 First, retrieve the module routes with the `useRoutes()` hook and add those routes to the router.
 
@@ -952,7 +952,7 @@ To fix this, the host application must re-render once the remote module is regis
 > - Using a library like Redux to manage it's state
 > - Strictly using static modules
 
-To help with that, the shell comes with a build-in `useAreRemotesReady()` hook. 
+To help with that, the shell comes with a build-in `useAreRemotesReady()` hook.
 
 The `useAreRemotesReady()` hook takes care of re-rerendering the app once all the remote modules are ready (registered) and return a `boolean` value indicating if the remote applications are ready. This is useful as you'll probably want to show a loading indicator while the remote modules registration is pending.
 
@@ -1047,7 +1047,7 @@ export function RootLayout() {
         <div>
             <nav>
                 <ul>
-                    {/* Remove the home page from the links and update the "Remote1/Page1" 
+                    {/* Remove the home page from the links and update the "Remote1/Page1"
                         page link "to" property to "/" as it's now the index route.
                     */}
                     <li><Link to="/">Remote1/Page1 - Home</Link></li>
@@ -1414,12 +1414,12 @@ export function RootErrorBoundary() {
     const location = useLocation();
     const logger = useLogger();
 
-    logger.error(`[shell] An unmanaged error occured while rendering the 
+    logger.error(`[shell] An unmanaged error occured while rendering the
         route with path ${location.pathname}`, error);
 
     return (
         <p className="error-message">
-            An unmanaged error occured insisde a module and other parts of the application 
+            An unmanaged error occured insisde a module and other parts of the application
             are still fully functional!
             <br />
             <span role="img" aria-label="pointer">👉</span> {getErrorMessage(error)}
@@ -1461,7 +1461,7 @@ export function App() {
 }
 ```
 
-As the pathless route with the error boundary has been declared under the root layout route, when an unmanaged error bubbles up, the `Outlet` component output is replaced by the `RootErrorBoundary` component output. hence, other parts of the `RootLayout` component, like the navigation section are still rendered. 
+As the pathless route with the error boundary has been declared under the root layout route, when an unmanaged error bubbles up, the `Outlet` component output is replaced by the `RootErrorBoundary` component output. hence, other parts of the `RootLayout` component, like the navigation section are still rendered.
 
 👉 Next, add a new route throwing an error to the remote module.
 
@@ -1555,7 +1555,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 };
 ```
 
-By setting the `hoist` property to `true` for the _"Remote1/Page 2"_ route, we tell the shell to add this page at the root of the router rather than under the root layout of the host application. 
+By setting the `hoist` property to `true` for the _"Remote1/Page 2"_ route, we tell the shell to add this page at the root of the router rather than under the root layout of the host application.
 
 Since the page is not rendered within the boundaries of the host application root layout, we can now set a custom layout to the _"Remote1/Page 2"_ page by nesting the route under a new layout.
 
@@ -1611,7 +1611,7 @@ export function App() {
 }
 ```
 
-A `wrapManagedRoutes` option is passed to the `useHoistedRoutes()` hook. This is an optional function allowing the caller to nest the *"non hoisted routes"* under a specific route. 
+A `wrapManagedRoutes` option is passed to the `useHoistedRoutes()` hook. This is an optional function allowing the caller to nest the *"non hoisted routes"* under a specific route.
 
 In this example, the `wrapManagedRoutes` option is used to wrap all the _"non hoisted routes"_ under the `RootLayout` component and the `RootErrorBoundary` to isolate module failures.
 
@@ -1828,7 +1828,7 @@ export default function Page5() {
 }
 ```
 
-👉 Then, add references to the newly created `wmfnext-shared` package to the host application and both module applications and start everything. 
+👉 Then, add references to the newly created `wmfnext-shared` package to the host application and both module applications and start everything.
 
 To test that the session is shared:
 
@@ -1853,7 +1853,7 @@ function AuthenticationBoundary() {
 export function App() {
     const wrapManagedRoutes = useCallback((managedRoutes: Readonly<Route[]>) => {
         return {
-            // New pathless route to set an authentication boundary around the 
+            // New pathless route to set an authentication boundary around the
             // managed routes of the application.
             element: <AuthenticationBoundary />,
             children: [
@@ -1967,7 +1967,7 @@ export function RootLayout() {
 }
 ```
 
-In this example, the `RootLayout` component is using the `useEventBusListener(eventName, callback, options)` hook to listen for increment events. 
+In this example, the `RootLayout` component is using the `useEventBusListener(eventName, callback, options)` hook to listen for increment events.
 
 There's 2 way to liste to events:
 
@@ -2421,7 +2421,9 @@ The `dev-local` command is very similar to the `dev` command but define a `LOCAL
 
 👉 Next, update the `webpack.dev.js` file to leverage the `LOCAL` environment variable.
 
-```js
+```js filename=webpack.dev.js
+// remote - webpack.dev.js
+
 import { createModulePlugin, isLocal } from "wmfnext-shared/webpack.js";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import packageJson from "./package.json" assert { type: "json" };
@@ -2433,13 +2435,15 @@ export default {
         isLocal
             ? new HtmlWebpackPlugin({ template: "./public/index.html" })
             : createModulePlugin("remote1", packageJson)
-    ].filter(Boolean)
+    ]
 };
 ```
 
 👉 Start the local application with the `dev-local` command. The federated application shell should render with the index route of your module.
 
 #### Static modules
+
+Putting in place a setup 
 
 - Add a webpack config
 - Add a yarn command
