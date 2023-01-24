@@ -167,14 +167,6 @@ Compile all the packages & start watch mode.
 yarn dev
 ```
 
-#### dev-core
-
-Compile the core package & start watch mode.
-
-```bash
-yarn dev-core
-```
-
 ### build
 
 Build all the packages and Storybook for production.

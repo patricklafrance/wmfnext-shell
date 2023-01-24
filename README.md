@@ -2849,10 +2849,6 @@ const handleFoo = (data, context) => {
     // do something...
 }
 
-const context = {
-    toto: "toto"
-};
-
 eventBus.addListener("foo", handleFoo);
 eventBus.removeListener("foo", handleFoo);
 
