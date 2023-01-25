@@ -8,9 +8,7 @@ Webpack Module Federation is a great infrastructure piece to share code and depe
 
 This shell add a very thin layer on top of Webpack Module Federation by complementing the sharing mecanism with additional functionalities. Those functionalities aims to gentle the adoption of a federated application architecture by offering an opinionated direction on how it should be implemented.
 
-### Guiding principles
-
-It works like this:
+### Here's how it works
 
 1. At bootstrap, the host application will try to load the predefined modules and call a registration function matching a specific name and signature for each module who successfully loaded.
 
@@ -336,6 +334,7 @@ export default {
 
 In the following guides, we'll go step by step through the creation of a federated SPA leveraging this shell. As we progress, we'll add more parts to ultimately end up with an application matching the following diagram.
 
+<br />
 <p align="center">
     <img alt="Target application" src="./app-dark.drawio.svg#gh-dark-mode-only" />
     <img alt="Target application" src="./app-light.drawio.svg#gh-light-mode-only" />
@@ -2233,7 +2232,9 @@ const runtime = new Runtime({
 
 This shell doesn't offer any build-in feature to handle data and state management. Why?
 
-💡 It's time for our 4th take! Data and state should never be shared between parts of the federated application.
+💡 It's our 4th take! Data and state should never be shared between parts of a federated application. Even if 2 parts needs the same data or the same state values, they should load, store and manage those independently.
+
+The event bus can used to help with synchronization but it should never be coupled.
 
 ### Develop a module in isolation
 
