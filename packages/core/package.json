@@ -1,7 +1,7 @@
 {
   "$schema": "http://json.schemastore.org/package",
   "name": "wmfnext-shell",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Shell for a federated application",
   "author": "Patrick Lafrance",
   "license": "Apache-2.0",

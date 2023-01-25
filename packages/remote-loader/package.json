@@ -1,7 +1,7 @@
 {
   "$schema": "http://json.schemastore.org/package",
   "name": "wmfnext-remote-loader",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Loader for remote modules using Webpack Module Federation",
   "author": "Patrick Lafrance",
   "license": "Apache-2.0",
@@ -41,6 +41,6 @@
     "webpack": ">=5.0.0"
   },
   "dependencies": {
-    "wmfnext-shell": "0.0.1"
+    "wmfnext-shell": "0.1.0"
   }
 }
