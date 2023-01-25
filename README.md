@@ -336,8 +336,8 @@ In the following guides, we'll go step by step through the creation of a federat
 
 <br />
 <p align="center">
-    <img alt="Target application" src="./diagram-dark.png#gh-dark-mode-only" />
-    <img alt="Target application" src="./diagram-light.png#gh-light-mode-only" />
+    <img alt="Target application" src="./diagram-dark.svg#gh-dark-mode-only" />
+    <img alt="Target application" src="./diagram.svg#gh-light-mode-only" />
 </p>
 
 ### Setup an host application
