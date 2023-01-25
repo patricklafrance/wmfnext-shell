@@ -3006,7 +3006,7 @@ const plugin = createModulePlugin("remote1", packageJson);
 
 ### wmfnext-fakes package
 
-#### Session manager({ key })
+##### SessionManager({ key })
 
 ```ts
 import { SessionManager } from "wmfnext-fakes";
