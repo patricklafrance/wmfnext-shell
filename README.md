@@ -16,13 +16,13 @@ This shell adds a thin layer on top of Webpack Module Federation by complementin
 
 3. Once all the remote modules are registered, the host application will create a React Router instance with the registered routes and will also render a navigation menu with the registered navigation items.
 
-That's it in a nutshell! Of course, there's more to it, but those are the main ideas.
+That's it in a nutshell. Of course, there's more to it, but those are the main ideas.
 
 One more thing, a module is always a set of pages for a unique subdomain of the application. There is no such thing as loading a standalone remote component with this shell.
 
 ### Remote modules vs Static modules
 
-Loading remote modules at runtime with Webpack Module Federation is the reason why this shell exists and what we recommend products to aim for. It enables teams to be fully autonomous by deploying their module independently from the other parts of the application.
+Loading remote modules at runtime with Webpack Module Federation is the reason why this shell exists and it is what we recommend products to aim for. It enables teams to be fully autonomous by deploying their modules independently from the other parts of the application.
 
 However, we understand that _teams working on mature products_ will most likely prefer to _gradually migrate towards a distributed architecture_ by first extracting subdomains into independent modules in their current monolithic setup before fully committing to remote modules loaded at runtime.
 
