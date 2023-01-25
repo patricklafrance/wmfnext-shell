@@ -8,7 +8,7 @@ Webpack Module Federation is a great infrastructure piece to share code and depe
 
 This shell add a very thin layer on top of Webpack Module Federation by complementing the sharing mecanism with additional functionalities. Those functionalities aims to gentle the adoption of a federated application architecture by offering an opinionated direction on how it should be implemented.
 
-### Here's how it works
+### Here's how it works:
 
 1. At bootstrap, the host application will try to load the predefined modules and call a registration function matching a specific name and signature for each module who successfully loaded.
 
