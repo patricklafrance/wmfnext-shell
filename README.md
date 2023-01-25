@@ -4,7 +4,7 @@
 >
 > This repository packages will not be maintained as it's purpose is to inspire teams by showcasing how a federated SPA could be build on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/).
 
-Webpack Module Federation is a powerful tool for sharing code and dependencies across independent codebases. However, as it is, it can be a bit raw as it is a low-level mechanism.
+Webpack Module Federation is a powerful tool for sharing code and dependencies across independent codebases. However, as is, it's pretty raw as it's a low level mecanism.
 
 This shell adds a thin layer on top of Webpack Module Federation by complementing the sharing mechanism with additional functionalities. These functionalities aim to ease the adoption of a federated application architecture by providing an opinionated direction on how it should be implemented.
 
@@ -18,7 +18,7 @@ This shell adds a thin layer on top of Webpack Module Federation by complementin
 
 That's it in a nutshell! Of course, there's more to it, but those are the main ideas.
 
-One more thing, a module is considered as an independent codebase matching a unique subdomain of the application. There is no such thing as loading a standalone remote component with this shell.
+One more thing, a module is always a set of pages for a unique subdomain of the application. There is no such thing as loading a standalone remote component with this shell.
 
 ### Remote modules vs Static modules
 
