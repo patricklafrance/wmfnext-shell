@@ -2,7 +2,7 @@
 
 > **Warning**
 >
-> This repository packages will not be maintained as it's purpose is to inspire teams by showcasing how a federated SPA could be build on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/).
+> This repository will not be maintained as it's purpose is to inspire teams by showcasing how a federated SPA could be build on top of [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) and [React Router](https://reactrouter.com/).
 
 Webpack Module Federation is a powerful tool for sharing code and dependencies across independent codebases. However, as is, it's pretty raw as it's a low level mecanism.
 
@@ -82,8 +82,8 @@ Both remote and static modules can be used in the same application as this shell
 
 ## 🎉 Examples
 
-- [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) is an example of an host application. The repository also includes a static module example
-- [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) is an example of a remote module
+- [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) is an example of an host application. The repository also includes a static module example.
+- [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) is an example of a remote module.
 
 ## 🤘 Installation
 
@@ -262,7 +262,7 @@ import packageJson from "../package.json" assert { type: "json" };
 
 export default {
     plugins: [
-        createHostConfiguration("host", packageJson)
+        createHostPlugin("host", packageJson)
     ]
 }
 ```
@@ -1253,7 +1253,7 @@ export function RootLayout() {
 }
 ```
 
-👉 Finally, add your [TypeScript configuration](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) to the root of the project and include a command in the `package.json` file to transpile the code using the `tsc` CLI.
+👉 And, add your [TypeScript configuration](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) to the root of the project and include a command in the `package.json` file to transpile the code using the `tsc` CLI.
 
 ```json
 {
@@ -1262,6 +1262,7 @@ export function RootLayout() {
     }
 }
 ```
+👉 Finally, update the host application's file `package.json` file to add a reference to the newly created `wmfnext-static-module-1` package.
 
 👉 Start the static module project with the `dev` command, then start the applications and libraries. Navigate to _"static1/page-1"_ and _"static1/page-2"_, the pages should render without any errors.
 

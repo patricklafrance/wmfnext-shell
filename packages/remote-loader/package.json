@@ -10,7 +10,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "/dist"
+    "/dist",
+    "webpack.cjs",
+    "webpack.js"
   ],
   "engines": {
     "node": ">=19"
