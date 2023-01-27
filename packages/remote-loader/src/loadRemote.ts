@@ -11,9 +11,12 @@ function loadRemoteScript(url: string, { timeoutDelay = 2000 }: LoadRemoteScript
         element.async = true;
 
         let timeoutId = undefined;
+        let hasCanceled = false;
 
         function cancel(error: unknown) {
-            document.head.removeChild(element);
+            hasCanceled = true;
+
+            element?.parentElement?.removeChild(element);
 
             reject({
                 error,
@@ -24,19 +27,21 @@ function loadRemoteScript(url: string, { timeoutDelay = 2000 }: LoadRemoteScript
         element.onload = () => {
             clearTimeout(timeoutId);
 
-            document.head.removeChild(element);
+            element?.parentElement?.removeChild(element);
             resolve({});
         };
 
         element.onerror = (error: unknown) => {
-            clearTimeout(timeoutId);
+            if (!hasCanceled) {
+                clearTimeout(timeoutId);
 
-            document.head.removeChild(element);
+                element?.parentElement?.removeChild(element);
 
-            reject({
-                error,
-                hasCanceled: false
-            });
+                reject({
+                    error,
+                    hasCanceled: false
+                });
+            }
         };
 
         document.head.appendChild(element);
