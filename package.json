@@ -35,7 +35,7 @@
     "new-version": "lerna version --exact --no-push --loglevel verbose",
     "publish-pkg": "lerna publish from-package --exact --loglevel verbose",
     "push-release": "node ./scripts/push-release",
-    "release": "cross-env NODE_ENV=production run-s build-pkg publish-pkg",
+    "release": "cross-env NODE_ENV=production run-s build publish-pkg",
     "reset": "run-s --continue-on-error reset:pkg reset:root",
     "reset:pkg": "lerna run reset --no-bail",
     "reset:root": "run-s --continue-on-error clean:root delete-yarn-lock delete-node-modules",
