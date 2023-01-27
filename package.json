@@ -19,8 +19,9 @@
     "pre-dev": "yarn clean",
     "dev": "lerna run dev --parallel",
     "check-types": "yarn delete-ts-cache && tsc",
-    "clean": "run-p --continue-on-error clean:pkg delete-ts-cache",
+    "clean": "run-p --continue-on-error clean:*",
     "clean:pkg": "lerna run clean --no-bail",
+    "clean:root": "yarn delete-ts-cache",
     "delete-node-modules": "run-s -c delete-node-modules:*",
     "delete-node-modules:pkg": "lerna clean --yes",
     "delete-node-modules:root": "rimraf node_modules",
@@ -35,7 +36,9 @@
     "publish-pkg": "lerna publish from-package --exact --loglevel verbose",
     "push-release": "node ./scripts/push-release",
     "release": "cross-env NODE_ENV=production run-s build-pkg publish-pkg",
-    "reset": "run-s -c clean delete-yarn-lock delete-node-modules",
+    "reset": "run-s --continue-on-error reset:pkg reset:root",
+    "reset:pkg": "lerna run reset --no-bail",
+    "reset:root": "run-s --continue-on-error clean:root delete-yarn-lock delete-node-modules",
     "setup": "yarn lerna bootstrap && lerna run setup"
   },
   "devDependencies": {

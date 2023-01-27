@@ -21,19 +21,19 @@
     "access": "public"
   },
   "scripts": {
-    "prebuild": "yarn clean:files",
+    "prebuild": "yarn clean",
     "build": "run-p build:*",
     "build:esm": "tsc --build ./tsconfig.build.esm.json",
     "build:cjs": "tsc --build ./tsconfig.build.cjs.json",
     "postbuild": "yarn rename-to-cjs",
-    "clean": "run-p --continue-on-error clean:files unlink-pkg",
-    "clean:files": "run-p --continue-on-error delete-dist delete-ts-cache",
+    "clean": "run-p --continue-on-error delete-dist delete-ts-cache",
     "delete-dist": "rimraf dist",
     "delete-ts-cache": "rimraf *.tsbuildinfo",
     "dev": "run-p dev:*",
     "dev:esm": "tsc --watch --project ./tsconfig.build.esm.json",
     "dev:cjs": "tsc --watch --project ./tsconfig.build.cjs.json",
     "rename-to-cjs": "node rename-to-cjs.js",
+    "reset": "run-s --continue-on-error clean unlink-pkg",
     "setup": "yarn link",
     "unlink-pkg": "yarn unlink"
   },
