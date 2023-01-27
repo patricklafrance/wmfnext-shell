@@ -1,7 +1,7 @@
 {
   "$schema": "http://json.schemastore.org/package",
   "name": "wmfnext-fakes",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Fake implementations to faciliate the development of federated modules in isolation",
   "author": "Patrick Lafrance",
   "license": "Apache-2.0",
@@ -30,6 +30,6 @@
     "unlink-pkg": "yarn unlink"
   },
   "dependencies": {
-    "wmfnext-shell": "0.1.0"
+    "wmfnext-shell": "0.1.1"
   }
 }
