@@ -13,7 +13,7 @@ function loadRemoteScript(url: string, { timeoutDelay = 2000 }: LoadRemoteScript
         let timeoutId = undefined;
 
         function cancel(error: unknown) {
-            element.parentElement.removeChild(element);
+            document.head.removeChild(element);
 
             reject({
                 error,
@@ -24,14 +24,14 @@ function loadRemoteScript(url: string, { timeoutDelay = 2000 }: LoadRemoteScript
         element.onload = () => {
             clearTimeout(timeoutId);
 
-            element.parentElement.removeChild(element);
+            document.head.removeChild(element);
             resolve({});
         };
 
         element.onerror = (error: unknown) => {
             clearTimeout(timeoutId);
 
-            element.parentElement.removeChild(element);
+            document.head.removeChild(element);
 
             reject({
                 error,
