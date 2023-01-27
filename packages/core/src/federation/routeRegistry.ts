@@ -1,5 +1,4 @@
 import { RouteObject } from "react-router-dom";
-import { deepFreeze } from "../shared";
 
 export type Route = RouteObject;
 
@@ -16,7 +15,7 @@ export class RouteRegistry {
 
     add(routes: RootRoute[]) {
         // Create a new array so the routes array is immutable.
-        this._routes = deepFreeze([...this._routes, ...routes.filter(x => x)]);
+        this._routes = Object.freeze([...this._routes, ...routes.filter(x => x)]);
     }
 
     get routes() {

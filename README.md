@@ -2395,7 +2395,7 @@ For a remote module application to be developed in isolation, there are a few st
 ```tsx
 // remote-1 - index.tsx
 
-import { ConsoleLogger, Runtime, RuntimeContext, registerStaticModules } from "wmfnext-shell";
+import { ConsoleLogger, Runtime, RuntimeContext, deepFreeze, registerStaticModules } from "wmfnext-shell";
 import { Loading, TrackingService, TrackingServiceKey } from "wmfnext-shared";
 import { App } from "./App";
 import type { Session } from "wmfnext-shared";
@@ -2412,11 +2412,13 @@ const runtime = new Runtime({
         [TrackingServiceKey]: new TrackingService()
     },
     sessionAccessor: () => {
-        return {
+        const session = deepFreeze({
             user: {
                 name: "temp"
             }
-        } as Session;
+        });
+
+        return session as Readonly<Session>;
     }
 });
 
@@ -2506,7 +2508,7 @@ Here's what we'll do:
 ```tsx
 // static-1 - index.tsx
 
-import { ConsoleLogger, Runtime, RuntimeContext, registerStaticModules } from "wmfnext-shell";
+import { ConsoleLogger, Runtime, RuntimeContext, deepFreeze, registerStaticModules } from "wmfnext-shell";
 import { Loading, TrackingService, TrackingServiceKey } from "wmfnext-shared";
 
 import { App } from "./App";
@@ -2524,11 +2526,13 @@ const runtime = new Runtime({
         [TrackingServiceKey]: new TrackingService()
     },
     sessionAccessor: () => {
-        return {
+        const session = deepFreeze({
             user: {
                 name: "temp"
             }
-        } as Session;
+        });
+
+        return session as Readonly<Session>;
     }
 });
 

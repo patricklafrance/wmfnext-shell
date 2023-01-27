@@ -1,8 +1,6 @@
 import type { RootRoute, Route } from "./routeRegistry";
 import { useMemo, useState } from "react";
 
-import { deepFreeze } from "../shared";
-
 export type WrapManagedRoutesFunction = (routes: Readonly<Route[]>) => Route;
 
 export interface UseHoistedRoutesOptions {
@@ -60,9 +58,9 @@ export function useHoistedRoutes(routes: Readonly<RootRoute[]>, { wrapManagedRou
 
         const allRoutes = [
             ...hoistedRoutes,
-            ...(wrapManagedRoutes ? [wrapManagedRoutes(deepFreeze(managedRoutes))] : managedRoutes)
+            ...(wrapManagedRoutes ? [wrapManagedRoutes(Object.freeze(managedRoutes))] : managedRoutes)
         ];
 
-        return deepFreeze(allRoutes);
+        return Object.freeze(allRoutes);
     }, [routes, wrapManagedRoutes, memoizedAllowedPaths]);
 }

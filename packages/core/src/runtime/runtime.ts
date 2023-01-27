@@ -11,7 +11,7 @@ export interface RuntimeOptions {
     sessionAccessor?: SessionAccessorFunction;
 }
 
-export type SessionAccessorFunction = () => unknown;
+export type SessionAccessorFunction = () => Readonly<unknown>;
 
 export class Runtime {
     protected _routeRegistry = new RouteRegistry();

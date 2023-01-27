@@ -1,6 +1,5 @@
 import type { LinkProps } from "react-router-dom";
 import type { ReactNode } from "react";
-import { deepFreeze } from "../shared";
 
 export interface NavigationItem extends Omit<LinkProps, "children"> {
     content: ReactNode;
@@ -22,7 +21,7 @@ export class NavigationItemRegistry {
 
     add(navigationItems: RootNavigationItem[]) {
         // Create a new array so the navigation items array is immutable.
-        this._items = deepFreeze([...this._items, ...navigationItems.filter(x => x)]);
+        this._items = Object.freeze([...this._items, ...navigationItems.filter(x => x)]);
     }
 
     get items() {
