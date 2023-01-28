@@ -82,6 +82,7 @@ Both remote and static modules can be used in the same application as this shell
 
 ## 🎉 Examples
 
+- [Live example](https://wmfnext-host.netlify.app) hosted on Netlify
 - [wmfnext-host](https://github.com/patricklafrance/wmfnext-host) is an example of an host application. The repository also includes a static module example.
 - [wmfnext-remote-1](https://github.com/patricklafrance/wmfnext-remote-1) is an example of a remote module.
 
@@ -782,7 +783,7 @@ Now, as stated in the introduction of this document, the purpose of the shell is
 
 💡 Our first take is that a module should _always match a subdomain_ of the application business domain and should _only export pages_.
 
-To do so, by convention, a remote module must only share a single file named `register.tsx` exporting a `register(runtime, context)` function responsible of registering the pages and navigation items of the remote module.
+To do so, by convention, a remote module must share a single file named `remoteEntry.js` and that file must expose a single module named `./register` exporting a `register(runtime, context)` function responsible of registering the pages and navigation items of the remote module.
 
 👉 So, let's create a `register.tsx` file at the root of the remote module application with the following files:
 
