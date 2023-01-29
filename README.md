@@ -2256,7 +2256,7 @@ This shell doesn't offer any build-in feature to handle data and state managemen
 
 ### Develop a module in isolation
 
-To develop their own module, an independent team should not be required to install the host application or any other modules they do not own. However, they should still have a way to integrate with the federated application shell while developping (root layout, root error boundary, etc..).
+To develop their own module, an independent team should not be required to install the host application or any other modules they do not own. However, they should still have a way to integrate with the federated application shell (root layout, root error boundary, etc..) while developing their module in isolation.
 
 To achieve this, the first step is to move the federated application shell to the `wmfnext-shared` package.
 
@@ -2658,7 +2658,7 @@ export default {
 
 #### Runtime
 
-##### Runtime({ loggers, services, sessionAccessor })
+##### class Runtime({ loggers, services, sessionAccessor })
 
 ```ts
 import { Runtime } from "wmfnext-shell";
@@ -2840,7 +2840,7 @@ const renderedNavigationItems = useRenderedNavigationItems(navigationItems, rend
 
 #### Logging
 
-##### Logger
+##### interface Logger
 
 ```ts
 import { Logger } from "wmfnext-shell";
@@ -2854,7 +2854,7 @@ class CustomLogger: Logger {
 }
 ```
 
-##### ConsoleLogger
+##### class ConsoleLogger
 
 ```ts
 import { ConsoleLogger, LogLevel } from "wmfnext-shell";
@@ -2870,7 +2870,7 @@ logger.critical("Critical log");
 
 #### Messaging
 
-##### EventBus({ logger })
+##### class EventBus({ logger })
 
 ```ts
 import { EventBus, ConsoleLogger } from "wmfnext-shell";
@@ -3026,7 +3026,7 @@ const plugin = createModulePlugin("remote1", packageJson);
 
 ### wmfnext-fakes package
 
-##### SessionManager({ key })
+##### class SessionManager({ key })
 
 ```ts
 import { SessionManager } from "wmfnext-fakes";
