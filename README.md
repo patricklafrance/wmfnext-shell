@@ -32,7 +32,7 @@ A static module is a local code bundle exposing a registration function. A regis
 
 Both remote and static modules can be used in the same application as this shell supports dual bootstrapping. For example, an application could be configured to load a few remote modules at runtime and also register a few static modules at build time."
 
-## 📌 Table of content
+## 📌 Table of contents
 
 - [Features](#-features)
 - [Examples](#-examples)
@@ -40,11 +40,11 @@ Both remote and static modules can be used in the same application as this shell
 - [Basic usage](#-basic-usage)
 - [Guides](#-guides)
     - [Setup an host application](#setup-an-host-application)
-    - [Setup a remote application](#setup-a-remote-application)
+    - [Setup a remote module](#setup-a-remote-module)
     - [Register a module routes](#register-a-module-routes)
     - [Re-render the host application after the remote modules are ready](#re-render-the-host-application-after-the-remote-modules-are-ready)
-    - [Setup a static module application](#setup-a-static-module-application)
-    - [Register a module dynamic navigation items](#register-a-module-dynamic-navigation-items)
+    - [Setup a static module](#setup-a-static-module)
+    - [Register a module navigation items](#register-a-module-navigation-items)
     - [Isolate module failures](#isolate-module-failures)
     - [Override the host layout for a module page](#override-the-host-layout-for-a-module-page)
     - [Share a user session](#share-a-user-session)
@@ -94,7 +94,7 @@ To install the packages, [open a terminal in VSCode](https://code.visualstudio.c
 yarn add wmfnext-shell
 ```
 
-If you wish to include remote modules loaded at runtime using [Webpack Module Federation](https://webpack.js.org/concepts/module-federation) also execute the following command at the root of the projects workspaces (host and remote modules):
+If you wish to include remote modules also execute the following command at the root of the projects workspaces (host and every remote module):
 
 ```bash
 yarn add wmfnext-remote-loader
@@ -110,9 +110,9 @@ Once, installed, we recommend that you configure your projects to use [ESM](http
 
 ## 📄 Basic usage
 
-If you don't want to go through our guides, here's a minimal example of how to create a federated SPA using this shell. The example focuses solely on a remote module application and omits static module applications.
+If you don't want to go through our guides, here's a minimal example of how to create a federated SPA using this shell. The example focuses solely on a remote modules and omits static modules.
 
-To learn more about the built-in features/options of this shell and static module applications, refer to the [guides](#-guides) and the [API](#-api) section.
+To learn more about the built-in features/options of this shell and static modules, refer to the [guides](#-guides) and the [API](#-api) section.
 
 ### Host application
 
@@ -270,7 +270,7 @@ export default {
 
 👉 Start the host application, you should see the home page. Even if the remote module application doesn't exist yet, the host application will render what is currently available, e.g. only the host application at the moment.
 
-### Remote module application
+### Remote module
 
 👉 Start by creating a new application with a `register.tsx` file and a page:
 
@@ -327,7 +327,7 @@ export default {
 }
 ```
 
-👉 Start the remote application, then the host application. You should see a navigation item named _"Remote1/Page 1"_. Click on the link to navigate to the federated page.
+👉 Start the remote module application, then the host application. You should see a navigation item named _"Remote1/Page 1"_. Click on the link to navigate to the federated page.
 
 > If you are having issues, make sure that both applications `package.json` files have `react`, `react-dom`, `react-router-dom`, `wmfnext-shell` and `wmfnext-remote-loader` listed in their dependencies. The dependency versions should be the same for both applications.
 
@@ -629,7 +629,7 @@ registerRemoteModules(Remotes, runtime)
 
 👉 Start the host application with the `dev` command. You should see a page displaying _"Hello world!"_. Even if the remote module application has not been created yet, the host application will render what is currently available. In this case, it's the default page of the host application.
 
-### Setup a remote application
+### Setup a remote module
 
 Now that we have a working host application, it's time to create our first module.
 
@@ -785,7 +785,7 @@ Now, as stated in the introduction of this document, the purpose of the shell is
 
 To do so, by convention, a remote module must share a single file named `remoteEntry.js` and that file must expose a single module named `./register` exporting a `register(runtime, context)` function responsible of registering the pages and navigation items of the remote module.
 
-👉 So, let's create a `register.tsx` file at the root of the remote module application with the following files:
+👉 So, let's create a `register.tsx` file at the root of the remote module project with the following files:
 
 ```
 remote-app
@@ -923,7 +923,7 @@ export function App() {
 }
 ```
 
-👉 Then update the remote module application `register.tsx` file to register a few routes with the `runtime.registerRoutes(routes)` function:
+👉 Then update the remote module `register.tsx` file to register a few routes with the `runtime.registerRoutes(routes)` function:
 
 ```tsx
 // remote-1 - register.tsx
@@ -1121,7 +1121,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 > If you are still having issues, make sure that both applications `package.json` files have `react`, `react-dom`, `react-router-dom`, `wmfnext-shell` and `wmfnext-remote-loader` listed in their dependencies. The dependency versions should be the same for the host and the module application.
 
-### Setup a static module application
+### Setup a static module
 
 This shell also supports static modules loaded at build time to accomodate different migration scenarios.
 
@@ -1265,11 +1265,11 @@ export function RootLayout() {
 ```
 👉 Finally, update the host application's file `package.json` file to add a reference to the newly created `wmfnext-static-module-1` package.
 
-👉 Start the static module project with the `dev` command, then start the applications and libraries. Navigate to _"static1/page-1"_ and _"static1/page-2"_, the pages should render without any errors.
+👉 Start the applications with the `dev` command and navigate to _"static1/page-1"_ and _"static1/page-2"_, the pages should render without any errors.
 
-### Register a module dynamic navigation items
+### Register a module navigation items
 
-We now have a federated SPA displaying pages from a remote module application loaded at runtime and a static module application registered at build time.
+We now have a federated SPA displaying pages from a remote module loaded at runtime and a static module registered at build time.
 
 Still, _teams are not fully autonomous yet_ as links to pages are hardcoded in the host application layout. To change those links, teams have to coordinate with each others.
 
@@ -1537,7 +1537,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 };
 ```
 
-👉 Start the applications and libraries and navigate to the _"remote1/page-3"_ page. The page will throw an error but other parts of the application should still be functional.
+👉 Start the applications and navigate to the _"remote1/page-3"_ page. The page will throw an error but other parts of the application should still be functional.
 
 ### Override the host layout from a module page
 
@@ -1961,7 +1961,7 @@ export default {
 
 ### Use the event bus
 
-💡 Our third take is that a federated application should feel homogenous. Different parts of a federation application should communicate with each others and react to changes happening outside of their boundaries.
+💡 Our third take is that a federated application should feel homogenous. Different parts of a federation application should have the ability to communicate with each others and react to changes happening outside of their boundaries.
 
 To enable a loosely coupled communication between the parts of the application, the shell offer a basic implementation of a pub/sub mecanism called the event bus.
 
@@ -2052,11 +2052,11 @@ export default function Page6() {
 }
 ```
 
-👉 Start the applications and libraries and navigate to _*remote1/page-6*_. Click on the button *"Increment count"*. Everytime the button is clicked, the top left counter should increment by 1.
+👉 Start the applications and navigate to _*remote1/page-6*_. Click on the button *"Increment count"*. Everytime the button is clicked, the top left counter should increment by 1.
 
 ### Share a custom service
 
-The shell runtime offers a few built-in services. Hoewerver, by no mean these services alone can support the needs of a mature application. That's why custom services can be added to the shell runtime.
+The shell runtime offers a few built-in services. However, by no mean these services alone can support the needs of a mature application. That's why custom services can be added to the shell runtime.
 
 👉 First, add a `TrackingService` class to the host application:
 
@@ -2153,7 +2153,7 @@ export default function Page7() {
 }
 ```
 
-👉 Start the application and navigate to the _"remote1/page-7"_ page. Open the console and you should see the following log:
+👉 Start the applications and navigate to the _"remote1/page-7"_ page. Open the console and you should see the following log:
 
 ```
 [tracking] Tracking the following data: {page: 'page7', module: 'remote-1'}
@@ -2256,7 +2256,7 @@ This shell doesn't offer any build-in feature to handle data and state managemen
 
 ### Develop a module in isolation
 
-To develop their own module, an independent team should not be required to install locally the host application or any other modules they do not own. However, when developping locally, they expect to render their module pages within the the federated application shell (root layout, root error boundary, etc..).
+To develop their own module, an independent team should not be required to install the host application or any other modules they do not own. However, they should still have a way to integrate with the federated application shell while developping (root layout, root error boundary, etc..).
 
 To achieve this, the first step is to move the federated application shell to the `wmfnext-shared` package.
 
