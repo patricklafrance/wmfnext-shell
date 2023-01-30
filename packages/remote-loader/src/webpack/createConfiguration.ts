@@ -1,11 +1,11 @@
 import type { PackageJson } from "type-fest";
 
 // Based on https://webpack.js.org/plugins/module-federation-plugin/#sharing-hints
-// The "version" prop has been intentionaly omitted has we want to force the usage of the "requiredVersion" prop.
 export interface SharedDependency {
     eager: boolean;
     import: false | string;
     packageName: string;
+    version: false | string;
     requiredVersion: false | string;
     shareKey: string;
     shareScope: string;
@@ -54,7 +54,7 @@ function findDependenciesVersion(packageJson: PackageJson, targetDependencies: s
 
 function hasDependencyVersion(dependency: SharedDependency) {
     if (dependency) {
-        if (dependency.requiredVersion) {
+        if (dependency.version || dependency.requiredVersion) {
             return true;
         }
     }

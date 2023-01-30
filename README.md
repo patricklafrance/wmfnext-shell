@@ -275,7 +275,7 @@ export default {
 👉 Start by creating a new application with a `register.tsx` file and a page:
 
 ```
-remote-app
+remote-1
 ├── src
 ├──── register.tsx
 ├──── Page1.tsx
@@ -507,7 +507,7 @@ The `createHostPlugin()` function also accepts a third parameter, an object lite
 
 If the `requiredVersion` of a shared dependency is not specified, the `createHostPlugin()` function will try to resolve the dependency version from the provided package configuration.
 
-The `sharedDependencies` object support the same syntax as the `ModuleFederationPlugin` [shared object](https://webpack.js.org/plugins/module-federation-plugin/#sharing-hints) minus the `version` property.
+The `sharedDependencies` object support the same syntax as the `ModuleFederationPlugin` [shared object](https://webpack.js.org/plugins/module-federation-plugin/#sharing-hints).
 
 ```js
 export default {
@@ -788,7 +788,7 @@ To do so, by convention, a remote module must share a single file named `remoteE
 👉 So, let's create a `register.tsx` file at the root of the remote module project with the following files:
 
 ```
-remote-app
+remote-1
 ├── src
 ├──── App.tsx
 └──── index.ts
@@ -2948,7 +2948,9 @@ const remotes: RemoteDefinition[] = [
 ];
 
 registerRemoteModules(remotes, runtime, {
-    foo: "bar"
+    context: {
+        foo: "bar"
+    }
 });
 ```
 
@@ -2959,7 +2961,7 @@ import { useAreRemotesReady } from "wmfnext-remote-loader";
 
 const isReady = useAreRemotesReady();
 
-if (isReady) {
+if (!isReady) {
     // do something...
 }
 ```
