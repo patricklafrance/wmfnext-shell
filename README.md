@@ -611,7 +611,6 @@ If an error occurs during the process, a message will automatically be logged wi
 
 If you prefer to handle errors manually, you can chain an handler to the returned [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) object:
 
-
 ```js
 import { RegistrationError } from "wmfnext-remote-loader";
 
@@ -1539,7 +1538,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 👉 Start the applications and navigate to the _"remote1/page-3"_ page. The page will throw an error but other parts of the application should still be functional.
 
-### Override the host layout from a module page
+### Override the host layout
 
 Most applications usually have a default layout with at least a navigation section and a user profile menu, as a majority of the application's pages tend to use the same layout. However, there are usually a few pages for which the default layout will not work, often because they are not bound to a user session, such as a login page.
 
