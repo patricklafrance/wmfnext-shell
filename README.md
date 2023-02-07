@@ -46,7 +46,7 @@ Both remote and static modules can be used in the same application as this shell
     - [Setup a static module](#setup-a-static-module)
     - [Register a module navigation items](#register-a-module-navigation-items)
     - [Isolate module failures](#isolate-module-failures)
-    - [Override the host layout for a module page](#override-the-host-layout-for-a-module-page)
+    - [Override the host layout](#override-the-host-layout)
     - [Share a user session](#share-a-user-session)
     - [Use the event bus](#use-the-event-bus)
     - [Share a custom service](#share-a-custom-service)
