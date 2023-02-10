@@ -14,9 +14,9 @@ export class SessionManager<T = unknown> {
 
     setSession(session: T) {
         if (isNil(session)) {
-            window.sessionStorage.removeItem(this._key);
+            window.localStorage.removeItem(this._key);
         } else {
-            window.sessionStorage.setItem(this._key, JSON.stringify(session));
+            window.localStorage.setItem(this._key, JSON.stringify(session));
         }
 
         this._cache = undefined;
@@ -27,7 +27,7 @@ export class SessionManager<T = unknown> {
             return this._cache;
         }
 
-        const rawSession = window.sessionStorage.getItem(this._key);
+        const rawSession = window.localStorage.getItem(this._key);
 
         if (!isNilOrEmpty(rawSession)) {
             const session = JSON.parse(rawSession);
@@ -45,6 +45,6 @@ export class SessionManager<T = unknown> {
     clearSession() {
         this._cache = undefined;
 
-        window.sessionStorage.removeItem(this._key);
+        window.localStorage.removeItem(this._key);
     }
 }
