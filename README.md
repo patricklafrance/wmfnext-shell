@@ -94,7 +94,7 @@ To install the packages, [open a terminal in VSCode](https://code.visualstudio.c
 yarn add wmfnext-shell
 ```
 
-If you wish to include remote modules also execute the following command at the root of the projects workspaces (host and every remote module):
+❗ If you wish to include remote modules also execute the following command at the root of the projects workspaces (host and every remote module):
 
 ```bash
 yarn add wmfnext-remote-loader
@@ -482,12 +482,25 @@ export default {
     plugins: [
         // Only use the ModuleFederationPlugin plugin if you
         // are loading remote modules at runtime.
-        createHostConfiguration("host", packageJson),
+        createHostPlugin("host", packageJson),
         new HtmlWebpackPlugin({
             template: "./public/index.html"
         })
     ]
 };
+```
+
+```html
+<!-- host - public/index.html -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
 ```
 </details>
 
@@ -537,6 +550,10 @@ export default {
     }
 }
 ```
+
+> **Note**
+>
+> You can find a TS configuration sample in the [host application example repository](https://github.com/patricklafrance/wmfnext-host/tree/master/packages/app).
 
 👉 Now that the basics are covered, let's dive into the more exciting stuff and start using built-in features of the shell. Open the `bootstrap.tsx` file and instanciate a `Runtime` object:
 
@@ -725,7 +742,7 @@ export default {
                     loader: "ts-loader",
                     options: {
                         transpileOnly: true,
-                        configFile: path.resolve(__dirname, "tsconfig.dev.json")
+                        configFile: path.resolve(__dirname, "tsconfig.json")
                     }
                 }
             },
@@ -759,6 +776,19 @@ export default {
     ]
 };
 ```
+
+```html
+<!-- remote-1 - public/index.html -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+```
 </details>
 
 > **Note**
@@ -776,6 +806,10 @@ The `createModulePlugin()` function serve the same purpose as the `createHostPlu
     }
 }
 ```
+
+> **Note**
+>
+> You can find a TS configuration sample in the [remote-1 application example repository](https://github.com/patricklafrance/wmfnext-remote-1).
 
 👉 Start the remote module application with the `dev` command. You should see a page displaying __Hello from remote!__.
 
@@ -981,15 +1015,13 @@ export function RootLayout() {
 
 ### Re-render the host application after the remote modules are ready
 
+> **Warning**
+>
+> You can skip this section if your host application is strictly importing static modules.
+
 You are redirected to a 404 page because the host application rendered **before** the remote module is registered. Therefore, only the host application routes were added to the router at the time the application rendered.
 
 To fix this, the host application must re-render once the remote module is registered.
-
-> **Note**
->
-> You can skip this section if your host application is either:
-> - Using a library like Redux to manage it's state
-> - Strictly using static modules
 
 To help with that, the shell comes with a build-in `useAreRemotesReady()` hook.
 
@@ -1123,6 +1155,12 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 
 ### Setup a static module
 
+> **Warning**
+>
+> Before reading this section, make sure you already when trough the following sections:
+> - [Setup an host application](#setup-an-host-application)
+> - [Register a module routes](#register-a-module-routes)
+
 This shell also supports static modules loaded at build time to accomodate different migration scenarios.
 
 A static module can be a sibling project of the host application in a monorepo setup, a standalone package developed in its own repository or even a folder of the host application.
@@ -1188,7 +1226,7 @@ export const register: ModuleRegisterFunction = (runtime: Runtime) => {
 ```tsx
 // host - bootstrap.tsx
 
-import { ConsoleLogger, RuntimeContext, Runtime } from "wmfnext-shell";
+import { ConsoleLogger, RuntimeContext, Runtime, registerStaticModules } from "wmfnext-shell";
 import type { RemoteDefinition } from "wmfnext-remote-loader";
 import { App } from "./App";
 import { createRoot } from "react-dom/client";
@@ -1259,10 +1297,15 @@ export function RootLayout() {
 ```json
 {
     "scripts": {
-        "dev": "tsc --watch --project ./tsconfig.dev.json"
+        "dev": "tsc --watch --project ./tsconfig.json"
     }
 }
 ```
+
+> **Note**
+>
+> You can find a TS configuration sample in the [static-1 application example repository](https://github.com/patricklafrance/wmfnext-host/tree/master/packages/static-module-1).
+
 👉 Finally, update the host application's file `package.json` file to add a reference to the newly created `wmfnext-static-module-1` package.
 
 👉 Start the applications with the `dev` command and navigate to _"static1/page-1"_ and _"static1/page-2"_, the pages should render without any errors.
@@ -2575,7 +2618,7 @@ export function App() {
 
 ```json
 {
-    "dev": "tsc --watch --project ./tsconfig.dev.json",
+    "dev": "tsc --watch --project ./tsconfig.json",
     "dev-local": "webpack serve --config webpack.config.js"
 }
 ```
@@ -2587,6 +2630,8 @@ export function App() {
     <br />
 
 ```js
+// static-1 - webpack.config
+
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import { getFileDirectory } from "wmfnext-remote-loader/webpack.js";
 import path from "path";
@@ -2616,7 +2661,7 @@ export default {
                     loader: "ts-loader",
                     options: {
                         transpileOnly: true,
-                        configFile: path.resolve(__dirname, "tsconfig.dev.json")
+                        configFile: path.resolve(__dirname, "tsconfig.json")
                     }
                 }
             },
@@ -2647,6 +2692,19 @@ export default {
         })
     ]
 };
+```
+
+```html
+<!-- static-1 - public/index.html -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
 ```
 </details>
 
@@ -2705,7 +2763,7 @@ const runtime = new Runtime();
 
 root.render(
     <RuntimeContext.Provider value={runtime}>
-            <App />
+        <App />
     </RuntimeContext.Provider>
 );
 ```
