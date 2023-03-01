@@ -1,4 +1,4 @@
-import type { RemoteDefinition } from "./RemoteDefinition";
+import type { RemoteDefinition } from "./remoteDefinition";
 import type { Runtime } from "wmfnext-shell";
 import { loadRemote } from "./loadRemote";
 import { registerModule } from "wmfnext-shell";
